@@ -1,0 +1,29 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_web/constants.dart';
+import 'package:flutter_web/presentation/core/menu/app_bar.dart';
+import 'package:flutter_web/presentation/core/menu/drawer.dart';
+import 'package:flutter_web/presentation/core/menu/menu_bar.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
+class PageTemplate extends StatelessWidget {
+  final Widget child;
+  const PageTemplate({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeData = Theme.of(context);
+    final responsiveValue = ResponsiveWrapper.of(context);
+    return Scaffold(
+      endDrawer: const CustomDrawer(),
+      backgroundColor: themeData.scaffoldBackgroundColor,
+      appBar: responsiveValue.isSmallerThan(DESKTOP)
+          ? const PreferredSize(
+              preferredSize: Size(double.infinity, 60), child: CustomAppBar())
+          : const PreferredSize(
+              preferredSize: Size(double.infinity, 66),
+              child: MyMenuBar(),
+            ),
+      body: child,
+    );
+  }
+}

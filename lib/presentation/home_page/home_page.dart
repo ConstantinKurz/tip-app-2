@@ -3,12 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_bloc.dart';
+import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
+import 'package:flutter_web/presentation/home_page/widget/match_list.dart';
 import '../../domain/entities/team.dart';
 import '../../injections.dart';
-import '../core/buttons/add_button.dart';
-import '../core/dialogs/create_match_dialog.dart';
-
 class HomePage extends StatelessWidget {
   static String homePagePath = "/home";
   const HomePage({super.key});
@@ -37,8 +36,8 @@ class HomePage extends StatelessWidget {
             builder: (context, matchState) {
               return BlocBuilder<TeamsBloc, TeamsState>(
                 builder: (context, teamState) {
-                  if (authState is AuthControllerLoading &&
-                      matchState is MatchesControllerLoading &&
+                  if (authState is AuthControllerLoading ||
+                      matchState is MatchesControllerLoading ||
                       teamState is TeamsLoading) {
                     return Center(
                       child: CircularProgressIndicator(
@@ -59,7 +58,7 @@ class HomePage extends StatelessWidget {
                       matchState is MatchesControllerLoaded &&
                       teamState is TeamsLoaded) {
                     return PageTemplate(
-                      child: ListView(
+                      child: Column( // Verwende Column statt ListView
                         children: [
                           Text('Users:',
                               style: Theme.of(context).textTheme.headline6),
@@ -70,23 +69,9 @@ class HomePage extends StatelessWidget {
                             );
                           }).toList(),
                           const Divider(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Matches:',
-                                  style: Theme.of(context).textTheme.headline6),
-                              AddButton(
-                                  onPressed: () =>
-                                      _showAddMatchDialog(context, teamState.teams)),
-                            ],
+                          Expanded( // Wrap MatchList with Expanded
+                            child: MatchList(matches: matchState.matches, teams: teamState.teams), // Übergib die Liste der Matches
                           ),
-                          ...matchState.matches.map((match) {
-                            return ListTile(
-                              title: Text(
-                                  'Match: ${match.homeTeamId.value} vs ${match.guestTeamId.value}'),
-                              subtitle: Text('Date: ${match.matchDate}'),
-                            );
-                          }).toList(),
                         ],
                       ),
                     );
@@ -100,18 +85,4 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-}
-
-void _showAddMatchDialog(BuildContext context, List<Team> teams) {
-  showDialog(
-    barrierColor: Colors.transparent,
-    context: context,
-    builder: (BuildContext context) {
-      return Builder(
-        builder: (BuildContext newContext) {
-          return CreateMatchDialog(teams: teams);
-        },
-      );
-    },
-  );
 }

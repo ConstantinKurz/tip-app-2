@@ -17,17 +17,20 @@ class CreateMatchEvent extends MatchesformEvent {
       required this.matchDay});
 }
 
-class UpdateMatchEvent extends MatchesformEvent {
+class MatchFormUpdateEvent extends MatchesformEvent {
+  final CustomMatch match;
+  MatchFormUpdateEvent({required this.match});
+}
+
+class MatchFormUpdatedEvent extends MatchesformEvent {
+  final Either<MatchFailure, Unit> failureOrSuccess;
+
+  MatchFormUpdatedEvent({required this.failureOrSuccess});
+}
+
+class DeleteMatchEvent extends MatchesformEvent {
   final UniqueID id;
-  final UniqueID? homeTeamId;
-  final UniqueID? guestTeamId;
-  final DateTime? matchDate;
-  final int? matchDay;
-  UpdateMatchEvent({
+  DeleteMatchEvent({
     required this.id,
-    this.homeTeamId,
-    this.guestTeamId,
-    this.matchDate,
-    this.matchDay,
   });
 }

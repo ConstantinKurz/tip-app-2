@@ -22,10 +22,7 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
           event.matchDate == null ||
           event.matchDay == null) {
         // Handle the case where one or more fields are null
-        emit(MatchesformState(
-          isSubmitting: false,
-          showValidationMessages: true,
-        ));
+        emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
       } else {
         emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
         CustomMatch match = CustomMatch.empty().copyWith(
@@ -40,6 +37,30 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
           matchFailureOrSuccessOption: optionOf(failureOrSuccess),
         ));
       }
+    });
+
+    on<MatchFormUpdateEvent>((event, emit) async {
+      emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
+      final failureOrSuccess = await matchesRepository.updateMatch(event.match);
+      emit(state.copyWith(
+        isSubmitting: false,
+        matchFailureOrSuccessOption: optionOf(failureOrSuccess),
+      ));
+    });
+
+    on<DeleteMatchEvent>((event, emit) async {
+      emit(state.copyWith(
+          isSubmitting: true,
+          showValidationMessages: false,
+          matchFailureOrSuccessOption: none()));
+
+      final failureOrSuccess =
+          await matchesRepository.deleteMatchById(event.id.toString());
+
+      emit(state.copyWith(
+        isSubmitting: false,
+        matchFailureOrSuccessOption: optionOf(failureOrSuccess),
+      ));
     });
   }
 }

@@ -4,9 +4,14 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 class CustomButton extends StatelessWidget {
   final String buttonText;
   final Function callback;
+  final Color? backgroundColor; // Optionaler Parameter für die Hintergrundfarbe
 
-  const CustomButton(
-      {super.key, required this.buttonText, required this.callback});
+  const CustomButton({
+    Key? key,
+    required this.buttonText,
+    required this.callback,
+    this.backgroundColor, // Füge den backgroundColor-Parameter hinzu
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,25 +31,29 @@ class CustomButton extends StatelessWidget {
         child: Material(
           elevation: 6,
           borderRadius: BorderRadius.circular(20),
+          color: backgroundColor,
           child: IntrinsicWidth(
-              child: Container(
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: themeData.colorScheme.secondary,
-                borderRadius: BorderRadius.circular(8)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Text(
-                buttonText,
-                style: themeData.textTheme.headlineLarge!.copyWith(
+            child: Container(
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: backgroundColor ?? themeData.colorScheme.secondary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Text(
+                  buttonText,
+                  style: themeData.textTheme.headlineLarge!.copyWith(
                     fontSize: 14,
                     color: Colors.blueGrey[800],
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 4),
+                    letterSpacing: 4,
+                  ),
+                ),
               ),
             ),
-          )),
+          ),
         ),
       ),
     );
@@ -57,22 +66,24 @@ class CustomButton extends StatelessWidget {
         callback();
       },
       child: Container(
-          height: 40,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: themeData.colorScheme.secondary,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              buttonText,
-              style: themeData.textTheme.headlineLarge!.copyWith(
-                  fontSize: 14,
-                  color: Colors.blueGrey[800],
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 4),
+        height: 40,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: backgroundColor ?? themeData.colorScheme.secondary,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            buttonText,
+            style: themeData.textTheme.headlineLarge!.copyWith(
+              fontSize: 14,
+              color: Colors.blueGrey[800],
+              fontWeight: FontWeight.bold,
+              letterSpacing: 4,
             ),
-          )),
+          ),
+        ),
+      ),
     );
   }
 }

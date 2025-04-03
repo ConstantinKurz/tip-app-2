@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/team.dart';
+import 'dart:core';
+import 'package:intl/intl.dart';
 
 class CreateMatchForm extends StatefulWidget {
   final List<Team> teams;
@@ -20,7 +22,7 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
   late UniqueID _guestTeamId;
   DateTime? _matchDate = DateTime.now();
   TimeOfDay? _matchTime = TimeOfDay.now();
-  late int _matchDay;
+  late int _matchDay = 0;
 
   String? validateTeam(String? input) {
     if (input == null) {
@@ -109,7 +111,6 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
               ),
               const SizedBox(height: 16),
               Row(
-                // Wrap with Row
                 children: [
                   Expanded(
                     child: InkWell(
@@ -131,7 +132,11 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
                           labelText: 'Datum',
                           hintText: 'Datum auswählen',
                         ),
-                        child: Text(_matchDate.toString()),
+                        child: Text(
+                          _matchDate != null
+                              ? DateFormat('dd.MM.yyyy').format(_matchDate!)
+                              : 'Kein Datum ausgewählt',
+                        ),
                       ),
                     ),
                   ),
@@ -154,7 +159,9 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
                           labelText: 'Uhrzeit',
                           hintText: 'Uhrzeit auswählen',
                         ),
-                        child: Text(_matchTime.toString()),
+                        child: Text(_matchTime != null
+                            ? _matchTime!.format(context).toString()
+                            : 'Keine Uhrzeit ausgewählt'),
                       ),
                     ),
                   ),
@@ -203,8 +210,7 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
                         CreateMatchEvent(
                           homeTeamId: _homeTeamId,
                           guestTeamId: _guestTeamId,
-                          matchDate:
-                              combinedDateTime, // Sicher, da wir es validiert haben
+                          matchDate: combinedDateTime,
                           matchDay: _matchDay,
                         ),
                       );

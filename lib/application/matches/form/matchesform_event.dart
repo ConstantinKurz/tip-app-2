@@ -18,7 +18,7 @@ class CreateMatchEvent extends MatchesformEvent {
 }
 
 class MatchFormUpdateEvent extends MatchesformEvent {
-  final CustomMatch match;
+  final CustomMatch? match;
   MatchFormUpdateEvent({required this.match});
 }
 
@@ -28,9 +28,9 @@ class MatchFormUpdatedEvent extends MatchesformEvent {
   MatchFormUpdatedEvent({required this.failureOrSuccess});
 }
 
-class DeleteMatchEvent extends MatchesformEvent {
+class MatchFormDeleteEvent extends MatchesformEvent {
   final UniqueID id;
-  DeleteMatchEvent({
+  MatchFormDeleteEvent({
     required this.id,
   });
 }

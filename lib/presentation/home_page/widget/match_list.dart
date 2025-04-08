@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/add_button.dart';
@@ -66,6 +67,10 @@ class MatchList extends StatelessWidget {
             style: themeData.textTheme.bodyLarge,
           ),
           Text(
+            '${match.homeScore ?? '-'} : ${match.guestScore ?? '-'}',
+            style: themeData.textTheme.bodySmall,
+          ),
+          Text(
             'Spieltag: ${match.matchDay}',
             style: themeData.textTheme.bodySmall,
           ),
@@ -74,18 +79,19 @@ class MatchList extends StatelessWidget {
             children: [
               CustomButton(
                 buttonText: 'Bearbeiten',
+                backgroundColor: themeData.colorScheme.primaryContainer,
+                borderColor: primaryDark,
                 callback: () {
                   _showUpdateMatchDialog(context, teams, match);
-                  print('Bearbeiten geklickt für Match ID: ${match.id.value}');
                 },
               ),
               const SizedBox(width: 8.0),
               CustomButton(
                 buttonText: 'Löschen',
-                backgroundColor: Colors.red,
+                backgroundColor: themeData.colorScheme.primaryContainer,
+                borderColor: Colors.red,
                 callback: () {
-                  // TODO: Implementiere die Löschlogik
-                  print('Löschen geklickt für Match ID: ${match.id.value}');
+                  _showDeleteMatchDialog(context, match);
                 },
               ),
             ],
@@ -103,7 +109,21 @@ void _showAddMatchDialog(BuildContext context, List<Team> teams) {
     builder: (BuildContext context) {
       return Builder(
         builder: (BuildContext newContext) {
-          return MatchDialog(teams: teams, dialogText: "Neues Match");
+          return MatchDialog(teams: teams, dialogText: "Neues Match", matchAction: MatchAction.create,);
+        },
+      );
+    },
+  );
+}
+
+void _showDeleteMatchDialog(BuildContext context, CustomMatch match) {
+  showDialog(
+    barrierColor: Colors.transparent,
+    context: context,
+    builder: (BuildContext context) {
+      return Builder(
+        builder: (BuildContext newContext) {
+          return MatchDialog(match: match, dialogText: "Match löschen", matchAction: MatchAction.delete,);
         },
       );
     },
@@ -117,7 +137,7 @@ void _showUpdateMatchDialog(BuildContext context, List<Team> teams, CustomMatch 
     builder: (BuildContext context) {
       return Builder(
         builder: (BuildContext newContext) {
-          return MatchDialog(teams: teams, dialogText: "Match aktualisiern", isUpdate: true, match: match,);
+          return MatchDialog(teams: teams, dialogText: "Match bearbeiten", matchAction: MatchAction.update, match: match,);
         },
       );
     },

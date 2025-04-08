@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/signupform/signupform_bloc.dart';
+import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
@@ -121,6 +122,8 @@ class SignUpForm extends StatelessWidget {
                 height: 40,
               ),
               CustomButton(
+                borderColor: primaryDark,
+                backgroundColor: themeData.scaffoldBackgroundColor,
                 buttonText: "Register",
                 callback: () {
                   {

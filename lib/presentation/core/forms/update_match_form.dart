@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/domain/entities/id.dart';
-import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/team.dart';
 
 class UpdateMatchForm extends StatefulWidget {
   final List<Team> teams;
@@ -19,11 +21,16 @@ class UpdateMatchForm extends StatefulWidget {
 class _UpdateMatchFormState extends State<UpdateMatchForm> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  final TextEditingController _homeScoreController = TextEditingController();
+  final TextEditingController _guestScoreController = TextEditingController();
+
   UniqueID? _homeTeamId;
   UniqueID? _guestTeamId;
   DateTime? _matchDate;
   TimeOfDay? _matchTime;
   int _matchDay = 0;
+  late int? _homeScore;
+  late int? _guestScore;
 
   @override
   void initState() {
@@ -33,6 +40,18 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
     _matchDate = widget.match.matchDate;
     _matchTime = TimeOfDay.fromDateTime(widget.match.matchDate);
     _matchDay = widget.match.matchDay;
+    _homeScore = widget.match.homeScore;
+    _guestScore = widget.match.guestScore;
+
+    _homeScoreController.text = _homeScore?.toString() ?? '';
+    _guestScoreController.text = _guestScore?.toString() ?? '';
+  }
+
+  @override
+  void dispose() {
+    _guestScoreController.dispose();
+    _homeScoreController.dispose();
+    super.dispose();
   }
 
   String? validateTeam(String? input) {
@@ -59,6 +78,26 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
     }
   }
 
+  String? _validateScore(String? value, String scoreType) {
+    if (value == null || value.isEmpty) {
+      if ((_homeScoreController.text.isNotEmpty && scoreType == 'guest') ||
+          (_guestScoreController.text.isNotEmpty && scoreType == 'home')) {
+        return ' 0 - 11';
+      }
+      return null;
+    }
+    final intValue = int.tryParse(value);
+    if (intValue == null || intValue < 0 || intValue > 11) {
+      return 'Bitte einen Wert zwischen 0 und 11 eingeben';
+    }
+    if (scoreType == 'home') {
+      _homeScore = intValue;
+    } else if (scoreType == 'guest') {
+      _guestScore = intValue;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
@@ -79,54 +118,105 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                           style: themeData.textTheme.bodyLarge,
                         )));
                   }, (_) {
+                    print("success");
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         backgroundColor: Colors.green,
                         content: Text(
-                          "Match erfolgreich erstellt!",
+                          "Match erfolgreich aktualisiert!",
                           style: themeData.textTheme.bodyLarge,
                         )));
                   }));
         },
         builder: (context, state) {
           return Form(
+            autovalidateMode: state.showValidationMessages
+                ? AutovalidateMode.always
+                : AutovalidateMode.disabled,
             key: formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<Team>(
-                  decoration: const InputDecoration(labelText: 'Home Team'),
-                  value: widget.teams.firstWhere(
-                      (team) => team.id == widget.match.homeTeamId.value),
-                  items: widget.teams.map((team) {
-                    return DropdownMenuItem<Team>(
-                      value: team,
-                      child: Text(team.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _homeTeamId = UniqueID.fromUniqueString(value!.id);
-                    });
-                  },
-                  validator: (value) => validateTeam(value?.id),
-                ),
+                Row(children: [
+                  Expanded(
+                    child: DropdownButtonFormField<Team>(
+                      decoration: const InputDecoration(labelText: 'Home Team'),
+                      value: widget.teams.firstWhere(
+                          (team) => team.id == widget.match.homeTeamId.value),
+                      items: widget.teams.map((team) {
+                        return DropdownMenuItem<Team>(
+                          value: team,
+                          child: Text(team.name),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _homeTeamId = UniqueID.fromUniqueString(value!.id);
+                        });
+                      },
+                      validator: (value) => validateTeam(value?.id),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<Team>(
+                      decoration: const InputDecoration(labelText: 'Gast Team'),
+                      value: widget.teams.firstWhere(
+                          (team) => team.id == widget.match.guestTeamId.value),
+                      items: widget.teams.map((team) {
+                        return DropdownMenuItem<Team>(
+                          value: team,
+                          child: Text(team.name),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _guestTeamId = UniqueID.fromUniqueString(value!.id);
+                        });
+                      },
+                      validator: (value) => validateTeam(value?.id),
+                    ),
+                  ),
+                ]),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<Team>(
-                  decoration: const InputDecoration(labelText: 'Gast Team'),
-                  value: widget.teams.firstWhere(
-                      (team) => team.id == widget.match.guestTeamId.value),
-                  items: widget.teams.map((team) {
-                    return DropdownMenuItem<Team>(
-                      value: team,
-                      child: Text(team.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _guestTeamId = UniqueID.fromUniqueString(value!.id);
-                    });
-                  },
-                  validator: (value) => validateTeam(value?.id),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _homeScoreController,
+                        cursorColor: Colors.white,
+                        validator: (value) => _validateScore(value, 'home'),
+                        maxLength: 2,
+                        maxLines: 1,
+                        minLines: 1,
+                        decoration: InputDecoration(
+                            labelText: "Heimtore",
+                            hintText: _homeScore?.toString() ?? '',
+                            counterText: "",
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8))),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(":"),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _guestScoreController,
+                        cursorColor: Colors.white,
+                        validator: (value) => _validateScore(value, 'guest'),
+                        maxLength: 2,
+                        maxLines: 1,
+                        minLines: 1,
+                        decoration: InputDecoration(
+                            labelText: "Gasttore",
+                            hintText: _guestScore?.toString() ?? '',
+                            counterText: "",
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8))),
+                      ),
+                    )
+                  ],
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -201,7 +291,9 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                   },
                   validator: (value) => validateMatchDay(value),
                 ),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center, children: [
                   TextButton(
                     child: const Text('Speichern',
                         style: TextStyle(color: Colors.white)),
@@ -214,20 +306,22 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                           _matchTime!.hour,
                           _matchTime!.minute,
                         );
-                        print('Matchday wird übergeben: $_matchDay');
                         final CustomMatch updatedMatch = CustomMatch(
                             id: widget.match.id,
                             homeTeamId: _homeTeamId!,
                             guestTeamId: _guestTeamId!,
                             matchDate: combinedDateTime,
                             matchDay: _matchDay,
-                            homeScore: widget.match.homeScore,
-                            guestScore: widget.match.homeScore);
+                            homeScore: _homeScore,
+                            guestScore: _guestScore);
                         BlocProvider.of<MatchesformBloc>(context).add(
                           MatchFormUpdateEvent(match: updatedMatch),
                         );
+                        Navigator.of(context).pop();
+                      } else {
+                        BlocProvider.of<MatchesformBloc>(context)
+                            .add(MatchFormUpdateEvent(match: null));
                       }
-                      Navigator.of(context).pop();
                     },
                   ),
                   TextButton(

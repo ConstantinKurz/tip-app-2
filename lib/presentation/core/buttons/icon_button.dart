@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_web/constants.dart';
 
 class FancyIconButton extends StatefulWidget {
   final IconData icon;

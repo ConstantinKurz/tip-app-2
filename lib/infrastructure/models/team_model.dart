@@ -6,12 +6,14 @@ import 'package:flutter_web/domain/entities/team.dart';
 class TeamModel {
   final String id;
   final String name;
+  final String flagCode;
   final int winPoints;
   final bool champion;
 
   TeamModel({
     required this.id,
     required this.name,
+    required this.flagCode,
     required this.winPoints,
     required this.champion,
   });
@@ -20,6 +22,7 @@ class TeamModel {
     return <String, dynamic>{
       'id': id,
       'name': name,
+      'flag_code': flagCode,
       'win_points': winPoints,
       'champion': champion,
     };
@@ -29,6 +32,7 @@ class TeamModel {
     return TeamModel(
       id: "",
       name: map['name'] as String,
+      flagCode: map['flag_code'] as String,
       winPoints: map['win_points'] as int,
       champion: map['champion'] as bool,
     );
@@ -37,12 +41,14 @@ class TeamModel {
   TeamModel copyWith({
     String? id,
     String? name,
+    String? flagCode,
     int? winPoints,
     bool? champion,
   }) {
     return TeamModel(
       id: id ?? this.id,
       name: name ?? this.name,
+      flagCode: flagCode ?? this.flagCode,
       winPoints: winPoints ?? this.winPoints,
       champion: champion ?? this.champion,
     );
@@ -59,6 +65,7 @@ class TeamModel {
     return Team(
       id: id,
       name: name,
+      flagCode: flagCode,
       winPoints: winPoints,
       champion: champion,
     );
@@ -68,6 +75,7 @@ class TeamModel {
     return TeamModel(
         id: team.id ,
         name: team.name,
+        flagCode: team.flagCode,
         winPoints: team.winPoints,
         champion: team.champion);
   }

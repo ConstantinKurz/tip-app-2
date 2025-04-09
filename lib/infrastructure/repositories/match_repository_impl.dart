@@ -80,6 +80,7 @@ class MatchRepositoryImpl implements MatchRepository {
       await matchesCollection.doc(matchModel.id).update(matchModel.toMap());
       return right(unit);
     } on FirebaseException catch (e) {
+      print("Error updating match: $e");
       if (e.code.contains("PERMISSION_DENIED")) {
         return left(InsufficientPermisssons());
       } else {

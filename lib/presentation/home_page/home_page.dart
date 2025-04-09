@@ -39,6 +39,9 @@ class HomePage extends StatelessWidget {
                   if (authState is AuthControllerLoading ||
                       matchState is MatchesControllerLoading ||
                       teamState is TeamsLoading) {
+                    print(authState);
+                    print(matchState);
+                    print(teamState);
                     return Center(
                       child: CircularProgressIndicator(
                         color: themeData.colorScheme.secondary,

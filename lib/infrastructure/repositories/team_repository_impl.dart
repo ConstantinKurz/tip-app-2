@@ -72,18 +72,6 @@ class TeamRepositoryImpl implements TeamRepository {
     }
   }
 
-  // @override
-  // Future<Either<TeamFailure, List<Team>>> watchAll() async {
-  //   try {
-  //     QuerySnapshot snapshot = await teamsCollection.get();
-  //     List<Team> teams =
-  //         snapshot.docs.map((doc) => TeamModel.fromFirestore(doc).toDomain()).toList();
-  //     return right(teams);
-  //   } catch (e) {
-  //     return left(UnexpectedFailure());
-  //   }
-  // }
-
     @override
   Stream<Either<TeamFailure, List<Team>>> watchAllTeams() async* {
 

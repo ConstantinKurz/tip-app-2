@@ -33,6 +33,7 @@ class TeamsBloc extends Bloc<TeamEvent, TeamsState> {
     });
 
     on<TeamsUpdatedEvent>((event, emit) {
+      print("teams updated");
       event.failureOrTeams.fold(
         (failure) => emit(TeamFailureState(teamFailure: failure)),
         (teams) => emit(TeamsLoaded(teams: teams))

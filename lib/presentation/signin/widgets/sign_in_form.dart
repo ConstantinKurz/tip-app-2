@@ -126,6 +126,7 @@ class SignInForm extends StatelessWidget {
               CustomButton(
                 borderColor: primaryDark,
                 hoverColor: primaryDark,
+                backgroundColor: themeData.scaffoldBackgroundColor,
                 buttonText: "Sign in",
                 callback: () {
                   if (formKey.currentState!.validate()) {

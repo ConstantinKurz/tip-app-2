@@ -22,4 +22,9 @@ class MatchesformState {
         matchFailureOrSuccessOption:
             matchFailureOrSuccessOption ?? this.matchFailureOrSuccessOption);
   }
+
+  @override
+  String toString() {
+    return 'MatchesformState(isSubmitting: $isSubmitting, showValidationMessages: $showValidationMessages, matchFailureOrSuccessOption: $matchFailureOrSuccessOption)';
+  }
 }

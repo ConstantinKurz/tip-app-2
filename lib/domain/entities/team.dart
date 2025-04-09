@@ -3,6 +3,8 @@ class Team {
 
   final String name;
 
+  final String flagCode;
+
   final int winPoints;
 
   final bool champion;
@@ -10,6 +12,7 @@ class Team {
   Team({
     required this.id,
     required this.name,
+    required this.flagCode,
     required this.winPoints,
     required this.champion,
   });
@@ -17,18 +20,20 @@ class Team {
   Team copyWith({
     String? id,
     String? name,
+    String? flagCode,
     int? winPoints,
     bool? champion,
   }) {
     return Team(
       id: id ?? this.id,
       name: name ?? this.name,
+      flagCode: flagCode ?? this.flagCode,
       winPoints: winPoints ?? this.winPoints,
       champion: champion ?? this.champion,
     );
   }
 
   factory Team.empty() {
-    return Team(id: "TBD", name: "Placeholder", winPoints: 0, champion: false);
+    return Team(id: "TBD", name: "Placeholder", flagCode: "Null", winPoints: 0, champion: false);
   }
 }

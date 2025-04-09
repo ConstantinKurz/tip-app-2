@@ -40,17 +40,24 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
     });
 
     on<MatchFormUpdateEvent>((event, emit) async {
+      print(event);
+      print(state.toString());
       if (event.match != null) {
-      emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
-      final failureOrSuccess = await matchesRepository.updateMatch(event.match!);
-      emit(state.copyWith(
-        isSubmitting: false,
-        matchFailureOrSuccessOption: optionOf(failureOrSuccess),
-      ));
-    }
-    else {
-      emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
-    }
+        emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
+        final failureOrSuccess =
+            await matchesRepository.updateMatch(event.match!);
+        print('Update Failure or Success: $failureOrSuccess');
+        print("Formupdate event state ${state.copyWith(
+          isSubmitting: false,
+          matchFailureOrSuccessOption: optionOf(failureOrSuccess),
+        )}");
+        emit(state.copyWith(
+          isSubmitting: false,
+          matchFailureOrSuccessOption: optionOf(failureOrSuccess),
+        ));
+      } else {
+        emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
+      }
     });
 
     on<MatchFormDeleteEvent>((event, emit) async {

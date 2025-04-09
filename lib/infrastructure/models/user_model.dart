@@ -9,7 +9,7 @@ import 'package:flutter_web/infrastructure/models/team_model.dart';
 
 class UserModel {
   final String id;
-  final TeamModel champion;
+  final String championId;
   final String username;
   final String email;
   final int rank;
@@ -18,7 +18,7 @@ class UserModel {
 
   UserModel({
     required this.id,
-    required this.champion,
+    required this.championId,
     required this.username,
     required this.email,
     required this.rank,
@@ -29,7 +29,7 @@ class UserModel {
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       id: map['id'] as String,
-      champion: TeamModel.fromMap(map['champion'] as Map<String, dynamic>),
+      championId: map['champion_id'] as String,
       username: map['username'] as String,
       email: map['email'] as String,
       rank: map['rank'] as int,
@@ -45,7 +45,7 @@ class UserModel {
 
   UserModel copyWith({
     String? id,
-    TeamModel? champion,
+    String? championId,
     String? username,
     String? email,
     int? rank,
@@ -54,7 +54,7 @@ class UserModel {
   }) {
     return UserModel(
       id: id ?? this.id,
-      champion: champion ?? this.champion,
+      championId: championId ?? this.championId,
       username: username ?? this.username,
       email: email ?? this.email,
       rank: rank ?? this.rank,
@@ -66,7 +66,7 @@ class UserModel {
   AppUser toDomain() {
     return AppUser(
       id: UniqueID.fromUniqueString(id),
-      champion: champion.toDomain(),
+      championId: championId,
       username: username,
       email: email,
       rank: rank,
@@ -78,7 +78,7 @@ class UserModel {
   factory UserModel.fromDomain(AppUser user) {
     return UserModel(
       id: user.id.value,
-      champion: TeamModel.fromDomain(user.champion),
+      championId: user.championId,
       username: user.username,
       email: user.email,
       rank: user.rank,
@@ -90,7 +90,7 @@ class UserModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
-      'champion': champion.toMap(),
+      'champion_id': championId,
       'username': username,
       'email': email,
       'rank': rank,
@@ -102,7 +102,7 @@ class UserModel {
   factory UserModel.empty(String id, String username, String email) {
     return UserModel(
         id: id,
-        champion: TeamModel.fromDomain(Team.empty()),
+        championId: 'TBD',
         username: username,
         email: email,
         rank: 0,

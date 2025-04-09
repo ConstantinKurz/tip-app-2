@@ -5,6 +5,7 @@ import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/add_button.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
 import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
+import 'package:flag/flag.dart';
 
 class MatchList extends StatelessWidget {
   final List<CustomMatch> matches;
@@ -33,7 +34,16 @@ class MatchList extends StatelessWidget {
               itemCount: matches.length,
               itemBuilder: (context, index) {
                 final match = matches[index];
-                return _buildMatchItem(context, match);
+                final homeTeam = teams.firstWhere(
+                  (team) => team.id == match.homeTeamId.value,
+                  orElse: () => Team.empty(),
+                );
+                final guestTeam = teams.firstWhere(
+                  (team) => team.id == match.guestTeamId.value,
+                  orElse: () => Team.empty(),
+                );
+
+                return _buildMatchItem(context, match, homeTeam, guestTeam);
               },
             ),
           ),
@@ -42,8 +52,10 @@ class MatchList extends StatelessWidget {
     );
   }
 
-  Widget _buildMatchItem(BuildContext context, CustomMatch match) {
+  Widget _buildMatchItem(
+      BuildContext context, CustomMatch match, Team homeTeam, Team guestTeam) {
     final themeData = Theme.of(context);
+    print(homeTeam.flagCode);
     return Container(
       margin: const EdgeInsets.only(bottom: 8.0),
       padding: const EdgeInsets.all(16.0),
@@ -59,47 +71,85 @@ class MatchList extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    '${match.homeTeamId.value} vs ${match.guestTeamId.value}',
-                    style: themeData.textTheme.bodyLarge,
-                  ),
-                  Text(
-                    '${match.homeScore ?? '-'} : ${match.guestScore ?? '-'}',
-                    style: themeData.textTheme.bodySmall,
-                  ),
-                  Text(
-                    'Spieltag: ${match.matchDay}',
-                    style: themeData.textTheme.bodySmall,
-                  )
-                ]),
+          // Spieltag und Spielzeit oben links
+          Text(
+            'Spieltag: ${match.matchDay}, ${match.matchDate}',
+            style: themeData.textTheme.bodySmall,
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
+          const SizedBox(height: 8.0),
+          Row(
             children: [
-              FancyIconButton(
-                icon: Icons.edit,
-                backgroundColor: themeData.colorScheme.primaryContainer,
-                hoverColor: primaryDark,
-                borderColor: primaryDark,
-                callback: () {
-                  _showUpdateMatchDialog(context, teams, match);
-                },
+              const Spacer(),
+              // Heimteam
+              Expanded(
+                child: Column(
+                  children: [
+                    Flag.fromString(
+                      homeTeam.flagCode,
+                      height: 24,
+                      width: 36,
+                      fit: BoxFit.cover,
+                      borderRadius: 8,
+                    ),
+                
+                    Text(
+                      homeTeam.name,
+                      style: themeData.textTheme.bodyLarge,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8.0),
-              FancyIconButton(
-                icon: Icons.delete,
-                backgroundColor: themeData.colorScheme.primaryContainer,
-                hoverColor: Colors.red,
-                borderColor: Colors.red,
-                callback: () {
-                  _showDeleteMatchDialog(context, match);
-                },
+              const SizedBox(width: 16.0),
+              // Heim- und Gastscore nebeneinander
+              Text(
+                '${match.homeScore ?? '-'} : ${match.guestScore ?? '-'}',
+                style: themeData.textTheme.bodyLarge,
+              ),
+              const SizedBox(width: 16.0),
+              // Gastteam
+              Expanded(
+                child: Column(
+                  children: [
+                    Flag.fromString(
+                      guestTeam.flagCode,
+                      height: 24,
+                      width: 36,
+                      fit: BoxFit.cover,
+                      borderRadius: 8,
+                    ),
+                    Text(
+                      guestTeam.name,
+                      style: themeData.textTheme.bodyLarge,
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  FancyIconButton(
+                    icon: Icons.edit,
+                    backgroundColor: themeData.colorScheme.primaryContainer,
+                    hoverColor: primaryDark,
+                    borderColor: primaryDark,
+                    callback: () {
+                      _showUpdateMatchDialog(context, teams, match);
+                    },
+                  ),
+                  const SizedBox(width: 8.0),
+                  FancyIconButton(
+                    icon: Icons.delete,
+                    backgroundColor: themeData.colorScheme.primaryContainer,
+                    hoverColor: Colors.red,
+                    borderColor: Colors.red,
+                    callback: () {
+                      _showDeleteMatchDialog(context, match);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

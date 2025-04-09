@@ -10,7 +10,6 @@ import 'package:flutter_web/presentation/core/forms/update_match_form.dart';
 import '../forms/create_match_form.dart';
 
 enum MatchAction { create, update, delete }
-
 class MatchDialog extends StatelessWidget {
   final List<Team>? teams;
   final String dialogText;
@@ -27,31 +26,29 @@ class MatchDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
-  final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return BlocProvider<MatchesformBloc>(
       create: (context) => sl<MatchesformBloc>(),
       child: AlertDialog(
         title: Text(dialogText),
         content: SizedBox(
-          width: screenWidth *.3,
-          child: FractionallySizedBox(
-            heightFactor: 0.50,
-            child: Builder(
-              builder: (context) {
-                switch (matchAction) {
-                  case MatchAction.update:
-                    return UpdateMatchForm(teams: teams!, match: match!);
-                  case MatchAction.delete:
-                    return DeleteMatchDialog(match: match!);
-                  case MatchAction.create:
-                    return CreateMatchForm(teams: teams!);
-                  default:
-                    return CreateMatchForm(teams: teams!);
-                }
-              },
-            ),
+          width: screenWidth * 0.3,
+          height: screenHeight * 0.5,
+          child: Builder(
+            builder: (context) {
+              switch (matchAction) {
+                case MatchAction.update:
+                  return UpdateMatchForm(teams: teams!, match: match!);
+                case MatchAction.delete:
+                  return DeleteMatchDialog(match: match!);
+                case MatchAction.create:
+                  return CreateMatchForm(teams: teams!);
+                default:
+                  return CreateMatchForm(teams: teams!);
+              }
+            },
           ),
         ),
       ),

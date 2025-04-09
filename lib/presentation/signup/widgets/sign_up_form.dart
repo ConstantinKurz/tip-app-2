@@ -122,6 +122,7 @@ class SignUpForm extends StatelessWidget {
                 height: 40,
               ),
               CustomButton(
+                hoverColor: primaryDark,
                 borderColor: primaryDark,
                 backgroundColor: themeData.scaffoldBackgroundColor,
                 buttonText: "Register",

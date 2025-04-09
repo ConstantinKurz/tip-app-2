@@ -3,7 +3,7 @@ import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/add_button.dart';
-import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
+import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
 import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
 
 class MatchList extends StatelessWidget {
@@ -59,36 +59,43 @@ class MatchList extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            '${match.homeTeamId.value} vs ${match.guestTeamId.value}',
-            style: themeData.textTheme.bodyLarge,
+          Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '${match.homeTeamId.value} vs ${match.guestTeamId.value}',
+                    style: themeData.textTheme.bodyLarge,
+                  ),
+                  Text(
+                    '${match.homeScore ?? '-'} : ${match.guestScore ?? '-'}',
+                    style: themeData.textTheme.bodySmall,
+                  ),
+                  Text(
+                    'Spieltag: ${match.matchDay}',
+                    style: themeData.textTheme.bodySmall,
+                  )
+                ]),
           ),
-          Text(
-            '${match.homeScore ?? '-'} : ${match.guestScore ?? '-'}',
-            style: themeData.textTheme.bodySmall,
-          ),
-          Text(
-            'Spieltag: ${match.matchDay}',
-            style: themeData.textTheme.bodySmall,
-          ),
-          Row(
+          Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              CustomButton(
-                buttonText: 'Bearbeiten',
+              FancyIconButton(
+                icon: Icons.edit,
                 backgroundColor: themeData.colorScheme.primaryContainer,
+                hoverColor: primaryDark,
                 borderColor: primaryDark,
                 callback: () {
                   _showUpdateMatchDialog(context, teams, match);
                 },
               ),
-              const SizedBox(width: 8.0),
-              CustomButton(
-                buttonText: 'Löschen',
+              const SizedBox(height: 8.0),
+              FancyIconButton(
+                icon: Icons.delete,
                 backgroundColor: themeData.colorScheme.primaryContainer,
+                hoverColor: Colors.red,
                 borderColor: Colors.red,
                 callback: () {
                   _showDeleteMatchDialog(context, match);
@@ -109,7 +116,11 @@ void _showAddMatchDialog(BuildContext context, List<Team> teams) {
     builder: (BuildContext context) {
       return Builder(
         builder: (BuildContext newContext) {
-          return MatchDialog(teams: teams, dialogText: "Neues Match", matchAction: MatchAction.create,);
+          return MatchDialog(
+            teams: teams,
+            dialogText: "Neues Match",
+            matchAction: MatchAction.create,
+          );
         },
       );
     },
@@ -123,21 +134,31 @@ void _showDeleteMatchDialog(BuildContext context, CustomMatch match) {
     builder: (BuildContext context) {
       return Builder(
         builder: (BuildContext newContext) {
-          return MatchDialog(match: match, dialogText: "Match löschen", matchAction: MatchAction.delete,);
+          return MatchDialog(
+            match: match,
+            dialogText: "Match löschen",
+            matchAction: MatchAction.delete,
+          );
         },
       );
     },
   );
 }
 
-void _showUpdateMatchDialog(BuildContext context, List<Team> teams, CustomMatch match) {
+void _showUpdateMatchDialog(
+    BuildContext context, List<Team> teams, CustomMatch match) {
   showDialog(
     barrierColor: Colors.transparent,
     context: context,
     builder: (BuildContext context) {
       return Builder(
         builder: (BuildContext newContext) {
-          return MatchDialog(teams: teams, dialogText: "Match bearbeiten", matchAction: MatchAction.update, match: match,);
+          return MatchDialog(
+            teams: teams,
+            dialogText: "Match bearbeiten",
+            matchAction: MatchAction.update,
+            match: match,
+          );
         },
       );
     },

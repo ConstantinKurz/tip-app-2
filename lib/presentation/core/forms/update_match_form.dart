@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
+import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
+import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 
 class UpdateMatchForm extends StatefulWidget {
   final List<Team> teams;
@@ -133,205 +135,237 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                 ? AutovalidateMode.always
                 : AutovalidateMode.disabled,
             key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(children: [
+            child: Expanded(
+              // Hier wird die Column in ein Expanded Widget gewrappt
+              child: Column(
+                mainAxisSize:
+                    MainAxisSize.max, // Wichtig: mainAxisSize auf max setzen
+                children: [
                   Expanded(
-                    child: DropdownButtonFormField<Team>(
-                      decoration: const InputDecoration(labelText: 'Home Team'),
-                      value: widget.teams.firstWhere(
-                          (team) => team.id == widget.match.homeTeamId.value),
-                      items: widget.teams.map((team) {
-                        return DropdownMenuItem<Team>(
-                          value: team,
-                          child: Text(team.name),
+                    // Hier wird jedes Row in ein Expanded Widget gewrappt
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<Team>(
+                            decoration:
+                                const InputDecoration(labelText: 'Home Team'),
+                            value: widget.teams.firstWhere((team) =>
+                                team.id == widget.match.homeTeamId.value),
+                            items: widget.teams.map((team) {
+                              return DropdownMenuItem<Team>(
+                                value: team,
+                                child: Text(team.name),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _homeTeamId =
+                                    UniqueID.fromUniqueString(value!.id);
+                              });
+                            },
+                            validator: (value) => validateTeam(value?.id),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: DropdownButtonFormField<Team>(
+                            decoration:
+                                const InputDecoration(labelText: 'Gast Team'),
+                            value: widget.teams.firstWhere((team) =>
+                                team.id == widget.match.guestTeamId.value),
+                            items: widget.teams.map((team) {
+                              return DropdownMenuItem<Team>(
+                                value: team,
+                                child: Text(team.name),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _guestTeamId =
+                                    UniqueID.fromUniqueString(value!.id);
+                              });
+                            },
+                            validator: (value) => validateTeam(value?.id),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    // Hier wird jedes Row in ein Expanded Widget gewrappt
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _homeScoreController,
+                            cursorColor: Colors.white,
+                            validator: (value) => _validateScore(value, 'home'),
+                            maxLength: 2,
+                            maxLines: 1,
+                            minLines: 1,
+                            decoration: InputDecoration(
+                                labelText: "Heimtore",
+                                hintText: _homeScore?.toString() ?? '',
+                                counterText: "",
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8))),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(":"),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _guestScoreController,
+                            cursorColor: Colors.white,
+                            validator: (value) =>
+                                _validateScore(value, 'guest'),
+                            maxLength: 2,
+                            maxLines: 1,
+                            minLines: 1,
+                            decoration: InputDecoration(
+                                labelText: "Gasttore",
+                                hintText: _guestScore?.toString() ?? '',
+                                counterText: "",
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8))),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    // Hier wird jedes Row in ein Expanded Widget gewrappt
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: _matchDate ?? DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2101),
+                              );
+                              if (pickedDate != null) {
+                                setState(() {
+                                  _matchDate = pickedDate;
+                                });
+                              }
+                            },
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'Datum',
+                                hintText: 'Datum auswählen',
+                              ),
+                              child: Text(_matchDate != null
+                                  ? '${_matchDate!.day.toString().padLeft(2, '0')}.${_matchDate!.month.toString().padLeft(2, '0')}.${_matchDate!.year}'
+                                  : 'Kein Datum ausgewählt'),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              TimeOfDay? pickedTime = await showTimePicker(
+                                context: context,
+                                initialTime: _matchTime ?? TimeOfDay.now(),
+                              );
+                              if (pickedTime != null) {
+                                setState(() {
+                                  _matchTime = pickedTime;
+                                });
+                              }
+                            },
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'Uhrzeit',
+                                hintText: 'Uhrzeit auswählen',
+                              ),
+                              child: Text(_matchTime != null
+                                  ? '${_matchTime!.hour.toString().padLeft(2, '0')}:${_matchTime!.minute.toString().padLeft(2, '0')}'
+                                  : 'Keine Uhrzeit ausgewählt'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<int>(
+                      decoration: const InputDecoration(labelText: 'Match Tag'),
+                      value: _matchDay,
+                      items: List.generate(7, (index) => index).map((value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('Tag $value'),
                         );
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
-                          _homeTeamId = UniqueID.fromUniqueString(value!.id);
+                          _matchDay = value!;
                         });
                       },
-                      validator: (value) => validateTeam(value?.id),
+                      validator: (value) => validateMatchDay(value),
                     ),
                   ),
-                  const SizedBox(width: 16),
                   Expanded(
-                    child: DropdownButtonFormField<Team>(
-                      decoration: const InputDecoration(labelText: 'Gast Team'),
-                      value: widget.teams.firstWhere(
-                          (team) => team.id == widget.match.guestTeamId.value),
-                      items: widget.teams.map((team) {
-                        return DropdownMenuItem<Team>(
-                          value: team,
-                          child: Text(team.name),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _guestTeamId = UniqueID.fromUniqueString(value!.id);
-                        });
-                      },
-                      validator: (value) => validateTeam(value?.id),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CustomButton(
+                          buttonText: 'Speichern',
+                          backgroundColor: primaryDark,
+                          borderColor: primaryDark,
+                          hoverColor: primaryDark,
+                          callback: () {
+                            if (formKey.currentState!.validate()) {
+                              DateTime combinedDateTime = DateTime(
+                                _matchDate!.year,
+                                _matchDate!.month,
+                                _matchDate!.day,
+                                _matchTime!.hour,
+                                _matchTime!.minute,
+                              );
+                              final CustomMatch updatedMatch = CustomMatch(
+                                  id: widget.match.id,
+                                  homeTeamId: _homeTeamId!,
+                                  guestTeamId: _guestTeamId!,
+                                  matchDate: combinedDateTime,
+                                  matchDay: _matchDay,
+                                  homeScore: _homeScore,
+                                  guestScore: _guestScore);
+                              BlocProvider.of<MatchesformBloc>(context).add(
+                                MatchFormUpdateEvent(match: updatedMatch),
+                              );
+                              Navigator.of(context).pop();
+                            } else {
+                              BlocProvider.of<MatchesformBloc>(context)
+                                  .add(MatchFormUpdateEvent(match: null));
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 8,),
+                        CustomButton(
+                          buttonText: 'Abbrechen',
+                          backgroundColor: primaryDark,
+                          borderColor: Colors.white,
+                          hoverColor: primaryDark,
+                          callback: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                ]),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _homeScoreController,
-                        cursorColor: Colors.white,
-                        validator: (value) => _validateScore(value, 'home'),
-                        maxLength: 2,
-                        maxLines: 1,
-                        minLines: 1,
-                        decoration: InputDecoration(
-                            labelText: "Heimtore",
-                            hintText: _homeScore?.toString() ?? '',
-                            counterText: "",
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8))),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Text(":"),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _guestScoreController,
-                        cursorColor: Colors.white,
-                        validator: (value) => _validateScore(value, 'guest'),
-                        maxLength: 2,
-                        maxLines: 1,
-                        minLines: 1,
-                        decoration: InputDecoration(
-                            labelText: "Gasttore",
-                            hintText: _guestScore?.toString() ?? '',
-                            counterText: "",
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8))),
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () async {
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: _matchDate ?? DateTime.now(),
-                            firstDate: DateTime(2000),
-                            lastDate: DateTime(2101),
-                          );
-                          if (pickedDate != null) {
-                            setState(() {
-                              _matchDate = pickedDate;
-                            });
-                          }
-                        },
-                        child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'Datum',
-                            hintText: 'Datum auswählen',
-                          ),
-                          child: Text(_matchDate != null
-                              ? '${_matchDate!.day.toString().padLeft(2, '0')}.${_matchDate!.month.toString().padLeft(2, '0')}.${_matchDate!.year}'
-                              : 'Kein Datum ausgewählt'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () async {
-                          TimeOfDay? pickedTime = await showTimePicker(
-                            context: context,
-                            initialTime: _matchTime ?? TimeOfDay.now(),
-                          );
-                          if (pickedTime != null) {
-                            setState(() {
-                              _matchTime = pickedTime;
-                            });
-                          }
-                        },
-                        child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'Uhrzeit',
-                            hintText: 'Uhrzeit auswählen',
-                          ),
-                          child: Text(_matchTime != null
-                              ? '${_matchTime!.hour.toString().padLeft(2, '0')}:${_matchTime!.minute.toString().padLeft(2, '0')}'
-                              : 'Keine Uhrzeit ausgewählt'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
-                  decoration: const InputDecoration(labelText: 'Match Tag'),
-                  value: _matchDay,
-                  items: List.generate(7, (index) => index).map((value) {
-                    return DropdownMenuItem<int>(
-                      value: value,
-                      child: Text('Tag $value'),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _matchDay = value!;
-                    });
-                  },
-                  validator: (value) => validateMatchDay(value),
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center, children: [
-                  TextButton(
-                    child: const Text('Speichern',
-                        style: TextStyle(color: Colors.white)),
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        DateTime combinedDateTime = DateTime(
-                          _matchDate!.year,
-                          _matchDate!.month,
-                          _matchDate!.day,
-                          _matchTime!.hour,
-                          _matchTime!.minute,
-                        );
-                        final CustomMatch updatedMatch = CustomMatch(
-                            id: widget.match.id,
-                            homeTeamId: _homeTeamId!,
-                            guestTeamId: _guestTeamId!,
-                            matchDate: combinedDateTime,
-                            matchDay: _matchDay,
-                            homeScore: _homeScore,
-                            guestScore: _guestScore);
-                        BlocProvider.of<MatchesformBloc>(context).add(
-                          MatchFormUpdateEvent(match: updatedMatch),
-                        );
-                        Navigator.of(context).pop();
-                      } else {
-                        BlocProvider.of<MatchesformBloc>(context)
-                            .add(MatchFormUpdateEvent(match: null));
-                      }
-                    },
-                  ),
-                  TextButton(
-                      child: const Text('Abbrechen',
-                          style: TextStyle(color: Colors.white)),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      })
-                ]),
-              ],
+                ],
+              ),
             ),
           );
         });

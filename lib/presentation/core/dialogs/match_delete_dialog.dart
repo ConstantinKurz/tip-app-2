@@ -16,7 +16,6 @@ class DeleteMatchDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-    Color backgroundColor = Theme.of(context).scaffoldBackgroundColor;
     return BlocConsumer<MatchesformBloc, MatchesformState>(
       listenWhen: (p, c) =>
           p.matchFailureOrSuccessOption != c.matchFailureOrSuccessOption,
@@ -53,25 +52,25 @@ class DeleteMatchDialog extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CustomButton(
-                        borderColor: primaryDark,
-                        backgroundColor: primaryDark,
-                        buttonText: 'Abbrechen',
+                        hoverColor: Colors.red,
+                        borderColor: Colors.red,
+                        buttonText: 'Löschen',
                         horizontalPadding: 0,
                         callback: () {
-                          Navigator.pop(context);
+                          BlocProvider.of<MatchesformBloc>(context)
+                              .add(MatchFormDeleteEvent(id: match.id));
                         },
                       ),
                     ),
                     const SizedBox(width: 8.0),
                     Expanded(
                       child: CustomButton(
-                        borderColor: Colors.red,
-                        buttonText: 'Löschen',
-                        backgroundColor: backgroundColor,
+                        hoverColor: primaryDark,
+                        borderColor: primaryDark,
+                        buttonText: 'Abbrechen',
                         horizontalPadding: 0,
                         callback: () {
-                          BlocProvider.of<MatchesformBloc>(context)
-                              .add(MatchFormDeleteEvent(id: match.id));
+                          Navigator.pop(context);
                         },
                       ),
                     ),

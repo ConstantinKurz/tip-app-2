@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
+import 'package:flutter_web/presentation/core/date_picker/custom_date_picker.dart';
+import 'package:flutter_web/presentation/core/date_picker/custom_time_picker.dart';
 
 class UpdateMatchForm extends StatefulWidget {
   final List<Team> teams;
@@ -56,35 +56,11 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
     super.dispose();
   }
 
-  String? validateTeam(String? input) {
-    if (input == null) {
-      return "Bitte wählen Sie ein Team";
-    } else {
-      return null;
-    }
-  }
-
-  String? validateDate(String? input) {
-    if (input == null) {
-      return "Bitte wählen Sie ein Datum";
-    } else {
-      return null;
-    }
-  }
-
-  String? validateMatchDay(int? input) {
-    if (input == null) {
-      return "Bitte wählen Sie einen Match Tag";
-    } else {
-      return null;
-    }
-  }
-
   String? _validateScore(String? value, String scoreType) {
     if (value == null || value.isEmpty) {
       if ((_homeScoreController.text.isNotEmpty && scoreType == 'guest') ||
           (_guestScoreController.text.isNotEmpty && scoreType == 'home')) {
-        return ' 0 - 11';
+        return '[0-10]';
       }
       return null;
     }
@@ -138,8 +114,7 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
             : AutovalidateMode.disabled,
         key: formKey,
         child: Column(
-          mainAxisSize:
-              MainAxisSize.max, // Wichtig: mainAxisSize auf max setzen
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Row(
               children: [
@@ -159,7 +134,6 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                         _homeTeamId = UniqueID.fromUniqueString(value!.id);
                       });
                     },
-                    validator: (value) => validateTeam(value?.id),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -179,7 +153,6 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                         _guestTeamId = UniqueID.fromUniqueString(value!.id);
                       });
                     },
-                    validator: (value) => validateTeam(value?.id),
                   ),
                 ),
               ],
@@ -229,54 +202,26 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
             Row(
               children: [
                 Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: _matchDate ?? DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          _matchDate = pickedDate;
-                        });
-                      }
+                  child: CustomDatePickerField(
+                    initialDate: _matchDate,
+                    onDateChanged: (DateTime? date) {
+                      setState(() {
+                        _matchDate = date;
+                      });
                     },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Datum',
-                        hintText: 'Datum auswählen',
-                      ),
-                      child: Text(_matchDate != null
-                          ? '${_matchDate!.day.toString().padLeft(2, '0')}.${_matchDate!.month.toString().padLeft(2, '0')}.${_matchDate!.year}'
-                          : 'Kein Datum ausgewählt'),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: _matchTime ?? TimeOfDay.now(),
-                      );
-                      if (pickedTime != null) {
-                        setState(() {
-                          _matchTime = pickedTime;
-                        });
-                      }
+                  child: CustomTimePickerField(
+                    initialTime: _matchTime,
+                    onTimeChanged: (TimeOfDay? time) {
+                      setState(() {
+                        _matchTime = time;
+                      });
                     },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Uhrzeit',
-                        hintText: 'Uhrzeit auswählen',
-                      ),
-                      child: Text(_matchTime != null
-                          ? '${_matchTime!.hour.toString().padLeft(2, '0')}:${_matchTime!.minute.toString().padLeft(2, '0')}'
-                          : 'Keine Uhrzeit ausgewählt'),
-                    ),
+                    // hourValidator: _validateHour,
+                    // minuteValidator: _validateMinute,
                   ),
                 ),
               ],
@@ -296,13 +241,11 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                   _matchDay = value!;
                 });
               },
-              validator: (value) => validateMatchDay(value),
             ),
             const SizedBox(
               height: 16,
             ),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CustomButton(

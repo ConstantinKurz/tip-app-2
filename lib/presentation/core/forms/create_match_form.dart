@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
+import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/team.dart';
+import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
+import 'package:flutter_web/presentation/core/date_picker/custom_date_picker.dart';
+import 'package:flutter_web/presentation/core/date_picker/custom_time_picker.dart';
 import 'dart:core';
 import 'package:intl/intl.dart';
 
@@ -80,7 +84,7 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
               : AutovalidateMode.disabled,
           key: formKey,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               DropdownButtonFormField<Team>(
                 decoration: const InputDecoration(labelText: 'Home Team'),
@@ -113,56 +117,26 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
               Row(
                 children: [
                   Expanded(
-                    child: InkWell(
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: _matchDate ?? DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
-                        );
-                        if (pickedDate != null) {
-                          setState(() {
-                            _matchDate = pickedDate;
-                          });
-                        }
+                    child: CustomDatePickerField(
+                      initialDate: _matchDate,
+                      onDateChanged: (DateTime? date) {
+                        setState(() {
+                          _matchDate = date;
+                        });
                       },
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Datum',
-                          hintText: 'Datum auswählen',
-                        ),
-                        child: Text(
-                          _matchDate != null
-                              ? DateFormat('dd.MM.yyyy').format(_matchDate!)
-                              : 'Kein Datum ausgewählt',
-                        ),
-                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: InkWell(
-                      onTap: () async {
-                        TimeOfDay? pickedTime = await showTimePicker(
-                          context: context,
-                          initialTime: _matchTime ?? TimeOfDay.now(),
-                        );
-                        if (pickedTime != null) {
-                          setState(() {
-                            _matchTime = pickedTime;
-                          });
-                        }
+                    child: CustomTimePickerField(
+                      initialTime: _matchTime,
+                      onTimeChanged: (TimeOfDay? time) {
+                        setState(() {
+                          _matchTime = time;
+                        });
                       },
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Uhrzeit',
-                          hintText: 'Uhrzeit auswählen',
-                        ),
-                        child: Text(_matchTime != null
-                            ? _matchTime!.format(context).toString()
-                            : 'Keine Uhrzeit ausgewählt'),
-                      ),
+                      // hourValidator: _validateHour,
+                      // minuteValidator: _validateMinute,
                     ),
                   ),
                 ],
@@ -181,11 +155,16 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
                 },
                 validator: (value) => validateMatchDay(value),
               ),
+              const SizedBox(
+                height: 16,
+              ),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                TextButton(
-                  child: const Text('Erstellen',
-                      style: TextStyle(color: Colors.white)),
-                  onPressed: () {
+                CustomButton(
+                  buttonText: 'Speichern',
+                  backgroundColor: themeData.colorScheme.primaryContainer,
+                  borderColor: primaryDark,
+                  hoverColor: primaryDark,
+                  callback: () {
                     if (formKey.currentState!.validate()) {
                       if (_matchDate == null || _matchTime == null) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -224,12 +203,18 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
                     }
                   },
                 ),
-                TextButton(
-                    child: const Text('Abbrechen',
-                        style: TextStyle(color: Colors.white)),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    })
+                const SizedBox(
+                  width: 8,
+                ),
+                CustomButton(
+                  buttonText: 'Abbrechen',
+                  backgroundColor: themeData.colorScheme.primaryContainer,
+                  borderColor: primaryDark,
+                  hoverColor: primaryDark,
+                  callback: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
               ]),
             ],
           ),

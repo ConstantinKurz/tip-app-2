@@ -35,7 +35,7 @@ class MatchDialog extends StatelessWidget {
         title: Text(dialogText),
         content: SizedBox(
           width: screenWidth * 0.3,
-          height: screenHeight * 0.5,
+          height: screenHeight * 0.6,
           child: Builder(
             builder: (context) {
               switch (matchAction) {

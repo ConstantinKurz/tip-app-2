@@ -15,20 +15,20 @@ class AuthRepositoryImpl implements AuthRepository {
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
 
-  @override
+ @override
   Future<Either<AuthFailure, Unit>> registerWithEmailAndPassword(
-      {required String email, required String password}) async {
+      {required String email, required String password, String? username}) async {
     try {
-      final authResult = await firebaseAuth.createUserWithEmailAndPassword(
+      await firebaseAuth.createUserWithEmailAndPassword(
           email: email, password: password);
-      final userId = authResult.user!.uid;
-
+      // Use provided username if available, otherwise generate a random one
       final faker = Faker();
-      String username = faker.internet.userName();
+      final String finalUsername = username ?? faker.internet.userName();
+      
       // Create user document in Firestore
-      final userModel = UserModel.empty(userId, username, email);
+      final userModel = UserModel.empty(finalUsername, email);
 
-      await usersCollection.doc(userId).set(userModel.toMap());
+      await usersCollection.doc(finalUsername).set(userModel.toMap());
 
       return right(unit);
     } on FirebaseAuthException catch (e) {
@@ -38,6 +38,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return left(ServerFailure());
     }
   }
+
 
   @override
   Future<Either<AuthFailure, Unit>> signInWithEmailAndPassword(

@@ -29,7 +29,7 @@ class TipRepositoryImpl implements TipRepository {
       return userOption.fold(
         () => left(InsufficientPermisssons()),
         (user) async {
-          final tipWithUserId = tipModel.copyWith(userId: user.id.value);
+          final tipWithUserId = tipModel.copyWith(userId: user.username);
 
           await tipsCollection.doc(tipWithUserId.id).set(tipWithUserId.toMap());
           return right(unit);

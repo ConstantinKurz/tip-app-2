@@ -4,7 +4,7 @@ import 'package:flutter_web/core/failures/auth_failures.dart';
 
 abstract class AuthRepository {
   Future<Either<AuthFailure, Unit>> registerWithEmailAndPassword(
-      {required String email, required String password});
+      {required String email, required String password, String? username});
 
   Future<Either<AuthFailure, Unit>> signInWithEmailAndPassword(
       {required String email, required String password});

@@ -8,7 +8,6 @@ import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 import 'package:flutter_web/presentation/core/date_picker/custom_date_picker.dart';
 import 'package:flutter_web/presentation/core/date_picker/custom_time_picker.dart';
 import 'dart:core';
-import 'package:intl/intl.dart';
 
 class CreateMatchForm extends StatefulWidget {
   final List<Team> teams;
@@ -135,8 +134,6 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
                           _matchTime = time;
                         });
                       },
-                      // hourValidator: _validateHour,
-                      // minuteValidator: _validateMinute,
                     ),
                   ),
                 ],
@@ -194,12 +191,12 @@ class _CreateMatchFormState extends State<CreateMatchForm> {
                         ),
                       );
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          backgroundColor: Colors.redAccent,
-                          content: Text(
-                            "Ungültige Eingabe",
-                            style: themeData.textTheme.bodyLarge,
-                          )));
+                      BlocProvider.of<MatchesformBloc>(context).add(
+                          CreateMatchEvent(
+                              homeTeamId: null,
+                              guestTeamId: null,
+                              matchDate: null,
+                              matchDay: null));
                     }
                   },
                 ),

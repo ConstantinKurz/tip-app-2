@@ -1,11 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter_web/domain/entities/id.dart';
-import 'package:flutter_web/domain/entities/match.dart';
 
 class Tip {
   final UniqueID id;
   final UniqueID userId;
-  final CustomMatch match;
+  final String? matchId;
   final DateTime tipDate;
   final int? tipHome;
   final int? tipGuest;
@@ -13,7 +12,7 @@ class Tip {
   Tip(
       {required this.id,
       required this.userId,
-      required this.match,
+      required this.matchId,
       required this.tipDate,
       required this.tipHome,
       required this.tipGuest,
@@ -23,7 +22,7 @@ class Tip {
     return Tip(
       id: UniqueID(),
       userId: userId,
-      match: CustomMatch.empty(),
+      matchId: "",
       tipDate: DateTime.now(),
       tipHome: null,
       tipGuest: null,
@@ -34,7 +33,7 @@ class Tip {
   Tip copyWith({
     UniqueID? id,
     UniqueID? userId,
-    CustomMatch? match,
+    String? matchId,
     DateTime? tipDate,
     int? tipHome,
     int? tipGuest,
@@ -43,7 +42,7 @@ class Tip {
     return Tip(
       id: id ?? this.id,
       userId: userId ?? this.userId,
-      match: match ?? this.match,
+      matchId: matchId ?? this.matchId,
       tipDate: tipDate ?? this.tipDate,
       tipHome: tipHome ?? this.tipHome,
       tipGuest: tipGuest ?? this.tipGuest,

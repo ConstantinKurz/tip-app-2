@@ -63,8 +63,8 @@ class MatchItem extends StatelessWidget {
                     ClipOval(
                       child: Flag.fromString(
                         homeTeam.flagCode,
-                        height: 50,
-                        width: 50,
+                        height: 30,
+                        width: 30,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -89,8 +89,8 @@ class MatchItem extends StatelessWidget {
                     ClipOval(
                       child: Flag.fromString(
                         guestTeam.flagCode,
-                        height: 50,
-                        width: 50,
+                        height: 30,
+                        width: 30,
                         fit: BoxFit.cover,
                       ),
                     ),

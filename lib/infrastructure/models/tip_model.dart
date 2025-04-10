@@ -1,5 +1,4 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_web/domain/entities/id.dart';
@@ -8,16 +7,16 @@ import 'package:flutter_web/infrastructure/models/match_model.dart';
 
 class TipModel {
   final String id;
-  final MatchModel match;
+  final String? matchId;
   final DateTime tipDate;
   final int? tipHome;
   final int? tipGuest;
   final bool joker;
-  final String userId;  // Referenz auf die Benutzer-ID
+  final String userId; // Referenz auf die Benutzer-ID
 
   TipModel({
     required this.id,
-    required this.match,
+    required this.matchId,
     required this.tipDate,
     required this.tipHome,
     required this.tipGuest,
@@ -36,7 +35,7 @@ class TipModel {
   }) {
     return TipModel(
       id: id ?? this.id,
-      match: match ?? this.match,
+      matchId: matchId ?? this.matchId,
       tipDate: tipDate ?? this.tipDate,
       tipHome: tipHome ?? this.tipHome,
       tipGuest: tipGuest ?? this.tipGuest,
@@ -48,7 +47,7 @@ class TipModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
-      'match': match.toMap(),
+      'match': matchId,
       'tipDate': tipDate.millisecondsSinceEpoch,
       'tipHome': tipHome,
       'tipGuest': tipGuest,
@@ -60,7 +59,7 @@ class TipModel {
   factory TipModel.fromMap(Map<String, dynamic> map) {
     return TipModel(
       id: map['id'] as String,
-      match: MatchModel.fromMap(map['match'] as Map<String, dynamic>),
+      matchId: map['machtId'] as String,
       tipDate: (map['tipDate'] as Timestamp).toDate(),
       tipHome: map['tipHome'] as int?,
       tipGuest: map['tipGuest'] as int?,
@@ -77,7 +76,7 @@ class TipModel {
   Tip toDomain() {
     return Tip(
       id: UniqueID.fromUniqueString(id),
-      match: match.toDomain(),
+      matchId: matchId,
       tipDate: tipDate,
       tipHome: tipHome,
       tipGuest: tipGuest,
@@ -89,7 +88,7 @@ class TipModel {
   factory TipModel.fromDomain(Tip tip) {
     return TipModel(
       id: tip.id.value,
-      match: MatchModel.fromDomain(tip.match),
+      matchId: tip.matchId,
       tipDate: tip.tipDate,
       tipHome: tip.tipHome,
       tipGuest: tip.tipGuest,
@@ -98,4 +97,3 @@ class TipModel {
     );
   }
 }
-

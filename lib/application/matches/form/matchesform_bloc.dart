@@ -56,6 +56,7 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
           matchFailureOrSuccessOption: optionOf(failureOrSuccess),
         ));
       } else {
+        // emit with none() since intial state has option of none()
         emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
       }
     });

@@ -6,8 +6,10 @@ import 'package:flutter_web/application/teams/controller/teams_bloc.dart';
 import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/widget/match_list.dart';
+import 'package:flutter_web/presentation/home_page/widget/user_list.dart';
 import '../../domain/entities/team.dart';
 import '../../injections.dart';
+
 class HomePage extends StatelessWidget {
   static String homePagePath = "/home";
   const HomePage({super.key});
@@ -61,22 +63,31 @@ class HomePage extends StatelessWidget {
                       matchState is MatchesControllerLoaded &&
                       teamState is TeamsLoaded) {
                     return PageTemplate(
-                      child: Column( // Verwende Column statt ListView
-                        children: [
-                          Text('Users:',
-                              style: Theme.of(context).textTheme.headline6),
-                          ...authState.users.map((user) {
-                            return ListTile(
-                              title: Text('User: ${user.username}'),
-                              subtitle: Text('Email: ${user.email}'),
-                            );
-                          }).toList(),
-                          const Divider(),
-                          Expanded( // Wrap MatchList with Expanded
-                            child: MatchList(matches: matchState.matches, teams: teamState.teams), // Übergib die Liste der Matches
-                          ),
-                        ],
-                      ),
+                      child: SingleChildScrollView(
+                        child: Column( 
+                          children: [
+                            // Expanded(child
+                            SizedBox(
+                              height: 300,
+                              child: UserList(
+                                    matches: matchState.matches,
+                                    teams: teamState.teams,
+                                    users: authState.users),
+                            ),
+                            // ),
+                            const SizedBox(height: 16,),
+                            // Expanded( child:
+                            SizedBox(
+                              // height: 10000,
+                              child: MatchList(
+                                    matches: matchState.matches,
+                                    teams: teamState
+                                        .teams),
+                            ), // Übergib die Liste der Matches
+                            // ),
+                          ],
+                        ),
+                      )
                     );
                   }
                   return Container(); // Default empty container

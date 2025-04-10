@@ -4,7 +4,6 @@ import 'package:flutter_web/domain/entities/team.dart';
 
 
 class AppUser {
-  final UniqueID id;
   final String championId;
   final String username;
   final String email;
@@ -12,7 +11,6 @@ class AppUser {
   final int score;
   final int jokerSum;
   AppUser({
-    required this.id,
     required this.championId,
     required this.username,
     required this.email,
@@ -23,7 +21,6 @@ class AppUser {
 
   factory AppUser.empty() {
     return AppUser(
-      id: UniqueID(),
       championId: 'TBD',
       username: '',
       email: '',
@@ -34,7 +31,6 @@ class AppUser {
   }
 
   AppUser copyWith({
-    UniqueID? id,
     String? championId,
     String? username,
     String? email,
@@ -43,7 +39,6 @@ class AppUser {
     int? jokerSum,
   }) {
     return AppUser(
-      id: id ?? this.id,
       championId: championId ?? this.championId,
       username: username ?? this.username,
       email: email ?? this.email,

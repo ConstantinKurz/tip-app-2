@@ -1,16 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_web/domain/entities/id.dart';
-import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
-import 'package:flutter_web/infrastructure/models/team_model.dart';
 
 class UserModel {
   final String id;
   final String championId;
-  final String username;
   final String email;
   final int rank;
   final int score;
@@ -19,7 +13,6 @@ class UserModel {
   UserModel({
     required this.id,
     required this.championId,
-    required this.username,
     required this.email,
     required this.rank,
     required this.score,
@@ -30,7 +23,6 @@ class UserModel {
     return UserModel(
       id: map['id'] as String,
       championId: map['champion_id'] as String,
-      username: map['username'] as String,
       email: map['email'] as String,
       rank: map['rank'] as int,
       score: map['score'] as int,
@@ -46,7 +38,6 @@ class UserModel {
   UserModel copyWith({
     String? id,
     String? championId,
-    String? username,
     String? email,
     int? rank,
     int? score,
@@ -55,7 +46,6 @@ class UserModel {
     return UserModel(
       id: id ?? this.id,
       championId: championId ?? this.championId,
-      username: username ?? this.username,
       email: email ?? this.email,
       rank: rank ?? this.rank,
       score: score ?? this.score,
@@ -65,9 +55,8 @@ class UserModel {
 
   AppUser toDomain() {
     return AppUser(
-      id: UniqueID.fromUniqueString(id),
+      username: id,
       championId: championId,
-      username: username,
       email: email,
       rank: rank,
       score: score,
@@ -77,9 +66,8 @@ class UserModel {
 
   factory UserModel.fromDomain(AppUser user) {
     return UserModel(
-      id: user.id.value,
       championId: user.championId,
-      username: user.username,
+      id: user.username,
       email: user.email,
       rank: user.rank,
       score: user.score,
@@ -91,7 +79,6 @@ class UserModel {
     return <String, dynamic>{
       'id': id,
       'champion_id': championId,
-      'username': username,
       'email': email,
       'rank': rank,
       'score': score,
@@ -99,11 +86,10 @@ class UserModel {
     };
   }
 
-  factory UserModel.empty(String id, String username, String email) {
+  factory UserModel.empty(String username, String email) {
     return UserModel(
-        id: id,
+        id: username,
         championId: 'TBD',
-        username: username,
         email: email,
         rank: 0,
         score: 0,

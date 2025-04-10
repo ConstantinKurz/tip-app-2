@@ -1,63 +1,35 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter_web/constants.dart';
+
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
+import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
-import 'package:flutter_web/presentation/home_page/widget/match_item.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_web/presentation/home_page/widget/user_item.dart';
 
-class MatchList extends StatefulWidget {
+class UserList extends StatefulWidget {
+  final List<AppUser> users;
   final List<CustomMatch> matches;
   final List<Team> teams;
-
-  const MatchList({Key? key, required this.matches, required this.teams})
-      : super(key: key);
+  const UserList({
+    Key? key,
+    required this.users,
+    required this.matches,
+    required this.teams,
+  }) : super(key: key);
 
   @override
-  _MatchListState createState() => _MatchListState();
+  _UserListState createState() => _UserListState();
 }
 
-class _MatchListState extends State<MatchList> {
+class _UserListState extends State<UserList> {
   String _searchText = '';
 
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
-
-    List<CustomMatch> filteredMatches = widget.matches.where((match) {
-      final homeTeam = widget.teams.firstWhere(
-        (team) => team.id == match.homeTeamId.value,
-        orElse: () => Team.empty(),
-      );
-      final guestTeam = widget.teams.firstWhere(
-        (team) => team.id == match.guestTeamId.value,
-        orElse: () => Team.empty(),
-      );
-
-      // Erstellen eines Strings, der alle relevanten Informationen des Matches enthält
-      final matchInfo =
-          '${homeTeam.name} ${guestTeam.name} Spieltag:${match.matchDay} '
-                  '${match.homeScore ?? '-'}:${match.guestScore ?? '-'} '
-                  '${DateFormat('dd.MM.yyyy HH:mm').format(match.matchDate)}'
-              .toLowerCase();
-
-      // Aufteilen des Suchtextes in einzelne Begriffe
-      final searchTerms = _searchText.toLowerCase().split(' ');
-
-      // Prüfen, ob alle Suchbegriffe in den Match-Informationen enthalten sind
-      bool allTermsMatch = true;
-      for (final term in searchTerms) {
-        if (!matchInfo.contains(term)) {
-          allTermsMatch = false;
-          break;
-        }
-      }
-
-      return allTermsMatch;
-    }).toList();
-
     return Center(
       child: Container(
         width: screenWidth * 0.8,
@@ -79,14 +51,14 @@ class _MatchListState extends State<MatchList> {
           children: [
             Row(
               children: [
-                Text('Matches', style: themeData.textTheme.headline6),
+                Text('Tipper', style: themeData.textTheme.headline6),
                 const Spacer(),
                 // Suchleiste
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  width: screenWidth*.2,
+                  width: screenWidth * .2,
                   child: TextField(
                     cursorColor: Colors.white,
                     decoration: const InputDecoration(
@@ -95,8 +67,9 @@ class _MatchListState extends State<MatchList> {
                     ),
                     onChanged: (text) {
                       setState(() {
-                        _searchText =
-                            text; // Aktualisieren des Suchtextes bei jeder Änderung
+                        null;
+                        // _searchText =
+                        //     text; // Aktualisieren des Suchtextes bei jeder Änderung
                       });
                     },
                   ),
@@ -109,17 +82,17 @@ class _MatchListState extends State<MatchList> {
                     hoverColor: primaryDark,
                     borderColor: primaryDark,
                     icon: Icons.add,
-                    callback: () => _showAddMatchDialog(context, widget.teams)),
+                    callback: () => _showAddUsersDialog(context, widget.matches, widget.teams)),
               ],
             ),
             const SizedBox(height: 8.0),
             ListView.builder(
               shrinkWrap: true,
               itemCount:
-                  filteredMatches.length, // Verwenden der gefilterten Liste
+                  widget.users.length,
               itemBuilder: (context, index) {
-                final match = filteredMatches[index];
-                return MatchItem(match: match, teams: widget.teams);
+                final user = widget.users[index];
+                return UserItem(user: user);
               },
             ),
           ],
@@ -128,18 +101,14 @@ class _MatchListState extends State<MatchList> {
     );
   }
 
-  void _showAddMatchDialog(BuildContext context, List<Team> teams) {
+  void _showAddUsersDialog(BuildContext context,List<CustomMatch> matches, List<Team> teams) {
     showDialog(
       barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
         return Builder(
           builder: (BuildContext newContext) {
-            return MatchDialog(
-              teams: teams,
-              dialogText: "Neues Match",
-              matchAction: MatchAction.create,
-            );
+            return Container();
           },
         );
       },

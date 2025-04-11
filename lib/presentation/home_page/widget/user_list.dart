@@ -32,7 +32,7 @@ class _UserListState extends State<UserList> {
     final screenWidth = MediaQuery.of(context).size.width;
     return Center(
       child: Container(
-        width: screenWidth * 0.8,
+        width: screenWidth * 0.6,
         padding: const EdgeInsets.all(16.0),
         // decoration: BoxDecoration(
         //   // color: themeData.colorScheme.primaryContainer,
@@ -82,26 +82,31 @@ class _UserListState extends State<UserList> {
                     hoverColor: primaryDark,
                     borderColor: primaryDark,
                     icon: Icons.add,
-                    callback: () => _showAddUsersDialog(context, widget.matches, widget.teams)),
+                    callback: () => _showAddUsersDialog(
+                        context, widget.matches, widget.teams)),
               ],
             ),
-            const SizedBox(height: 8.0),
-            ListView.builder(
+            const SizedBox(height: 16.0),
+            Expanded(
+                child: ListView.builder(
+              physics:
+                  const BouncingScrollPhysics(),
               shrinkWrap: true,
-              itemCount:
-                  widget.users.length,
+              itemCount: widget.users.length,
               itemBuilder: (context, index) {
                 final user = widget.users[index];
                 return UserItem(user: user);
               },
-            ),
+            )),
+            const SizedBox(height: 16.0),
           ],
         ),
       ),
     );
   }
 
-  void _showAddUsersDialog(BuildContext context,List<CustomMatch> matches, List<Team> teams) {
+  void _showAddUsersDialog(
+      BuildContext context, List<CustomMatch> matches, List<Team> teams) {
     showDialog(
       barrierColor: Colors.transparent,
       context: context,

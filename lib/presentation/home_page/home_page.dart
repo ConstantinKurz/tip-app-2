@@ -1,21 +1,31 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_bloc.dart';
-import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/widget/match_list.dart';
 import 'package:flutter_web/presentation/home_page/widget/user_list.dart';
 import '../../domain/entities/team.dart';
 import '../../injections.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   static String homePagePath = "/home";
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final CarouselController _carouselController = CarouselController();
+  int _currentPage = 0;
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.width;
     final themeData = Theme.of(context);
 
     return MultiBlocProvider(
@@ -41,9 +51,6 @@ class HomePage extends StatelessWidget {
                   if (authState is AuthControllerLoading ||
                       matchState is MatchesControllerLoading ||
                       teamState is TeamsLoading) {
-                    print(authState);
-                    print(matchState);
-                    print(teamState);
                     return Center(
                       child: CircularProgressIndicator(
                         color: themeData.colorScheme.secondary,
@@ -63,31 +70,60 @@ class HomePage extends StatelessWidget {
                       matchState is MatchesControllerLoaded &&
                       teamState is TeamsLoaded) {
                     return PageTemplate(
-                      child: SingleChildScrollView(
-                        child: Column( 
-                          children: [
-                            // Expanded(child
-                            SizedBox(
-                              height: 300,
-                              child: UserList(
-                                    matches: matchState.matches,
-                                    teams: teamState.teams,
-                                    users: authState.users),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center, 
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_back_ios_new),
+                                  onPressed: () {
+                                    _carouselController.previousPage(
+                                        duration: const Duration(milliseconds: 200),
+                                        curve: Curves.linear);
+                                  },
+                                ),
+                                SizedBox(
+                                  width: screenWidth * 0.9,
+                                  child: CarouselSlider(
+                                    carouselController: _carouselController,
+                                    options: CarouselOptions(
+                                      viewportFraction: .7,
+                                      height: screenHeight,
+                                      initialPage: 0,
+                                      enableInfiniteScroll: false,
+                                      enlargeCenterPage: false,
+                                      onPageChanged: (index, reason) {
+                                        setState(() {
+                                          _currentPage = index;
+                                        });
+                                      },
+                                    ),
+                                    items: [
+                                      MatchList(
+                                          matches: matchState.matches,
+                                          teams: teamState.teams),
+                                      UserList(
+                                          matches: matchState.matches,
+                                          teams: teamState.teams,
+                                          users: authState.users),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_forward_ios_outlined),
+                                  onPressed: () {
+                                    _carouselController.nextPage(
+                                        duration: const Duration(milliseconds: 200),
+                                        curve: Curves.linear);
+                                  },
+                                ),
+                              ],
                             ),
-                            // ),
-                            const SizedBox(height: 16,),
-                            // Expanded( child:
-                            SizedBox(
-                              // height: 10000,
-                              child: MatchList(
-                                    matches: matchState.matches,
-                                    teams: teamState
-                                        .teams),
-                            ), // Übergib die Liste der Matches
-                            // ),
-                          ],
-                        ),
-                      )
+                          ),
+                        ],
+                      ),
                     );
                   }
                   return Container(); // Default empty container

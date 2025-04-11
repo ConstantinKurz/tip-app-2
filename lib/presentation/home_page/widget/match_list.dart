@@ -60,20 +60,8 @@ class _MatchListState extends State<MatchList> {
 
     return Center(
       child: Container(
-        width: screenWidth * 0.8,
+        width: screenWidth * 0.6,
         padding: const EdgeInsets.all(16.0),
-        // decoration: BoxDecoration(
-        //   // color: themeData.colorScheme.primaryContainer,
-        //   borderRadius: BorderRadius.circular(12.0),
-        //   boxShadow: [
-        //     BoxShadow(
-        //       color: Colors.grey.withOpacity(0.3),
-        //       spreadRadius: 2,
-        //       blurRadius: 5,
-        //       offset: const Offset(0, 3),
-        //     ),
-        //   ],
-        // ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -86,7 +74,7 @@ class _MatchListState extends State<MatchList> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  width: screenWidth*.2,
+                  width: screenWidth * .2,
                   child: TextField(
                     cursorColor: Colors.white,
                     decoration: const InputDecoration(
@@ -112,16 +100,19 @@ class _MatchListState extends State<MatchList> {
                     callback: () => _showAddMatchDialog(context, widget.teams)),
               ],
             ),
-            const SizedBox(height: 8.0),
-            ListView.builder(
+            const SizedBox(height: 16.0),
+            Expanded(
+                child: ListView.builder(
+              physics:
+                  const BouncingScrollPhysics(),
               shrinkWrap: true,
-              itemCount:
-                  filteredMatches.length, // Verwenden der gefilterten Liste
+              itemCount: filteredMatches.length,
               itemBuilder: (context, index) {
                 final match = filteredMatches[index];
                 return MatchItem(match: match, teams: widget.teams);
               },
-            ),
+            )),
+            const SizedBox(height: 16.0),
           ],
         ),
       ),

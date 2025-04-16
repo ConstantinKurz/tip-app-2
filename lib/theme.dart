@@ -9,10 +9,10 @@ class AppTheme {
   static const Color _lightTextColorPrimary = Colors.black;
   static const Color _appbarColorLight = Colors.blue;
 
-  static final Color _darkPrimaryColor = Colors.blueGrey.shade900;
+  static final Color _darkPrimaryColor = Colors.black;
   static const Color _darkPrimaryVariantColor = Colors.black;
-  static final Color _darkOnPrimaryColor = Colors.blueGrey.shade300;
-  static const Color _darkTextColorPrimary = Colors.white;
+  static final Color _darkOnPrimaryColor = Colors.white;
+  static const Color _darkTextColorPrimary = Colors.black;
   static final Color _appbarColorDark = Colors.blueGrey.shade800;
 
   static const Color _iconColor = Colors.white;

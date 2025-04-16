@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
                                   onPressed: () {
                                     _carouselController.previousPage(
                                         duration: const Duration(milliseconds: 200),
-                                        curve: Curves.linear);
+                                        curve: Curves.ease);
                                   },
                                 ),
                                 SizedBox(
@@ -89,6 +89,7 @@ class _HomePageState extends State<HomePage> {
                                   child: CarouselSlider(
                                     carouselController: _carouselController,
                                     options: CarouselOptions(
+                                      scrollPhysics: const NeverScrollableScrollPhysics(),
                                       viewportFraction: .7,
                                       height: screenHeight,
                                       initialPage: 0,
@@ -116,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                                   onPressed: () {
                                     _carouselController.nextPage(
                                         duration: const Duration(milliseconds: 200),
-                                        curve: Curves.linear);
+                                        curve: Curves.ease);
                                   },
                                 ),
                               ],

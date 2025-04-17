@@ -65,7 +65,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Option<AppUser>> getSignedInUser() async {
     final user = firebaseAuth.currentUser;
-
+    print("Signed in user  $user");
     if (user == null) {
       return none();
     } else {

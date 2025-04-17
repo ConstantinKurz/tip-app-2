@@ -24,7 +24,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.width;
     final themeData = Theme.of(context);
 
@@ -53,7 +52,7 @@ class _HomePageState extends State<HomePage> {
                       teamState is TeamsLoading) {
                     return Center(
                       child: CircularProgressIndicator(
-                        color: themeData.colorScheme.secondary,
+                        color: themeData.colorScheme.onPrimaryContainer,
                       ),
                     );
                   } else if (authState is AuthControllerFailure) {
@@ -84,32 +83,33 @@ class _HomePageState extends State<HomePage> {
                                         curve: Curves.ease);
                                   },
                                 ),
-                                SizedBox(
-                                  width: screenWidth * 0.9,
-                                  child: CarouselSlider(
-                                    carouselController: _carouselController,
-                                    options: CarouselOptions(
-                                      scrollPhysics: const NeverScrollableScrollPhysics(),
-                                      viewportFraction: .7,
-                                      height: screenHeight,
-                                      initialPage: 0,
-                                      enableInfiniteScroll: false,
-                                      enlargeCenterPage: false,
-                                      onPageChanged: (index, reason) {
-                                        setState(() {
-                                          _currentPage = index;
-                                        });
-                                      },
+                                Expanded(
+                                  child: SizedBox(
+                                    child: CarouselSlider(
+                                      carouselController: _carouselController,
+                                      options: CarouselOptions(
+                                        scrollPhysics: const NeverScrollableScrollPhysics(),
+                                        viewportFraction: .7,
+                                        height: screenHeight,
+                                        initialPage: 0,
+                                        enableInfiniteScroll: false,
+                                        enlargeCenterPage: false,
+                                        onPageChanged: (index, reason) {
+                                          setState(() {
+                                            _currentPage = index;
+                                          });
+                                        },
+                                      ),
+                                      items: [
+                                        MatchList(
+                                            matches: matchState.matches,
+                                            teams: teamState.teams),
+                                        UserList(
+                                            matches: matchState.matches,
+                                            teams: teamState.teams,
+                                            users: authState.users),
+                                      ],
                                     ),
-                                    items: [
-                                      MatchList(
-                                          matches: matchState.matches,
-                                          teams: teamState.teams),
-                                      UserList(
-                                          matches: matchState.matches,
-                                          teams: teamState.teams,
-                                          users: authState.users),
-                                    ],
                                   ),
                                 ),
                                 IconButton(

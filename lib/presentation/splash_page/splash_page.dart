@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
-import 'package:flutter_web/presentation/signup/signup_page.dart';
+import 'package:flutter_web/presentation/signin/signin_page.dart';
 import 'package:routemaster/routemaster.dart';
 
 class SplashPage extends StatelessWidget {
@@ -17,7 +17,7 @@ class SplashPage extends StatelessWidget {
         if (state is AuthStateAuthenticated) {
           Routemaster.of(context).push(HomePage.homePagePath);
         } else if (state is AuthStateUnAuthenticated) {
-          Routemaster.of(context).push(SignUpPage.signupPagePath);
+          Routemaster.of(context).push(SignInPage.signinPagePath);
         }
       },
       child: Scaffold(

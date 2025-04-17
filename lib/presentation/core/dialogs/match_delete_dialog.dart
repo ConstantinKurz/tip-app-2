@@ -55,7 +55,6 @@ class DeleteMatchDialog extends StatelessWidget {
                         hoverColor: Colors.red,
                         borderColor: Colors.red,
                         buttonText: 'Löschen',
-                        horizontalPadding: 0,
                         callback: () {
                           BlocProvider.of<MatchesformBloc>(context)
                               .add(MatchFormDeleteEvent(id: match.id));
@@ -68,7 +67,6 @@ class DeleteMatchDialog extends StatelessWidget {
                         hoverColor: primaryDark,
                         borderColor: primaryDark,
                         buttonText: 'Abbrechen',
-                        horizontalPadding: 0,
                         callback: () {
                           Navigator.pop(context);
                         },

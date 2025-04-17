@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
+import 'package:flutter_web/auth_guard.dart';
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/dev_page/dev_page.dart';
@@ -11,7 +12,6 @@ import 'package:flutter_web/presentation/not_found_page/no_found_page.dart';
 import 'package:flutter_web/presentation/signin/signin_page.dart';
 import 'package:flutter_web/presentation/signup/signup_page.dart';
 import 'package:flutter_web/presentation/splash_page/splash_page.dart';
-import 'package:flutter_web/presentation/tip_page/tip_page.dart';
 import 'package:flutter_web/theme.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:routemaster/routemaster.dart';
@@ -35,7 +35,7 @@ final routes = RouteMap(
     routes: {
       '/': (_) => Redirect(SplashPage.splashPagePath),
       HomePage.homePagePath: (_) => const MaterialPage(
-            child: HomePage(),
+        child: AuthGuard(child: HomePage())
           ),
       // TipPage.tipPagePath: (_) => const MaterialPage(child: TipPage()),
       SignUpPage.signupPagePath: (_) => const MaterialPage(child: SignUpPage()),
@@ -88,5 +88,6 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
+
 }
 

@@ -6,18 +6,18 @@ class CustomButton extends StatefulWidget {
   final String buttonText;
   final Function callback;
   final Color? backgroundColor;
-  final double? horizontalPadding;
   final Color borderColor;
   final Color hoverColor;
+  final double? width;
 
   const CustomButton({
     Key? key,
     required this.buttonText,
     required this.callback,
-    this.horizontalPadding,
     this.backgroundColor,
     required this.borderColor,
     required this.hoverColor,
+    this.width,
   }) : super(key: key);
 
   @override
@@ -51,7 +51,7 @@ class _CustomButtonState extends State<CustomButton> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             height: 40,
-            width: 150,
+            width: widget.width ?? 100,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: _isHovered ? widget.hoverColor.withOpacity(0.8) : widget.backgroundColor,
@@ -85,6 +85,7 @@ class _CustomButtonState extends State<CustomButton> {
         borderRadius: BorderRadius.circular(20),
         child: Container(
           height: 40,
+          width: widget.width ?? 100,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: widget.backgroundColor,

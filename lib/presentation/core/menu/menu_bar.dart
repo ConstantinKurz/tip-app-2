@@ -17,11 +17,7 @@ class MyMenuBar extends StatelessWidget {
         height: 66,
         width: double.infinity,
         decoration: BoxDecoration(
-            color: themeData.appBarTheme.backgroundColor,
-            boxShadow: const [
-              BoxShadow(
-                  color: Colors.black, offset: Offset(0, 2), blurRadius: 4)
-            ]),
+            color: themeData.colorScheme.primaryContainer,),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [

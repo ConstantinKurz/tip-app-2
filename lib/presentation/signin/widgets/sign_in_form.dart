@@ -101,8 +101,7 @@ class SignInForm extends StatelessWidget {
               const SizedBox(
                 height: 20,
               ),
-              Text("Please sign in",
-                  style: themeData.textTheme.bodySmall),
+              Text("Please sign in", style: themeData.textTheme.bodySmall),
               const SizedBox(
                 height: 80,
               ),
@@ -110,6 +109,7 @@ class SignInForm extends StatelessWidget {
                 cursorColor: Colors.white,
                 decoration: const InputDecoration(labelText: "Email"),
                 validator: validateEmail,
+                style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(
                 height: 20,
@@ -119,39 +119,46 @@ class SignInForm extends StatelessWidget {
                 obscureText: true,
                 decoration: const InputDecoration(labelText: "Password"),
                 validator: validatePassword,
+                style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(
                 height: 40,
               ),
-              CustomButton(
-                borderColor: primaryDark,
-                hoverColor: primaryDark,
-                backgroundColor: themeData.scaffoldBackgroundColor,
-                buttonText: "Sign in",
-                callback: () {
-                  if (formKey.currentState!.validate()) {
-                    BlocProvider.of<SignupformBloc>(context).add(
-                        SignInWithEmailAndPasswordPressed(
-                            email: _email, password: _password));
-                  } else {
-                    BlocProvider.of<SignupformBloc>(context).add(
-                        SignInWithEmailAndPasswordPressed(
-                            email: null, password: null));
+// Positions its child within itself according to the alignment property.
+// Width blocked by listview otherwise.
+              Align(
+                alignment: Alignment.center,
+                child: CustomButton(
+                    borderColor: primaryDark,
+                    hoverColor: primaryDark,
+                    backgroundColor: themeData.scaffoldBackgroundColor,
+                    width: 125,
+                    buttonText: "Sign In",
+                    callback: () {
+                      if (formKey.currentState!.validate()) {
+                        BlocProvider.of<SignupformBloc>(context).add(
+                            SignInWithEmailAndPasswordPressed(
+                                email: _email, password: _password));
+                      } else {
+                        BlocProvider.of<SignupformBloc>(context).add(
+                            SignInWithEmailAndPasswordPressed(
+                                email: null, password: null));
 
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        backgroundColor: Colors.redAccent,
-                        content: Text(
-                          "invalid input",
-                          style: themeData.textTheme.bodyLarge,
-                        )));
-                  }
-                }),
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            backgroundColor: Colors.redAccent,
+                            content: Text(
+                              "invalid input",
+                              style: themeData.textTheme.bodyLarge,
+                            )));
+                      }
+                    }),
+              ),
               if (state.isSubmitting) ...[
                 const SizedBox(
                   height: 10,
                 ),
                 LinearProgressIndicator(
-                  color: themeData.colorScheme.secondary,
+                  color: themeData.colorScheme.onPrimary,
                 )
               ]
             ],

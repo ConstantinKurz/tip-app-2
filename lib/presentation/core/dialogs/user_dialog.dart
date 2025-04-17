@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/auth/form/authform_bloc.dart';
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
@@ -14,14 +15,14 @@ enum UserAction { create, update, delete }
 class UserDialog extends StatelessWidget {
   final List<Team>? teams;
   final String dialogText;
-  final UserAction matchAction;
+  final UserAction userAction;
   final CustomMatch? match;
 
   const UserDialog({
     Key? key,
     this.teams,
     required this.dialogText,
-    required this.matchAction,
+    required this.userAction,
     this.match,
   }) : super(key: key);
 
@@ -30,8 +31,8 @@ class UserDialog extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return BlocProvider<MatchesformBloc>(
-      create: (context) => sl<MatchesformBloc>(),
+    return BlocProvider<AuthformBloc>(
+      create: (context) => sl<AuthformBloc>(),
       child: AlertDialog(
         title: Text(dialogText),
         content: SizedBox(
@@ -39,7 +40,7 @@ class UserDialog extends StatelessWidget {
           height: screenHeight * 0.6,
           child: Builder(
             builder: (context) {
-              switch (matchAction) {
+              switch (userAction) {
                 case UserAction.update:
                   return UpdateMatchForm(teams: teams!, match: match!);
                 case UserAction.delete:

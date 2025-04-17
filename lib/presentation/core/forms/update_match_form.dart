@@ -164,6 +164,7 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                 Expanded(
                   child: TextFormField(
                     controller: _homeScoreController,
+                    style: const TextStyle(color: Colors.white),
                     cursorColor: Colors.white,
                     validator: (value) => _validateScore(value, 'home'),
                     maxLength: 2,
@@ -183,6 +184,7 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                 Expanded(
                   child: TextFormField(
                     controller: _guestScoreController,
+                    style: const TextStyle(color: Colors.white),
                     cursorColor: Colors.white,
                     validator: (value) => _validateScore(value, 'guest'),
                     maxLength: 2,

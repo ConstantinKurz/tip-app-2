@@ -1,17 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_bloc.dart';
-import 'package:flutter_web/auth_guard_listener.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/widget/match_list.dart';
 import 'package:flutter_web/presentation/home_page/widget/user_list.dart';
-import 'package:flutter_web/presentation/signin/signin_page.dart';
-import 'package:routemaster/routemaster.dart';
-import '../../domain/entities/team.dart';
 import '../../injections.dart';
 
 class HomePage extends StatefulWidget {

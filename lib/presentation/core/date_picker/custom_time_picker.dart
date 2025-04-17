@@ -48,6 +48,7 @@ class _CustomTimePickerFieldState extends State<CustomTimePickerField> {
         Expanded(
           child: TextFormField(
             cursorColor: Colors.white,
+            style: const TextStyle(color: Colors.white),
             controller: _hourController,
             decoration: const InputDecoration(
               labelText: 'Stunde',
@@ -68,6 +69,7 @@ class _CustomTimePickerFieldState extends State<CustomTimePickerField> {
         Expanded(
           child: TextFormField(
             cursorColor: Colors.white,
+            style: const TextStyle(color: Colors.white),
             controller: _minuteController,
             decoration: const InputDecoration(
               labelText: 'Minute',
@@ -88,7 +90,7 @@ class _CustomTimePickerFieldState extends State<CustomTimePickerField> {
     );
   }
 
-    String? _validateHour(String? value) {
+  String? _validateHour(String? value) {
     if (value == null || value.isEmpty) {
       return 'Eingabe 30fehlt';
     }

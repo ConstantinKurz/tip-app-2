@@ -51,7 +51,7 @@ class _CustomButtonState extends State<CustomButton> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             height: 40,
-            width: widget.width ?? 100,
+            width: widget.width ?? 150,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: _isHovered ? widget.hoverColor.withOpacity(0.8) : widget.backgroundColor,

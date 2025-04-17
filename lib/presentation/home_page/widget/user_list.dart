@@ -6,6 +6,7 @@ import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
+import 'package:flutter_web/presentation/core/dialogs/user_dialog.dart';
 import 'package:flutter_web/presentation/home_page/widget/user_item.dart';
 
 class UserList extends StatefulWidget {
@@ -101,7 +102,7 @@ class _UserListState extends State<UserList> {
       builder: (BuildContext context) {
         return Builder(
           builder: (BuildContext newContext) {
-            return Container();
+            return const UserDialog(dialogText: "Tipper hinzufügen", userAction: UserAction.create,);
           },
         );
       },

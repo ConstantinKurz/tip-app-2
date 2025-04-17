@@ -5,6 +5,7 @@ import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/dialogs/match_delete_dialog.dart';
+import 'package:flutter_web/presentation/core/forms/create_user_form.dart';
 import 'package:flutter_web/presentation/core/forms/update_match_form.dart';
 
 import '../forms/create_match_form.dart';
@@ -44,9 +45,9 @@ class UserDialog extends StatelessWidget {
                 case UserAction.delete:
                   return DeleteMatchDialog(match: match!);
                 case UserAction.create:
-                  return CreateMatchForm(teams: teams!);
+                  return const CreateUserForm();
                 default:
-                  return CreateMatchForm(teams: teams!);
+                  return const CreateUserForm();
               }
             },
           ),

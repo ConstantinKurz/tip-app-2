@@ -2,9 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
-import 'package:flutter_web/auth_guard.dart';
 import 'package:flutter_web/firebase_options.dart';
-import 'package:flutter_web/injections.dart';
+import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/dev_page/dev_page.dart';
 import 'package:flutter_web/presentation/eco_page/eco_page.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
@@ -16,7 +15,6 @@ import 'package:flutter_web/theme.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:routemaster/routemaster.dart';
 import 'package:url_strategy/url_strategy.dart';
-import 'injections.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,29 +26,37 @@ void main() async {
   runApp(const MyApp());
 }
 
-final routes = RouteMap(
-    onUnknownRoute: (route) {
-      return const MaterialPage(child: NotFoundPage());
-    },
-    routes: {
-      '/': (_) => Redirect(SplashPage.splashPagePath),
-      HomePage.homePagePath: (_) => const MaterialPage(
-        child: AuthGuard(child: HomePage())
-          ),
-      // TipPage.tipPagePath: (_) => const MaterialPage(child: TipPage()),
-      SignUpPage.signupPagePath: (_) => const MaterialPage(child: SignUpPage()),
-      SignInPage.signinPagePath: (_) => const MaterialPage(child: SignInPage()),
-      SplashPage.splashPagePath: (_) => const MaterialPage(child: SplashPage()),
-      DevPage.devPagePath: (_) => const MaterialPage(child: DevPage()),
-      EcoPage.ecoPagePath: (_) => const MaterialPage(child: EcoPage()),
-      DevPage.devPagePath + '/plattform/:id': (info) {
-        if (info.pathParameters['id'] == 'android')
-          return const MaterialPage(child: Placeholder(color: Colors.pink));
-        if (info.pathParameters['id'] == 'ios')
-          return const MaterialPage(child: Placeholder(color: Colors.teal));
-        return Redirect(DevPage.devPagePath);
-      }
-    });
+// Zentrale Pfadkonstanten (könnte auch ausgelagert werden)
+class AppRoutes {
+  static const splash = '/splash';
+  static const signin = '/signin';
+  static const signup = '/signup';
+  static const home = '/home';
+  static const dev = '/dev';
+  static const eco = '/eco';
+  static const platform = '/dev/plattform/:id';
+}
+
+// Guards für Auth-Routing
+Page authGuard({
+  required bool isAuthenticated,
+  required Widget page,
+  String redirectTo = AppRoutes.signin,
+}) {
+  return isAuthenticated
+      ? MaterialPage(child: page)
+      : Redirect(redirectTo);
+}
+
+Page guestGuard({
+  required bool isAuthenticated,
+  required Widget page,
+  String redirectTo = AppRoutes.home,
+}) {
+  return isAuthenticated
+      ? Redirect(redirectTo)
+      : MaterialPage(child: page);
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -59,20 +65,78 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // add.. => check at start of webpage if user is already signed in
         BlocProvider(
-          create: (context) => sl<AuthBloc>()..add(AuthCheckRequestedEvent()),
+          create: (context) =>
+              di.sl<AuthBloc>()..add(AuthCheckRequestedEvent()),
         ),
-        // Add other BlocProviders here if needed
       ],
       child: MaterialApp.router(
-        routeInformationParser: const RoutemasterParser(),
-        routerDelegate: RoutemasterDelegate(routesBuilder: (context) => routes),
         debugShowCheckedModeBanner: false,
         title: 'Flutter Web',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.dark,
+        routeInformationParser: const RoutemasterParser(),
+        routerDelegate: RoutemasterDelegate(
+          routesBuilder: (context) {
+            final authState = context.watch<AuthBloc>().state;
+            final isAuthenticated = authState is AuthStateUnAuthenticated;
+
+            return RouteMap(
+              onUnknownRoute: (_) =>
+                  const MaterialPage(child: NotFoundPage()),
+              routes: {
+                '/': (_) => Redirect(AppRoutes.splash),
+
+                AppRoutes.splash: (_) =>
+                    const MaterialPage(child: SplashPage()),
+
+                AppRoutes.signin: (_) => guestGuard(
+                      isAuthenticated: isAuthenticated,
+                      page: const SignInPage(),
+                    ),
+
+                AppRoutes.signup: (_) => guestGuard(
+                      isAuthenticated: isAuthenticated,
+                      page: const SignUpPage(),
+                    ),
+
+                AppRoutes.home: (_) => authGuard(
+                      isAuthenticated: isAuthenticated,
+                      page: HomePage(),
+                    ),
+
+                AppRoutes.dev: (_) => authGuard(
+                      isAuthenticated: isAuthenticated,
+                      page: const DevPage(),
+                    ),
+
+                AppRoutes.eco: (_) => authGuard(
+                      isAuthenticated: isAuthenticated,
+                      page: const EcoPage(),
+                    ),
+
+                AppRoutes.platform: (info) {
+                  if (!isAuthenticated) {
+                    return const Redirect(AppRoutes.signin);
+                  }
+
+                  final id = info.pathParameters['id'];
+                  if (id == 'android') {
+                    return const MaterialPage(
+                        child: Placeholder(color: Colors.pink));
+                  }
+                  if (id == 'ios') {
+                    return const MaterialPage(
+                        child: Placeholder(color: Colors.teal));
+                  }
+
+                  return Redirect(AppRoutes.dev);
+                },
+              },
+            );
+          },
+        ),
         builder: (context, widget) => ResponsiveWrapper.builder(
           widget,
           defaultScale: true,
@@ -83,11 +147,9 @@ class MyApp extends StatelessWidget {
             ResponsiveBreakpoint.resize(600, name: TABLET),
             ResponsiveBreakpoint.resize(1000, name: DESKTOP),
           ],
-          backgroundColor: Colors.blue
+          background: Container(color: Colors.blue),
         ),
       ),
     );
   }
-
 }
-

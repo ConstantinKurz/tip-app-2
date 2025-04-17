@@ -25,6 +25,8 @@ class AuthControllerBloc extends Bloc<AuthControllerEvent, AuthControllerState> 
     });
 
     on<AuthUpdatedEvent>((event, emit) {
+      print(event.failureOrUsers);
+      print("User received!");
       event.failureOrUsers.fold(
         (failure) => emit(AuthControllerFailure(authFailure: failure)),
         (users) => emit(AuthControllerLoaded(users: users)),

@@ -1,12 +1,16 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_bloc.dart';
+import 'package:flutter_web/auth_guard_listener.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/widget/match_list.dart';
 import 'package:flutter_web/presentation/home_page/widget/user_list.dart';
+import 'package:flutter_web/presentation/signin/signin_page.dart';
+import 'package:routemaster/routemaster.dart';
 import '../../domain/entities/team.dart';
 import '../../injections.dart';
 
@@ -57,14 +61,16 @@ class _HomePageState extends State<HomePage> {
                     );
                   } else if (authState is AuthControllerFailure) {
                     return Center(
-                        child: Text("Auth Failure: ${authState.authFailure}"));
+                        child:
+                            Text("Auth Failure: ${authState.authFailure}"));
                   } else if (matchState is MatchesControllerFailure) {
                     return Center(
-                        child:
-                            Text("Match Failure: ${matchState.matchFailure}"));
+                        child: Text(
+                            "Match Failure: ${matchState.matchFailure}"));
                   } else if (teamState is TeamFailureState) {
                     return Center(
-                        child: Text(" Team Failure: ${teamState.teamFailure}"));
+                        child:
+                            Text(" Team Failure: ${teamState.teamFailure}"));
                   } else if (authState is AuthControllerLoaded &&
                       matchState is MatchesControllerLoaded &&
                       teamState is TeamsLoaded) {
@@ -73,13 +79,14 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Expanded(
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center, 
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.arrow_back_ios_new),
                                   onPressed: () {
                                     _carouselController.previousPage(
-                                        duration: const Duration(milliseconds: 200),
+                                        duration:
+                                            const Duration(milliseconds: 200),
                                         curve: Curves.ease);
                                   },
                                 ),
@@ -88,7 +95,8 @@ class _HomePageState extends State<HomePage> {
                                     child: CarouselSlider(
                                       carouselController: _carouselController,
                                       options: CarouselOptions(
-                                        scrollPhysics: const NeverScrollableScrollPhysics(),
+                                        scrollPhysics:
+                                            const NeverScrollableScrollPhysics(),
                                         viewportFraction: .7,
                                         height: screenHeight,
                                         initialPage: 0,
@@ -113,10 +121,12 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.arrow_forward_ios_outlined),
+                                  icon: const Icon(
+                                      Icons.arrow_forward_ios_outlined),
                                   onPressed: () {
                                     _carouselController.nextPage(
-                                        duration: const Duration(milliseconds: 200),
+                                        duration:
+                                            const Duration(milliseconds: 200),
                                         curve: Curves.ease);
                                   },
                                 ),

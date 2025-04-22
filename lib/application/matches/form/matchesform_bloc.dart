@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_web/core/failures/match_failures.dart';
 import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/match.dart';
@@ -59,6 +60,16 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
         // emit with none() since intial state has option of none()
         emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
       }
+    });
+
+    on<MatchFormFieldUpdatedEvent>((event, emit) {
+      emit(state.copyWith(
+        homeTeamId: event.homeTeamId ?? state.homeTeamId,
+        guestTeamId: event.guestTeamId ?? state.guestTeamId,
+        matchDate: event.matchDate ?? state.matchDate,
+        matchTime: event.matchTime ?? state.matchTime,
+        matchDay: event.matchDay ?? state.matchDay,
+      ));
     });
 
     on<MatchFormDeleteEvent>((event, emit) async {

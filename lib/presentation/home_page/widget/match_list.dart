@@ -97,14 +97,17 @@ class _MatchListState extends State<MatchList> {
                     hoverColor: primaryDark,
                     borderColor: primaryDark,
                     icon: Icons.add,
-                    callback: () => _showAddMatchDialog(context, widget.teams)),
+                    callback: () => {
+                          print(
+                              "Teams passed to _showAddMatchDialog: ${widget.teams}"),
+                          _showAddMatchDialog(context, widget.teams)
+                        }),
               ],
             ),
             const SizedBox(height: 16.0),
             Expanded(
                 child: ListView.builder(
-              physics:
-                  const BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               shrinkWrap: true,
               itemCount: filteredMatches.length,
               itemBuilder: (context, index) {

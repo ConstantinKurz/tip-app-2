@@ -17,6 +17,21 @@ class CreateMatchEvent extends MatchesformEvent {
       required this.matchDay});
 }
 
+class MatchFormFieldUpdatedEvent extends MatchesformEvent {
+  final UniqueID? homeTeamId;
+  final UniqueID? guestTeamId;
+  final DateTime? matchDate;
+  final TimeOfDay? matchTime;
+  final int? matchDay;
+
+  MatchFormFieldUpdatedEvent(
+      {this.homeTeamId,
+      this.guestTeamId,
+      this.matchDate,
+      this.matchTime,
+      this.matchDay});
+}
+
 class MatchFormUpdateEvent extends MatchesformEvent {
   final CustomMatch? match;
   MatchFormUpdateEvent({required this.match});

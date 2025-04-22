@@ -5,26 +5,43 @@ class MatchesformState {
   final bool isSubmitting;
   final bool showValidationMessages;
   final Option<Either<MatchFailure, Unit>>? matchFailureOrSuccessOption;
+
+  final UniqueID? homeTeamId;
+  final UniqueID? guestTeamId;
+  final DateTime? matchDate;
+  final TimeOfDay? matchTime;
+  final int? matchDay;
+
   MatchesformState({
     required this.isSubmitting,
     required this.showValidationMessages,
     this.matchFailureOrSuccessOption,
+    this.homeTeamId,
+    this.guestTeamId,
+    this.matchDate,
+    this.matchTime,
+    this.matchDay,
   });
 
-  MatchesformState copyWith(
-      {bool? isSubmitting,
-      bool? showValidationMessages,
-      Option<Either<MatchFailure, Unit>>? matchFailureOrSuccessOption}) {
+  MatchesformState copyWith({
+    bool? isSubmitting,
+    bool? showValidationMessages,
+    Option<Either<MatchFailure, Unit>>? matchFailureOrSuccessOption,
+    UniqueID? homeTeamId,
+    UniqueID? guestTeamId,
+    DateTime? matchDate,
+    TimeOfDay? matchTime,
+    int? matchDay,
+  }) {
     return MatchesformState(
-        isSubmitting: isSubmitting ?? this.isSubmitting,
-        showValidationMessages:
-            showValidationMessages ?? this.showValidationMessages,
-        matchFailureOrSuccessOption:
-            matchFailureOrSuccessOption ?? this.matchFailureOrSuccessOption);
-  }
-
-  @override
-  String toString() {
-    return 'MatchesformState(isSubmitting: $isSubmitting, showValidationMessages: $showValidationMessages, matchFailureOrSuccessOption: $matchFailureOrSuccessOption)';
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      showValidationMessages: showValidationMessages ?? this.showValidationMessages,
+      matchFailureOrSuccessOption: matchFailureOrSuccessOption ?? this.matchFailureOrSuccessOption,
+      homeTeamId: homeTeamId ?? this.homeTeamId,
+      guestTeamId: guestTeamId ?? this.guestTeamId,
+      matchDate: matchDate ?? this.matchDate,
+      matchTime: matchTime ?? this.matchTime,
+      matchDay: matchDay ?? this.matchDay,
+    );
   }
 }

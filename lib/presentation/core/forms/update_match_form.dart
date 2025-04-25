@@ -22,8 +22,8 @@ class UpdateMatchForm extends StatelessWidget {
       BuildContext context, String scoreType) {
     if (value == null || value.isEmpty) {
       // Access the other score from the state
-      if ((state.homeScoreControllerText.isNotEmpty && scoreType == 'guest') ||
-          (state.guestScoreControllerText.isNotEmpty && scoreType == 'home')) {
+      if ((state.homeScore == null && scoreType == 'guest') ||
+          (state.guestScore == null && scoreType == 'home')) {
         return '[0-10]';
       }
       return null;
@@ -90,9 +90,8 @@ class UpdateMatchForm extends StatelessWidget {
                   Expanded(
                     child: DropdownButtonFormField<Team>(
                       decoration: const InputDecoration(labelText: 'Home Team'),
-                      value: teams.firstWhere(
-                          (team) => team.id == state.homeTeamId,
-                          orElse: () => team.empty()),
+                      value: teams.firstWhere((t) => t.id == match.homeTeamId,
+                              orElse: () => Team.empty()),
                       items: teams.map((team) {
                         return DropdownMenuItem<Team>(
                           value: team,
@@ -109,9 +108,8 @@ class UpdateMatchForm extends StatelessWidget {
                   Expanded(
                     child: DropdownButtonFormField<Team>(
                       decoration: const InputDecoration(labelText: 'Gast Team'),
-                      value: teams.firstWhere(
-                          (team) => team.id == state.guestTeamId,
-                          orElse: () => team.empty()),
+                      value: teams.firstWhere((t) => t.id == match.guestTeamId,
+                              orElse: () => Team.empty()),
                       items: teams.map((team) {
                         return DropdownMenuItem<Team>(
                           value: team,
@@ -142,7 +140,7 @@ class UpdateMatchForm extends StatelessWidget {
                       minLines: 1,
                       decoration: InputDecoration(
                         labelText: "Heimtore",
-                        hintText: state.homeScoreControllerText,
+                        hintText: state.homeScore == null? "" : state.homeScore.toString(),
                         counterText: "",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -150,7 +148,7 @@ class UpdateMatchForm extends StatelessWidget {
                       ),
                       onChanged: (value) => context.read<MatchesformBloc>().add(
                           MatchFormFieldUpdatedEvent(
-                              homeScoreControllerText: value)),
+                              homeTeamScore: int.tryParse(value))),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -168,7 +166,7 @@ class UpdateMatchForm extends StatelessWidget {
                       minLines: 1,
                       decoration: InputDecoration(
                         labelText: "Gasttore",
-                        hintText: state.guestScoreControllerText,
+                        hintText: state.guestScore == null? "" : state.guestScore.toString(),
                         counterText: "",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -176,7 +174,7 @@ class UpdateMatchForm extends StatelessWidget {
                       ),
                       onChanged: (value) => context.read<MatchesformBloc>().add(
                           MatchFormFieldUpdatedEvent(
-                              guestScoreControllerText: value)),
+                              guestTeamScore: int.tryParse(value))),
                     ),
                   ),
                 ],
@@ -210,7 +208,7 @@ class UpdateMatchForm extends StatelessWidget {
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 decoration: const InputDecoration(labelText: 'Match Tag'),
-                value: state.matchDay,
+                value: match.matchDay,
                 items: List.generate(7, (index) => index).map((value) {
                   return DropdownMenuItem<int>(
                     value: value,
@@ -246,13 +244,14 @@ class UpdateMatchForm extends StatelessWidget {
 
                         final CustomMatch updatedMatch = CustomMatch(
                           id: match.id,
-                          homeTeamId: state.homeTeamId!,
-                          guestTeamId: state.guestTeamId!,
+                          homeTeamId: state.homeTeamId ?? match.homeTeamId,
+                          guestTeamId: state.guestTeamId ?? match.guestTeamId,
                           matchDate: combinedDateTime,
-                          matchDay: state.matchDay!,
-                          homeScore: int.tryParse(homeScoreController.text),
-                          guestScore: int.tryParse(guestScoreController.text),
+                          matchDay: state.matchDay ?? match.matchDay,
+                          homeScore: state.homeScore ?? match.homeScore,
+                          guestScore: state.guestScore ?? match.guestScore,
                         );
+                        print(updatedMatch);
                         context
                             .read<MatchesformBloc>()
                             .add(MatchFormUpdateEvent(match: updatedMatch));

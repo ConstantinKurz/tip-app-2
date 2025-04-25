@@ -67,8 +67,8 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
           matchDate: event.matchDate ?? state.matchDate,
           matchTime: event.matchTime ?? state.matchTime,
           matchDay: event.matchDay ?? state.matchDay,
-          homeTeamScore: event.homeTeamScore ?? state.homeTeamScore,
-          guestTeamScore: event.guestTeamScore ?? state.guestTeamScore));
+          homeScore: event.homeTeamScore ?? state.homeScore,
+          guestScore: event.guestTeamScore ?? state.guestScore));
     });
 
     on<MatchFormDeleteEvent>((event, emit) async {

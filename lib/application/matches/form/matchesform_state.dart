@@ -10,8 +10,8 @@ class MatchesformState {
   final String? guestTeamId;
   final DateTime? matchDate;
   final TimeOfDay? matchTime;
-  final int? homeTeamScore;
-  final int? guestTeamScore;
+  final int? homeScore;
+  final int? guestScore;
   final int? matchDay;
 
   MatchesformState({
@@ -22,8 +22,8 @@ class MatchesformState {
     this.guestTeamId,
     this.matchDate,
     this.matchTime,
-    this.homeTeamScore,
-    this.guestTeamScore,
+    this.homeScore,
+    this.guestScore,
     this.matchDay,
   });
 
@@ -36,8 +36,8 @@ class MatchesformState {
     DateTime? matchDate,
     TimeOfDay? matchTime,
     int? matchDay,
-    int? homeTeamScore,
-    int? guestTeamScore,
+    int? homeScore,
+    int? guestScore,
   }) {
     return MatchesformState(
       isSubmitting: isSubmitting ?? this.isSubmitting,
@@ -50,8 +50,8 @@ class MatchesformState {
       matchDate: matchDate ?? this.matchDate,
       matchTime: matchTime ?? this.matchTime,
       matchDay: matchDay ?? this.matchDay,
-      homeTeamScore: homeTeamScore ?? this.homeTeamScore,
-      guestTeamScore: guestTeamScore ?? this.guestTeamScore
+      homeScore: homeScore ?? this.homeScore,
+      guestScore: guestScore ?? this.guestScore
     );
   }
 }
@@ -66,7 +66,7 @@ class MatchesFromInitialState extends MatchesformState {
           guestTeamId: null,
           matchDate: DateTime.now(),
           matchTime: TimeOfDay.now(), 
-          homeTeamScore: null,
-          guestTeamScore: null
+          homeScore: null,
+          guestScore: null
         );
 }

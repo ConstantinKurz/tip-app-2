@@ -55,9 +55,9 @@ class MatchModel {
 
   CustomMatch toDomain() {
     return CustomMatch(
-      id: UniqueID.fromUniqueString(id),
-      homeTeamId: UniqueID.fromUniqueString(homeTeamId),
-      guestTeamId: UniqueID.fromUniqueString(guestTeamId),
+      id: id,
+      homeTeamId: homeTeamId,
+      guestTeamId: guestTeamId,
       matchDate: matchDate,
       matchDay: matchDay,
       homeScore: homeScore,
@@ -87,9 +87,9 @@ class MatchModel {
 
   factory MatchModel.fromDomain(CustomMatch match) {
     return MatchModel(
-        id: match.id.value,
-        homeTeamId: match.homeTeamId.value,
-        guestTeamId: match.guestTeamId.value,
+        id: match.id,
+        homeTeamId: match.homeTeamId,
+        guestTeamId: match.guestTeamId,
         matchDate: match.matchDate,
         matchDay: match.matchDay,
         homeScore: match.homeScore,

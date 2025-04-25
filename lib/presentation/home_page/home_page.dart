@@ -9,17 +9,11 @@ import 'package:flutter_web/presentation/home_page/widget/match_list.dart';
 import 'package:flutter_web/presentation/home_page/widget/user_list.dart';
 import '../../injections.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   static String homePagePath = "/home";
-  const HomePage({Key? key}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
 
-  @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
   final CarouselController _carouselController = CarouselController();
-  int _currentPage = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -56,16 +50,14 @@ class _HomePageState extends State<HomePage> {
                     );
                   } else if (authState is AuthControllerFailure) {
                     return Center(
-                        child:
-                            Text("Auth Failure: ${authState.authFailure}"));
+                        child: Text("Auth Failure: ${authState.authFailure}"));
                   } else if (matchState is MatchesControllerFailure) {
                     return Center(
-                        child: Text(
-                            "Match Failure: ${matchState.matchFailure}"));
+                        child:
+                            Text("Match Failure: ${matchState.matchFailure}"));
                   } else if (teamState is TeamFailureState) {
                     return Center(
-                        child:
-                            Text(" Team Failure: ${teamState.teamFailure}"));
+                        child: Text(" Team Failure: ${teamState.teamFailure}"));
                   } else if (authState is AuthControllerLoaded &&
                       matchState is MatchesControllerLoaded &&
                       teamState is TeamsLoaded) {
@@ -97,11 +89,7 @@ class _HomePageState extends State<HomePage> {
                                         initialPage: 0,
                                         enableInfiniteScroll: false,
                                         enlargeCenterPage: false,
-                                        onPageChanged: (index, reason) {
-                                          setState(() {
-                                            _currentPage = index;
-                                          });
-                                        },
+                                        onPageChanged: (_, __) {},
                                       ),
                                       items: [
                                         MatchList(

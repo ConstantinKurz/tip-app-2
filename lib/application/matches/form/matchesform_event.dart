@@ -5,21 +5,23 @@ part of 'matchesform_bloc.dart';
 sealed class MatchesformEvent {}
 
 class CreateMatchEvent extends MatchesformEvent {
-  final UniqueID? homeTeamId;
-  final UniqueID? guestTeamId;
+  final String? id;
+  final String? homeTeamId;
+  final String? guestTeamId;
   final DateTime? matchDate;
   final int? matchDay;
 
   CreateMatchEvent(
-      {required this.homeTeamId,
+      {required this.id,
+      required this.homeTeamId,
       required this.guestTeamId,
       required this.matchDate,
       required this.matchDay});
 }
 
 class MatchFormFieldUpdatedEvent extends MatchesformEvent {
-  final UniqueID? homeTeamId;
-  final UniqueID? guestTeamId;
+  final String? homeTeamId;
+  final String? guestTeamId;
   final DateTime? matchDate;
   final TimeOfDay? matchTime;
   final int? matchDay;
@@ -44,7 +46,7 @@ class MatchFormUpdatedEvent extends MatchesformEvent {
 }
 
 class MatchFormDeleteEvent extends MatchesformEvent {
-  final UniqueID id;
+  final String id;
   MatchFormDeleteEvent({
     required this.id,
   });

@@ -6,8 +6,8 @@ class MatchesformState {
   final bool showValidationMessages;
   final Option<Either<MatchFailure, Unit>>? matchFailureOrSuccessOption;
 
-  final UniqueID? homeTeamId;
-  final UniqueID? guestTeamId;
+  final String? homeTeamId;
+  final String? guestTeamId;
   final DateTime? matchDate;
   final TimeOfDay? matchTime;
   final int? matchDay;
@@ -27,8 +27,8 @@ class MatchesformState {
     bool? isSubmitting,
     bool? showValidationMessages,
     Option<Either<MatchFailure, Unit>>? matchFailureOrSuccessOption,
-    UniqueID? homeTeamId,
-    UniqueID? guestTeamId,
+    String? homeTeamId,
+    String? guestTeamId,
     DateTime? matchDate,
     TimeOfDay? matchTime,
     int? matchDay,
@@ -44,4 +44,15 @@ class MatchesformState {
       matchDay: matchDay ?? this.matchDay,
     );
   }
+}
+
+class MatchesFromInitialState extends MatchesformState {
+  MatchesFromInitialState()
+      : super(
+          isSubmitting: false,
+          showValidationMessages: false,
+          matchFailureOrSuccessOption: none(),
+          matchDate: DateTime.now(),
+          matchTime: TimeOfDay.now(),
+        );
 }

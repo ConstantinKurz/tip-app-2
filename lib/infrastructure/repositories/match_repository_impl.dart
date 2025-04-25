@@ -37,6 +37,7 @@ class MatchRepositoryImpl implements MatchRepository {
   Future<Either<MatchFailure, Unit>> createMatch(CustomMatch match) async {
     try {
       final matchModel = MatchModel.fromDomain(match);
+
       await matchesCollection.doc(matchModel.id).set(matchModel.toMap());
 
       return right(unit);
@@ -88,22 +89,6 @@ class MatchRepositoryImpl implements MatchRepository {
       }
     }
   }
-
-  // @override
-  // Future<Either<MatchFailure, Unit>> createMatch(CustomMatch match) async {
-  //   try {
-  //     final matchModel = MatchModel.fromDomain(match);
-  //     await matchesCollection.doc(matchModel.id).set(matchModel.toMap());
-
-  //     return right(unit);
-  //   } on FirebaseException catch (e) {
-  //     if (e.code.contains("PERMISSION_DENIED")) {
-  //       return left(InsufficientPermisssons());
-  //     } else {
-  //       return left(UnexpectedFailure());
-  //     }
-  //   }
-  // }
 
   @override
   Future<Either<MatchFailure, CustomMatch>> getMatchById(String matchId) async {

@@ -2,7 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web/core/failures/match_failures.dart';
-import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:meta/meta.dart';
@@ -13,12 +12,9 @@ part 'matchesform_state.dart';
 class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
   final MatchRepository matchesRepository;
   MatchesformBloc({required this.matchesRepository})
-      : super(MatchesformState(
-            isSubmitting: false,
-            showValidationMessages: false,
-            matchFailureOrSuccessOption: none())) {
+      : super(MatchesFromInitialState()) {
     on<CreateMatchEvent>((event, emit) async {
-      if (event.homeTeamId == null ||
+      if (event.id == null || event.homeTeamId == null ||
           event.guestTeamId == null ||
           event.matchDate == null ||
           event.matchDay == null) {
@@ -27,6 +23,7 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
       } else {
         emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
         CustomMatch match = CustomMatch.empty().copyWith(
+            id: event.id,
             homeTeamId: event.homeTeamId,
             guestTeamId: event.guestTeamId,
             matchDate: event.matchDate,
@@ -79,7 +76,7 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
           matchFailureOrSuccessOption: none()));
 
       final failureOrSuccess =
-          await matchesRepository.deleteMatchById(event.id.value);
+          await matchesRepository.deleteMatchById(event.id);
 
       emit(state.copyWith(
         isSubmitting: false,

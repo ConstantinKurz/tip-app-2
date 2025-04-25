@@ -3,9 +3,9 @@ import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 
 class CustomMatch {
-  final UniqueID id;
-  final UniqueID homeTeamId;
-  final UniqueID guestTeamId;
+  final String id;
+  final String homeTeamId;
+  final String guestTeamId;
   final DateTime matchDate;
   final int matchDay;
   final int? homeScore;
@@ -22,9 +22,9 @@ class CustomMatch {
   }) : assert(matchDay >= 0 && matchDay <= 6, 'Matchday must be between 0 and 6');
 
   CustomMatch copyWith({
-    UniqueID? id,
-    UniqueID? homeTeamId,
-    UniqueID? guestTeamId,
+    String? id,
+    String? homeTeamId,
+    String? guestTeamId,
     DateTime? matchDate,
     int? matchDay,
     int? homeScore,
@@ -42,18 +42,18 @@ class CustomMatch {
   }
 
   factory CustomMatch.empty({
-    UniqueID? id,
-    UniqueID? homeTeamId,
-    UniqueID? guestTeamId,
+    String? id,
+    String? homeTeamId,
+    String? guestTeamId,
     DateTime? matchDate,
     int? matchDay,
     int? homeScore,
     int? guestScore,
   }) {
     return CustomMatch(
-      id: id ?? UniqueID(),
-      homeTeamId: homeTeamId ?? UniqueID.fromUniqueString(Team.empty().id),
-      guestTeamId: guestTeamId ?? UniqueID.fromUniqueString(Team.empty().id),
+      id: id ?? "",
+      homeTeamId: homeTeamId ?? "TBD",
+      guestTeamId: guestTeamId ?? "TBD",
       matchDate: matchDate ?? DateTime.now(),
       matchDay: matchDay ?? 0,
       homeScore: homeScore,

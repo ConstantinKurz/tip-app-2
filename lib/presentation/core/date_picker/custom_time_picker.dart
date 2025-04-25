@@ -92,7 +92,7 @@ class _CustomTimePickerFieldState extends State<CustomTimePickerField> {
 
   String? _validateHour(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Eingabe 30fehlt';
+      return 'Eingabe fehlt';
     }
     final intValue = int.tryParse(value);
     if (intValue == null || intValue < 0 || intValue > 23) {
@@ -103,7 +103,7 @@ class _CustomTimePickerFieldState extends State<CustomTimePickerField> {
 
   String? _validateMinute(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Eingabe fehtl';
+      return 'Eingabe fehlt';
     }
     final intValue = int.tryParse(value);
     if (intValue == null || intValue < 0 || intValue > 59) {

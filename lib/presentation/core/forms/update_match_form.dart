@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/constants.dart';
-import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
@@ -26,8 +25,8 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
   final TextEditingController _homeScoreController = TextEditingController();
   final TextEditingController _guestScoreController = TextEditingController();
 
-  UniqueID? _homeTeamId;
-  UniqueID? _guestTeamId;
+  String? _homeTeamId;
+  String? _guestTeamId;
   DateTime? _matchDate;
   TimeOfDay? _matchTime;
   int _matchDay = 0;
@@ -122,7 +121,7 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                   child: DropdownButtonFormField<Team>(
                     decoration: const InputDecoration(labelText: 'Home Team'),
                     value: widget.teams.firstWhere(
-                        (team) => team.id == widget.match.homeTeamId.value),
+                        (team) => team.id == widget.match.homeTeamId),
                     items: widget.teams.map((team) {
                       return DropdownMenuItem<Team>(
                         value: team,
@@ -131,7 +130,7 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        _homeTeamId = UniqueID.fromUniqueString(value!.id);
+                        _homeTeamId = value?.id;
                       });
                     },
                   ),
@@ -141,7 +140,7 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                   child: DropdownButtonFormField<Team>(
                     decoration: const InputDecoration(labelText: 'Gast Team'),
                     value: widget.teams.firstWhere(
-                        (team) => team.id == widget.match.guestTeamId.value),
+                        (team) => team.id == widget.match.guestTeamId),
                     items: widget.teams.map((team) {
                       return DropdownMenuItem<Team>(
                         value: team,
@@ -150,7 +149,7 @@ class _UpdateMatchFormState extends State<UpdateMatchForm> {
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        _guestTeamId = UniqueID.fromUniqueString(value!.id);
+                        _guestTeamId = value?.id;
                       });
                     },
                   ),

@@ -21,11 +21,11 @@ class MatchItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final homeTeam = teams.firstWhere(
-      (team) => team.id == match.homeTeamId.value,
+      (team) => team.id == match.homeTeamId,
       orElse: () => Team.empty(),
     );
     final guestTeam = teams.firstWhere(
-      (team) => team.id == match.guestTeamId.value,
+      (team) => team.id == match.guestTeamId,
       orElse: () => Team.empty(),
     );
     final themeData = Theme.of(context);

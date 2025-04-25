@@ -40,14 +40,14 @@ class DeleteMatchDialog extends StatelessWidget {
       },
       builder: (context, state) {
         String contentString =
-            "Soll das Match ${match.homeTeamId.value} vs ${match.guestTeamId.value} an Spieltag ${match.matchDay} wirklich gelöscht werden?";
+            "Soll das Match ${match.homeTeamId} vs ${match.guestTeamId} an Spieltag ${match.matchDay} wirklich gelöscht werden?";
         return AlertDialog(
           content: IntrinsicWidth(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(contentString),
-                const SizedBox(height: 16.0),
+                const Spacer(),
                 Row(
                   children: [
                     Expanded(
@@ -58,6 +58,8 @@ class DeleteMatchDialog extends StatelessWidget {
                         callback: () {
                           BlocProvider.of<MatchesformBloc>(context)
                               .add(MatchFormDeleteEvent(id: match.id));
+                          
+                          Navigator.pop(context);
                         },
                       ),
                     ),

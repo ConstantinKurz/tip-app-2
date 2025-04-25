@@ -28,15 +28,16 @@ class _MatchListState extends State<MatchList> {
 
     List<CustomMatch> filteredMatches = widget.matches.where((match) {
       final homeTeam = widget.teams.firstWhere(
-        (team) => team.id == match.homeTeamId.value,
+        (team) => team.id == match.homeTeamId,
         orElse: () => Team.empty(),
       );
       final guestTeam = widget.teams.firstWhere(
-        (team) => team.id == match.guestTeamId.value,
+        (team) => team.id == match.guestTeamId,
         orElse: () => Team.empty(),
       );
 
       // Erstellen eines Strings, der alle relevanten Informationen des Matches enthält
+      //TODO: hier muss es was besseres geben
       final matchInfo =
           '${homeTeam.name} ${guestTeam.name} Spieltag:${match.matchDay} '
                   '${match.homeScore ?? '-'}:${match.guestScore ?? '-'} '
@@ -77,6 +78,7 @@ class _MatchListState extends State<MatchList> {
                   width: screenWidth * .2,
                   child: TextField(
                     cursorColor: Colors.white,
+                    style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
                       hintText: 'Suche',
                       prefixIcon: Icon(Icons.search),

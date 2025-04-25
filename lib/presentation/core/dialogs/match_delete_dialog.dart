@@ -44,7 +44,6 @@ class DeleteMatchDialog extends StatelessWidget {
         return AlertDialog(
           content: IntrinsicWidth(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(contentString),
                 const Spacer(),

@@ -75,9 +75,9 @@ class CreateMatchForm extends StatelessWidget {
                     .toList(),
                 validator: (value) => validateTeam(value?.id),
                 onChanged: (team) {
-                  context.read<MatchesformBloc>().add(
-                      MatchFormFieldUpdatedEvent(
-                          homeTeamId: team?.id));
+                  context
+                      .read<MatchesformBloc>()
+                      .add(MatchFormFieldUpdatedEvent(homeTeamId: team?.id));
                 },
               ),
               const SizedBox(height: 16),
@@ -93,9 +93,9 @@ class CreateMatchForm extends StatelessWidget {
                         DropdownMenuItem(value: team, child: Text(team.name)))
                     .toList(),
                 onChanged: (team) {
-                  context.read<MatchesformBloc>().add(
-                      MatchFormFieldUpdatedEvent(
-                          guestTeamId: team?.id));
+                  context
+                      .read<MatchesformBloc>()
+                      .add(MatchFormFieldUpdatedEvent(guestTeamId: team?.id));
                 },
               ),
               const SizedBox(height: 16),
@@ -140,7 +140,7 @@ class CreateMatchForm extends StatelessWidget {
                       .add(MatchFormFieldUpdatedEvent(matchDay: day));
                 },
               ),
-              const SizedBox(height: 16),
+              const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -150,7 +150,6 @@ class CreateMatchForm extends StatelessWidget {
                     hoverColor: primaryDark,
                     callback: () {
                       if (formKey.currentState!.validate()) {
-
                         final combinedDateTime = DateTime(
                           state.matchDate!.year,
                           state.matchDate!.month,
@@ -161,7 +160,7 @@ class CreateMatchForm extends StatelessWidget {
 
                         context.read<MatchesformBloc>().add(
                               CreateMatchEvent(
-                                id: "${state.homeTeamId}vs${state.guestTeamId}_${state.matchDay}" ,
+                                id: "${state.homeTeamId}vs${state.guestTeamId}_${state.matchDay}",
                                 homeTeamId: state.homeTeamId,
                                 guestTeamId: state.guestTeamId,
                                 matchDate: combinedDateTime,
@@ -188,6 +187,7 @@ class CreateMatchForm extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
             ],
           ),
         );

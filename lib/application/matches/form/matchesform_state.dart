@@ -10,6 +10,8 @@ class MatchesformState {
   final String? guestTeamId;
   final DateTime? matchDate;
   final TimeOfDay? matchTime;
+  final int? homeTeamScore;
+  final int? guestTeamScore;
   final int? matchDay;
 
   MatchesformState({
@@ -20,6 +22,8 @@ class MatchesformState {
     this.guestTeamId,
     this.matchDate,
     this.matchTime,
+    this.homeTeamScore,
+    this.guestTeamScore,
     this.matchDay,
   });
 
@@ -32,16 +36,22 @@ class MatchesformState {
     DateTime? matchDate,
     TimeOfDay? matchTime,
     int? matchDay,
+    int? homeTeamScore,
+    int? guestTeamScore,
   }) {
     return MatchesformState(
       isSubmitting: isSubmitting ?? this.isSubmitting,
-      showValidationMessages: showValidationMessages ?? this.showValidationMessages,
-      matchFailureOrSuccessOption: matchFailureOrSuccessOption ?? this.matchFailureOrSuccessOption,
+      showValidationMessages:
+          showValidationMessages ?? this.showValidationMessages,
+      matchFailureOrSuccessOption:
+          matchFailureOrSuccessOption ?? this.matchFailureOrSuccessOption,
       homeTeamId: homeTeamId ?? this.homeTeamId,
       guestTeamId: guestTeamId ?? this.guestTeamId,
       matchDate: matchDate ?? this.matchDate,
       matchTime: matchTime ?? this.matchTime,
       matchDay: matchDay ?? this.matchDay,
+      homeTeamScore: homeTeamScore ?? this.homeTeamScore,
+      guestTeamScore: guestTeamScore ?? this.guestTeamScore
     );
   }
 }
@@ -52,7 +62,11 @@ class MatchesFromInitialState extends MatchesformState {
           isSubmitting: false,
           showValidationMessages: false,
           matchFailureOrSuccessOption: none(),
+          homeTeamId: null,
+          guestTeamId: null,
           matchDate: DateTime.now(),
-          matchTime: TimeOfDay.now(),
+          matchTime: TimeOfDay.now(), 
+          homeTeamScore: null,
+          guestTeamScore: null
         );
 }

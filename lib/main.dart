@@ -26,7 +26,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-// Zentrale Pfadkonstanten (könnte auch ausgelagert werden)
 class AppRoutes {
   static const splash = '/splash';
   static const signin = '/signin';
@@ -37,25 +36,21 @@ class AppRoutes {
   static const platform = '/dev/plattform/:id';
 }
 
-// Guards für Auth-Routing
 Page authGuard({
   required bool isAuthenticated,
   required Widget page,
   String redirectTo = AppRoutes.signin,
 }) {
-  return isAuthenticated
-      ? MaterialPage(child: page)
-      : Redirect(redirectTo);
+  return isAuthenticated ? MaterialPage(child: page) : Redirect(redirectTo);
 }
 
-Page guestGuard({
+Page signedInGuard({
   required bool isAuthenticated,
   required Widget page,
+  //TODO: Add signout page here
   String redirectTo = AppRoutes.home,
 }) {
-  return isAuthenticated
-      ? Redirect(redirectTo)
-      : MaterialPage(child: page);
+  return isAuthenticated ? Redirect(redirectTo) : MaterialPage(child: page);
 }
 
 class MyApp extends StatelessWidget {
@@ -83,39 +78,27 @@ class MyApp extends StatelessWidget {
             final isAuthenticated = authState is AuthStateUnAuthenticated;
 
             return RouteMap(
-              onUnknownRoute: (_) =>
-                  const MaterialPage(child: NotFoundPage()),
+              onUnknownRoute: (_) => const MaterialPage(child: NotFoundPage()),
               routes: {
                 '/': (_) => Redirect(AppRoutes.splash),
-
                 AppRoutes.splash: (_) =>
                     const MaterialPage(child: SplashPage()),
-
-                AppRoutes.signin: (_) => guestGuard(
-                      isAuthenticated: isAuthenticated,
-                      page: const SignInPage(),
-                    ),
-
-                AppRoutes.signup: (_) => guestGuard(
-                      isAuthenticated: isAuthenticated,
-                      page: const SignUpPage(),
-                    ),
-
+                AppRoutes.signin: (_) => signedInGuard(
+                    isAuthenticated: isAuthenticated, page: const SignInPage()),
+                AppRoutes.signup: (_) =>
+                    const MaterialPage(child: SignUpPage()),
                 AppRoutes.home: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
                       page: HomePage(),
                     ),
-
                 AppRoutes.dev: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
                       page: const DevPage(),
                     ),
-
                 AppRoutes.eco: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
                       page: const EcoPage(),
                     ),
-
                 AppRoutes.platform: (info) {
                   if (!isAuthenticated) {
                     return const Redirect(AppRoutes.signin);

@@ -14,7 +14,8 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
   MatchesformBloc({required this.matchesRepository})
       : super(MatchesFromInitialState()) {
     on<CreateMatchEvent>((event, emit) async {
-      if (event.id == null || event.homeTeamId == null ||
+      if (event.id == null ||
+          event.homeTeamId == null ||
           event.guestTeamId == null ||
           event.matchDate == null ||
           event.matchDay == null) {
@@ -61,12 +62,13 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
 
     on<MatchFormFieldUpdatedEvent>((event, emit) {
       emit(state.copyWith(
-        homeTeamId: event.homeTeamId ?? state.homeTeamId,
-        guestTeamId: event.guestTeamId ?? state.guestTeamId,
-        matchDate: event.matchDate ?? state.matchDate,
-        matchTime: event.matchTime ?? state.matchTime,
-        matchDay: event.matchDay ?? state.matchDay,
-      ));
+          homeTeamId: event.homeTeamId ?? state.homeTeamId,
+          guestTeamId: event.guestTeamId ?? state.guestTeamId,
+          matchDate: event.matchDate ?? state.matchDate,
+          matchTime: event.matchTime ?? state.matchTime,
+          matchDay: event.matchDay ?? state.matchDay,
+          homeTeamScore: event.homeTeamScore ?? state.homeTeamScore,
+          guestTeamScore: event.guestTeamScore ?? state.guestTeamScore));
     });
 
     on<MatchFormDeleteEvent>((event, emit) async {

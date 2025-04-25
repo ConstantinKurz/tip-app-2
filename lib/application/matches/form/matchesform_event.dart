@@ -22,13 +22,17 @@ class CreateMatchEvent extends MatchesformEvent {
 class MatchFormFieldUpdatedEvent extends MatchesformEvent {
   final String? homeTeamId;
   final String? guestTeamId;
+  final int? homeTeamScore;
+  final int? guestTeamScore;
   final DateTime? matchDate;
   final TimeOfDay? matchTime;
   final int? matchDay;
 
-  MatchFormFieldUpdatedEvent(
-      {this.homeTeamId,
+  MatchFormFieldUpdatedEvent({
+      this.homeTeamId,
       this.guestTeamId,
+      this.homeTeamScore,
+      this.guestTeamScore,
       this.matchDate,
       this.matchTime,
       this.matchDay});

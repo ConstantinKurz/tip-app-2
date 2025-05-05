@@ -16,14 +16,12 @@ class CreateUserEvent extends AuthFormEvent {
 class UserFormFieldUpdatedEvent extends AuthFormEvent {
   final String? username;
   final String? championId;
-  final String? email;
   final int? rank;
   final int? score;
   final int? jokerSum;
   UserFormFieldUpdatedEvent({
     this.username,
     this.championId,
-    this.email,
     this.rank,
     this.score,
     this.jokerSum,

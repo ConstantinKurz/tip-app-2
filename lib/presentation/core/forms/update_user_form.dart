@@ -11,13 +11,13 @@ class UpdateUserForm extends StatelessWidget {
   final List<Team> teams;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TextEditingController usernameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
   final TextEditingController rankController = TextEditingController();
   final TextEditingController scoreController = TextEditingController();
   final TextEditingController jokerSumController = TextEditingController();
   final TextEditingController championIdController = TextEditingController();
 
-  UpdateUserForm({Key? key, required this.user, required this.teams}) : super(key: key);
+  UpdateUserForm({Key? key, required this.user, required this.teams})
+      : super(key: key);
 
   String? _validateString(String? value) {
     if (value == null || value.isEmpty) {
@@ -52,7 +52,6 @@ class UpdateUserForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     usernameController.text = user.username;
-    emailController.text = user.email;
     rankController.text = user.rank.toString();
     scoreController.text = user.score.toString();
     jokerSumController.text = user.jokerSum.toString();
@@ -113,24 +112,9 @@ class UpdateUserForm extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onChanged: (value) => context.read<AuthformBloc>().add(
-                    UserFormFieldUpdatedEvent(username: value)),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: emailController,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: Colors.white,
-                validator: _validateEmail,
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  hintText: user.email,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onChanged: (value) => context.read<AuthformBloc>().add(
-                    UserFormFieldUpdatedEvent(email: value)),
+                onChanged: (value) => context
+                    .read<AuthformBloc>()
+                    .add(UserFormFieldUpdatedEvent(username: value)),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -145,8 +129,9 @@ class UpdateUserForm extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onChanged: (value) => context.read<AuthformBloc>().add(
-                    UserFormFieldUpdatedEvent(rank: int.tryParse(value))),
+                onChanged: (value) => context
+                    .read<AuthformBloc>()
+                    .add(UserFormFieldUpdatedEvent(rank: int.tryParse(value))),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -161,8 +146,9 @@ class UpdateUserForm extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onChanged: (value) => context.read<AuthformBloc>().add(
-                    UserFormFieldUpdatedEvent(score: int.tryParse(value))),
+                onChanged: (value) => context
+                    .read<AuthformBloc>()
+                    .add(UserFormFieldUpdatedEvent(score: int.tryParse(value))),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -181,20 +167,16 @@ class UpdateUserForm extends StatelessWidget {
                     UserFormFieldUpdatedEvent(jokerSum: int.tryParse(value))),
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<Team>(
-                value: state.championId == null
-                    ? null
-                    : teams.firstWhere((t) => t.id == state.championId,
-                        orElse: () => Team.empty()),
+              DropdownButtonFormField<String>(
+                value: user.championId,
                 decoration: const InputDecoration(labelText: 'Champion'),
                 items: teams
-                    .map((team) =>
-                        DropdownMenuItem(value: team, child: Text(team.name)))
+                    .map((team) => DropdownMenuItem<String>(
+                        value: team.id, child: Text(team.name)))
                     .toList(),
-                onChanged: (team) {
-                  context
-                      .read<AuthformBloc>()
-                      .add(UserFormFieldUpdatedEvent(championId: team?.id));
+                onChanged: (String? selectedChampionId) {
+                  context.read<AuthformBloc>().add(UserFormFieldUpdatedEvent(
+                      championId: selectedChampionId));
                 },
               ),
               const SizedBox(height: 16),
@@ -216,8 +198,8 @@ class UpdateUserForm extends StatelessWidget {
                           jokerSum: state.jokerSum ?? user.jokerSum,
                           championId: state.championId ?? user.championId,
                         );
-                        context.read<AuthformBloc>().add(
-                            UpdateUserEvent(user: updatedUser, currentUser: user));
+                        context.read<AuthformBloc>().add(UpdateUserEvent(
+                            user: updatedUser, currentUser: user));
                       }
                     },
                   ),

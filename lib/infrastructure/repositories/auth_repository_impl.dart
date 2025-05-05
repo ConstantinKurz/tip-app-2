@@ -81,6 +81,30 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<AuthFailure, Unit>> updateUser(
+      {required AppUser user}) async {
+    try {
+      // Firestore-Dokument aktualisieren
+      final userModel = UserModel.fromDomain(user);
+      await usersCollection.doc(user.username).update(userModel.toMap());
+
+      return right(unit);
+    } catch (e) {
+      if (e is FirebaseAuthException) {
+        if (e.code.contains('permission-denied') ||
+            e.code.contains("PERMISSION_DENIED")) {
+          return left(InsufficientPermisssons());
+        } else {
+          return left(UnexpectedFailure());
+        }
+      } else {
+        (print("Update User: Outer catch error: $e"));
+        return left(UnexpectedFailure());
+      }
+    }
+  }
+
+  @override
   Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers() async* {
     try {
       print("===============watchAllUsers()====================");

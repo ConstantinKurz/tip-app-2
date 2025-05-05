@@ -8,16 +8,16 @@ class AuthformState {
   final Option<Either<AuthFailure, Unit>>? authFailureOrSuccessOption;
 
   final String? username;
-  final String? password;
   final String? championId;
   final String? email;
   final int? rank;
   final int? score;
   final int? jokerSum;
 
+  final AppUser currentUser;
+
   AuthformState(
       {this.username,
-      this.password,
       this.championId,
       this.email,
       this.rank,
@@ -26,6 +26,7 @@ class AuthformState {
       required this.isSubmitting,
       required this.sendingResetMail,
       required this.showValidationMessages,
+      required this.currentUser,
       this.authFailureOrSuccessOption});
 
   AuthformState copyWith({
@@ -34,16 +35,15 @@ class AuthformState {
     bool? showValidationMessages,
     Option<Either<AuthFailure, Unit>>? authFailureOrSuccessOption,
     String? username,
-    String? password,
     String? championId,
     String? email,
     int? rank,
     int? score,
     int? jokerSum,
+    AppUser? curentUser,
   }) {
     return AuthformState(
       username: username ?? this.username,
-      password: password ?? this.password,
       championId: championId ?? this.championId,
       email: email ?? this.email,
       rank: rank ?? this.rank,
@@ -55,6 +55,7 @@ class AuthformState {
           showValidationMessages ?? this.showValidationMessages,
       authFailureOrSuccessOption:
           authFailureOrSuccessOption ?? this.authFailureOrSuccessOption,
+      currentUser: currentUser,
     );
   }
 }
@@ -64,7 +65,6 @@ class AuthFormIntialState extends AuthformState {
       : super(
             username: null,
             championId: null,
-            password: null,
             email: null,
             rank: null,
             score: null,
@@ -72,5 +72,6 @@ class AuthFormIntialState extends AuthformState {
             isSubmitting: false,
             sendingResetMail: false,
             showValidationMessages: false,
+            currentUser: AppUser.empty(),
             authFailureOrSuccessOption: none());
 }

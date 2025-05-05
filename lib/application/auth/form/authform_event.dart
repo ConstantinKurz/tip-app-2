@@ -15,7 +15,6 @@ class CreateUserEvent extends AuthFormEvent {
 
 class UserFormFieldUpdatedEvent extends AuthFormEvent {
   final String? username;
-  final String? password;
   final String? championId;
   final String? email;
   final int? rank;
@@ -23,7 +22,6 @@ class UserFormFieldUpdatedEvent extends AuthFormEvent {
   final int? jokerSum;
   UserFormFieldUpdatedEvent({
     this.username,
-    this.password,
     this.championId,
     this.email,
     this.rank,
@@ -33,8 +31,10 @@ class UserFormFieldUpdatedEvent extends AuthFormEvent {
 }
 
 class UpdateUserEvent extends AuthFormEvent {
+  final AppUser? currentUser;
   final AppUser? user;
   UpdateUserEvent({
+    this.currentUser,
     this.user,
   });
 }

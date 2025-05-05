@@ -211,14 +211,13 @@ class UpdateUserForm extends StatelessWidget {
                         final AppUser updatedUser = AppUser(
                           username: state.username ?? user.username,
                           email: state.email ?? user.email,
-                          password: state.password ?? user.password,
-                          rank: int.tryParse(rankController.text) ?? user.rank,
-                          score: int.tryParse(scoreController.text) ?? user.score,
-                          jokerSum: int.tryParse(jokerSumController.text) ?? user.jokerSum,
-                          championId: championIdController.text,
+                          rank: state.rank ?? user.rank,
+                          score: state.score ?? user.score,
+                          jokerSum: state.jokerSum ?? user.jokerSum,
+                          championId: state.championId ?? user.championId,
                         );
                         context.read<AuthformBloc>().add(
-                            UpdateUserEvent(user: updatedUser));
+                            UpdateUserEvent(user: updatedUser, currentUser: user));
                       }
                     },
                   ),

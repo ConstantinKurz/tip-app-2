@@ -10,8 +10,7 @@ part 'authform_state.dart';
 
 class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
   final AuthRepository authRepository;
-  AuthformBloc({required this.authRepository})
-      : super(AuthFormIntialState()) {
+  AuthformBloc({required this.authRepository}) : super(AuthFormIntialState()) {
     on<CreateUserEvent>((event, emit) async {
       if (event.email == null || event.password == null) {
         emit(state.copyWith(showValidationMessages: true));
@@ -30,13 +29,32 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
 
     on<UserFormFieldUpdatedEvent>((event, emit) {
       emit(state.copyWith(
-          username: event.username ?? state.username,
-          password: event.password ?? state.password,
-          championId: event.championId ?? state.championId,
-          email: event.email ?? state.email,
-          rank: event.rank ?? state.rank,
-          score: event.score ?? state.score,
-          jokerSum: event.jokerSum ?? state.jokerSum,));
+        username: event.username ?? state.username,
+        championId: event.championId ?? state.championId,
+        email: event.email ?? state.email,
+        rank: event.rank ?? state.rank,
+        score: event.score ?? state.score,
+        jokerSum: event.jokerSum ?? state.jokerSum,
+      ));
+    });
+
+    on<UpdateUserEvent>((event, emit) async {
+      if (event.user != null) {
+        emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
+        final failureOrSuccess =
+            await authRepository.updateUser(user: event.user!);
+        print('Update Failure or Success: $failureOrSuccess');
+        print("Formupdate event state ${state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessOption: optionOf(failureOrSuccess),
+        )}");
+        emit(state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessOption: optionOf(failureOrSuccess),
+        ));
+      } else {
+        emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
+      }
     });
   }
 }

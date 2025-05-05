@@ -11,6 +11,8 @@ abstract class AuthRepository {
 
   Future<void> signOut();
 
+  Future<Either<AuthFailure, Unit>> updateUser({required AppUser user});  
+
   Future<Option<AppUser>> getSignedInUser();
 
   Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers();

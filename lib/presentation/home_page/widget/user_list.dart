@@ -26,9 +26,25 @@ class UserList extends StatefulWidget {
 
 class _UserListState extends State<UserList> {
   String _searchText = '';
-
   @override
   Widget build(BuildContext context) {
+    List<AppUser> filteredUsers = widget.users.where((user) {
+      // Erstellen eines Strings, der den Benutzernamen enthält
+      final username = user.username.toLowerCase();
+      // Aufteilen des Suchtextes in einzelne Begriffe
+      final searchTerms = _searchText.toLowerCase().split(' ');
+      // Prüfen, ob alle Suchbegriffe im Benutzernamen enthalten sind
+      bool allTermsMatch = true;
+      for (final term in searchTerms) {
+        if (!username.contains(term)) {
+          allTermsMatch = false;
+          break;
+        }
+      }
+      // Benutzer zur Liste hinzufügen, wenn alle Suchbegriffe übereinstimmen
+      return allTermsMatch;
+    }).toList();
+
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     return Center(
@@ -50,15 +66,14 @@ class _UserListState extends State<UserList> {
                   width: screenWidth * .2,
                   child: TextField(
                     cursorColor: Colors.white,
+                    style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
                       hintText: 'Suche',
                       prefixIcon: Icon(Icons.search),
                     ),
                     onChanged: (text) {
                       setState(() {
-                        null;
-                        // _searchText =
-                        //     text; // Aktualisieren des Suchtextes bei jeder Änderung
+                        _searchText = text;
                       });
                     },
                   ),
@@ -72,19 +87,18 @@ class _UserListState extends State<UserList> {
                     borderColor: primaryDark,
                     icon: Icons.add,
                     callback: () => _showAddUsersDialog(
-                        context, widget.matches, widget.teams)),
+                        context)),
               ],
             ),
             const SizedBox(height: 16.0),
             Expanded(
                 child: ListView.builder(
-              physics:
-                  const BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               shrinkWrap: true,
-              itemCount: widget.users.length,
+              itemCount: filteredUsers.length,
               itemBuilder: (context, index) {
-                final user = widget.users[index];
-                return UserItem(user: user);
+                final user = filteredUsers[index];
+                return UserItem(user: user, teams: widget.teams);
               },
             )),
             const SizedBox(height: 16.0),
@@ -95,14 +109,17 @@ class _UserListState extends State<UserList> {
   }
 
   void _showAddUsersDialog(
-      BuildContext context, List<CustomMatch> matches, List<Team> teams) {
+      BuildContext context) {
     showDialog(
       barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
         return Builder(
           builder: (BuildContext newContext) {
-            return const UserDialog(dialogText: "Tipper hinzufügen", userAction: UserAction.create,);
+            return const UserDialog(
+              dialogText: "Tipper hinzufügen",
+              userAction: UserAction.create,
+            );
           },
         );
       },

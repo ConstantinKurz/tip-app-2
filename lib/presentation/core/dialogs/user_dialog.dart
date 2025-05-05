@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/form/authform_bloc.dart';
-import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
+import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/dialogs/match_delete_dialog.dart';
 import 'package:flutter_web/presentation/core/forms/create_user_form.dart';
-import 'package:flutter_web/presentation/core/forms/update_match_form.dart';
+import 'package:flutter_web/presentation/core/forms/update_user_form.dart';
 
-import '../forms/create_match_form.dart';
 
 enum UserAction { create, update, delete }
 class UserDialog extends StatelessWidget {
   final List<Team>? teams;
   final String dialogText;
   final UserAction userAction;
-  final CustomMatch? match;
+  final AppUser? user;
 
   const UserDialog({
     Key? key,
     this.teams,
     required this.dialogText,
     required this.userAction,
-    this.match,
+    this.user,
   }) : super(key: key);
 
   @override
@@ -42,9 +41,9 @@ class UserDialog extends StatelessWidget {
             builder: (context) {
               switch (userAction) {
                 case UserAction.update:
-                  return UpdateMatchForm(teams: teams!, match: match!);
+                  return UpdateUserForm(teams: teams!, user: user!,);
                 case UserAction.delete:
-                  return DeleteMatchDialog(match: match!);
+                  // return DeleteMatchDialog(match: match!);
                 case UserAction.create:
                   return const CreateUserForm();
                 default:

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // Ensure this path is correct
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/form/authform_bloc.dart';
 import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/user.dart';
@@ -56,7 +56,6 @@ class _CreateUserFormState extends State<CreateUserForm> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     return BlocConsumer<AuthformBloc, AuthformState>(
-      // Use the correct Bloc
       listenWhen: (p, c) =>
           p.authFailureOrSuccessOption != c.authFailureOrSuccessOption,
       listener: (context, state) {
@@ -66,7 +65,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       backgroundColor: Colors.redAccent,
                       content: Text(
-                        "Fehler beim Erstellen des Benutzers",
+                        "Fehler beim Erstellen des Benutzers!",
                         style: themeData.textTheme.bodyLarge,
                       )));
                 }, (_) {
@@ -88,20 +87,25 @@ class _CreateUserFormState extends State<CreateUserForm> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               TextFormField(
+                cursorColor: Colors.white,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(labelText: 'Benutzername'),
                 validator: validateString,
                 onChanged: (value) => _username = value,
               ),
               const SizedBox(height: 16),
               TextFormField(
+                cursorColor: Colors.white,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: validateEmail,
                 onChanged: (value) => _email = value,
               ),
               const SizedBox(height: 16),
               TextFormField(
+                cursorColor: Colors.white,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(labelText: 'Passwort'),
-                obscureText: true, // Hide password
                 validator: validatePassword,
                 onChanged: (value) => _password = value,
               ),

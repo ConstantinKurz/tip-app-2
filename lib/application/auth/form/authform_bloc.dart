@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
+import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/domain/repositories/auth_repository.dart';
 
 part 'authform_event.dart';
@@ -10,11 +11,7 @@ part 'authform_state.dart';
 class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
   final AuthRepository authRepository;
   AuthformBloc({required this.authRepository})
-      : super(AuthformState(
-            isSubmitting: false,
-            sendingResetMail: false,
-            showValidationMessages: false,
-            authFailureOrSuccessOption: none())) {
+      : super(AuthFormIntialState()) {
     on<CreateUserEvent>((event, emit) async {
       if (event.email == null || event.password == null) {
         emit(state.copyWith(showValidationMessages: true));
@@ -29,6 +26,17 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
             isSubmitting: false,
             authFailureOrSuccessOption: optionOf(failureOrSuccess)));
       }
+    });
+
+    on<UserFormFieldUpdatedEvent>((event, emit) {
+      emit(state.copyWith(
+          username: event.username ?? state.username,
+          password: event.password ?? state.password,
+          championId: event.championId ?? state.championId,
+          email: event.email ?? state.email,
+          rank: event.rank ?? state.rank,
+          score: event.score ?? state.score,
+          jokerSum: event.jokerSum ?? state.jokerSum,));
     });
   }
 }

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web/constants.dart';
+import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart'; // Import your AppUser model
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
+import 'package:flutter_web/presentation/core/dialogs/user_dialog.dart';
 
 class UserItem extends StatelessWidget {
   final AppUser user;
+  final List<Team> teams;
 
-  const UserItem({Key? key, required this.user}) : super(key: key);
+  const UserItem({Key? key, required this.user, required this.teams}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,31 +29,63 @@ class UserItem extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center, // Center vertically
         children: [
-          Text(
-            'Benutzername: ${user.username}',
-            style: themeData.textTheme.bodyLarge,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.username,
+                  style: themeData.textTheme.displayLarge,
+                ),
+                const SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Email: ${user.email}',
+                            style: themeData.textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 8.0),
+                          Text(
+                            'Rang: ${user.rank}',
+                            style: themeData.textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Punkte: ${user.score}',
+                            style: themeData.textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 8.0),
+                          Text(
+                            'Champion: ${user.championId}',
+                            style: themeData.textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 8.0),
+                          Text(
+                            'Joker: ${user.jokerSum}',
+                            style: themeData.textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8.0),
-          Text(
-            'Email: ${user.email}',
-            style: themeData.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 8.0),
-          Text(
-            'Rang: ${user.rank}',
-            style: themeData.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 8.0),
-          Text(
-            'Punkte: ${user.score}',
-            style: themeData.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 8.0),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               FancyIconButton(
                 icon: Icons.edit,
@@ -58,7 +93,7 @@ class UserItem extends StatelessWidget {
                 hoverColor: primaryDark,
                 borderColor: primaryDark,
                 callback: () {
-                  // TODO: Implement edit user functionality
+                  _showUpdateUserDialog(context, teams, user);
                 },
               ),
               const SizedBox(width: 8.0),
@@ -68,7 +103,7 @@ class UserItem extends StatelessWidget {
                 hoverColor: Colors.red,
                 borderColor: Colors.red,
                 callback: () {
-                  // TODO: Implement delete user functionality
+                  // _showDeleteMatchDialog(context, match);
                 },
               ),
             ],
@@ -78,3 +113,22 @@ class UserItem extends StatelessWidget {
     );
   }
 }
+
+  void _showUpdateUserDialog(
+      BuildContext context, List<Team> teams, AppUser user) {
+    showDialog(
+        barrierColor: Colors.transparent,
+        context: context,
+        builder: (BuildContext context) {
+          return Builder(
+            builder: (BuildContext newContext) {
+              return UserDialog(
+                teams: teams,
+                dialogText: "Tipper bearbeiten",
+                userAction: UserAction.update,
+                user: user,
+              );
+            },
+          );
+        });
+  }

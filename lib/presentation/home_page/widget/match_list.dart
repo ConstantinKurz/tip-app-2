@@ -55,7 +55,7 @@ class _MatchListState extends State<MatchList> {
           break;
         }
       }
-
+      // add match to list if true
       return allTermsMatch;
     }).toList();
 

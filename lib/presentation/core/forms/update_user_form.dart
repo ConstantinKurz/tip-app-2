@@ -1,0 +1,243 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/auth/form/authform_bloc.dart';
+import 'package:flutter_web/constants.dart';
+import 'package:flutter_web/domain/entities/team.dart';
+import 'package:flutter_web/domain/entities/user.dart';
+import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
+
+class UpdateUserForm extends StatelessWidget {
+  final AppUser user;
+  final List<Team> teams;
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController rankController = TextEditingController();
+  final TextEditingController scoreController = TextEditingController();
+  final TextEditingController jokerSumController = TextEditingController();
+  final TextEditingController championIdController = TextEditingController();
+
+  UpdateUserForm({Key? key, required this.user, required this.teams}) : super(key: key);
+
+  String? _validateString(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Bitte geben Sie einen Wert ein";
+    }
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    const emailRegex =
+        r"""^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+""";
+    if (value == null || value.isEmpty) {
+      return "Gebe eine Mail ein";
+    } else if (!RegExp(emailRegex).hasMatch(value)) {
+      return "Keine gültige E-Mail";
+    }
+    return null;
+  }
+
+  String? _validateInt(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Bitte geben Sie einen Wert ein";
+    }
+    final intValue = int.tryParse(value);
+    if (intValue == null) {
+      return "Bitte geben Sie eine gültige Zahl ein";
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeData = Theme.of(context);
+    usernameController.text = user.username;
+    emailController.text = user.email;
+    rankController.text = user.rank.toString();
+    scoreController.text = user.score.toString();
+    jokerSumController.text = user.jokerSum.toString();
+    championIdController.text = user.championId;
+
+    return BlocConsumer<AuthformBloc, AuthformState>(
+      listenWhen: (previous, current) =>
+          previous.authFailureOrSuccessOption !=
+          current.authFailureOrSuccessOption,
+      listener: (context, state) {
+        state.authFailureOrSuccessOption!.fold(
+          () {},
+          (eitherFailureOrSuccess) => eitherFailureOrSuccess.fold(
+            (failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.redAccent,
+                  content: Text(
+                    "Fehler beim Aktualisieren des Benutzers",
+                    style: themeData.textTheme.bodyLarge,
+                  ),
+                ),
+              );
+            },
+            (_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.green,
+                  content: Text(
+                    "Benutzer erfolgreich aktualisiert!",
+                    style: themeData.textTheme.bodyLarge,
+                  ),
+                ),
+              );
+              Navigator.of(context).pop(); // Close on success
+            },
+          ),
+        );
+      },
+      builder: (context, state) {
+        return Form(
+          autovalidateMode: state.showValidationMessages
+              ? AutovalidateMode.always
+              : AutovalidateMode.disabled,
+          key: formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              TextFormField(
+                controller: usernameController,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                validator: _validateString,
+                decoration: InputDecoration(
+                  labelText: "Benutzername",
+                  hintText: user.username,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onChanged: (value) => context.read<AuthformBloc>().add(
+                    UserFormFieldUpdatedEvent(username: value)),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: emailController,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                validator: _validateEmail,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  hintText: user.email,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onChanged: (value) => context.read<AuthformBloc>().add(
+                    UserFormFieldUpdatedEvent(email: value)),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: rankController,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                validator: _validateInt,
+                decoration: InputDecoration(
+                  labelText: "Rang",
+                  hintText: user.rank.toString(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onChanged: (value) => context.read<AuthformBloc>().add(
+                    UserFormFieldUpdatedEvent(rank: int.tryParse(value))),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: scoreController,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                validator: _validateInt,
+                decoration: InputDecoration(
+                  labelText: "Punkte",
+                  hintText: user.score.toString(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onChanged: (value) => context.read<AuthformBloc>().add(
+                    UserFormFieldUpdatedEvent(score: int.tryParse(value))),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: jokerSumController,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                validator: _validateInt,
+                decoration: InputDecoration(
+                  labelText: "Joker Summe",
+                  hintText: user.jokerSum.toString(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onChanged: (value) => context.read<AuthformBloc>().add(
+                    UserFormFieldUpdatedEvent(jokerSum: int.tryParse(value))),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<Team>(
+                value: state.championId == null
+                    ? null
+                    : teams.firstWhere((t) => t.id == state.championId,
+                        orElse: () => Team.empty()),
+                decoration: const InputDecoration(labelText: 'Champion'),
+                items: teams
+                    .map((team) =>
+                        DropdownMenuItem(value: team, child: Text(team.name)))
+                    .toList(),
+                onChanged: (team) {
+                  context
+                      .read<AuthformBloc>()
+                      .add(UserFormFieldUpdatedEvent(championId: team?.id));
+                },
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomButton(
+                    buttonText: 'Speichern',
+                    backgroundColor: themeData.colorScheme.primaryContainer,
+                    borderColor: primaryDark,
+                    hoverColor: primaryDark,
+                    callback: () {
+                      if (formKey.currentState!.validate()) {
+                        final AppUser updatedUser = AppUser(
+                          username: state.username ?? user.username,
+                          email: state.email ?? user.email,
+                          password: state.password ?? user.password,
+                          rank: int.tryParse(rankController.text) ?? user.rank,
+                          score: int.tryParse(scoreController.text) ?? user.score,
+                          jokerSum: int.tryParse(jokerSumController.text) ?? user.jokerSum,
+                          championId: championIdController.text,
+                        );
+                        context.read<AuthformBloc>().add(
+                            UpdateUserEvent(user: updatedUser));
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  CustomButton(
+                    buttonText: 'Abbrechen',
+                    backgroundColor: themeData.colorScheme.primaryContainer,
+                    borderColor: primaryDark,
+                    hoverColor: primaryDark,
+                    callback: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

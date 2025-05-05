@@ -251,7 +251,6 @@ class UpdateMatchForm extends StatelessWidget {
                           homeScore: state.homeScore ?? match.homeScore,
                           guestScore: state.guestScore ?? match.guestScore,
                         );
-                        print(updatedMatch);
                         context
                             .read<MatchesformBloc>()
                             .add(MatchFormUpdateEvent(match: updatedMatch));

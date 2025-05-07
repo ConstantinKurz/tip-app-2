@@ -6,6 +6,7 @@ import 'package:flutter_web/application/matches/controller/matchescontroller_blo
 import 'package:flutter_web/application/teams/controller/teams_bloc.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/widget/match_list.dart';
+import 'package:flutter_web/presentation/home_page/widget/team_list.dart';
 import 'package:flutter_web/presentation/home_page/widget/user_list.dart';
 import '../../injections.dart';
 
@@ -84,9 +85,9 @@ class HomePage extends StatelessWidget {
                                       options: CarouselOptions(
                                         scrollPhysics:
                                             const NeverScrollableScrollPhysics(),
-                                        viewportFraction: .7,
+                                        viewportFraction: .6,
                                         height: screenHeight,
-                                        initialPage: 0,
+                                        initialPage: 2,
                                         enableInfiniteScroll: false,
                                         enlargeCenterPage: false,
                                         onPageChanged: (_, __) {},
@@ -99,6 +100,7 @@ class HomePage extends StatelessWidget {
                                             matches: matchState.matches,
                                             teams: teamState.teams,
                                             users: authState.users),
+                                        TeamList(teams: teamState.teams)
                                       ],
                                     ),
                                   ),
@@ -109,7 +111,7 @@ class HomePage extends StatelessWidget {
                                   onPressed: () {
                                     _carouselController.nextPage(
                                         duration:
-                                            const Duration(milliseconds: 200),
+                                            const Duration(milliseconds: 300),
                                         curve: Curves.ease);
                                   },
                                 ),

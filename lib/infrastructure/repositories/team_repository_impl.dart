@@ -98,10 +98,5 @@ class TeamRepositoryImpl implements TeamRepository {
       }
     });
   }
-  
-  @override
-  Future<Either<TeamFailure, List<Team>>> getAllTeams() {
-    // TODO: implement getAllTeams
-    throw UnimplementedError();
-  }
+
 }

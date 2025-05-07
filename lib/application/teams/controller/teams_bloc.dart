@@ -12,7 +12,7 @@ part 'teams_state.dart';
 
 class TeamsBloc extends Bloc<TeamEvent, TeamsState> {
   final TeamRepository teamRepository;
-    StreamSubscription<Either<TeamFailure, List<Team>>>? _teamStreamSubscription;
+  StreamSubscription<Either<TeamFailure, List<Team>>>? _teamStreamSubscription;
 
   TeamsBloc({required this.teamRepository}) : super(TeamInitial()) {
     on<TeamsAllEvent>((event, emit) async {
@@ -23,30 +23,11 @@ class TeamsBloc extends Bloc<TeamEvent, TeamsState> {
       });
     });
 
-    on<CreateTeamEvent>((event, emit) async {
-      emit(TeamsLoading());
-      final failureOrSuccess = await teamRepository.create(event.team);
-      failureOrSuccess.fold(
-        (failure) => emit(TeamFailureState(teamFailure: failure)),
-        (_) => (),
-      );
-    });
-
     on<TeamsUpdatedEvent>((event, emit) {
       print("teams updated");
       event.failureOrTeams.fold(
-        (failure) => emit(TeamFailureState(teamFailure: failure)),
-        (teams) => emit(TeamsLoaded(teams: teams))
-      );
-    });
-
-    on<DeleteTeamEvent>((event, emit) async {
-      emit(TeamsLoading());
-      final failureOrSuccess = await teamRepository.delete(event.team);
-      failureOrSuccess.fold(
-        (failure) => emit(TeamFailureState(teamFailure: failure)),
-        (_) => ()
-      );
+          (failure) => emit(TeamFailureState(teamFailure: failure)),
+          (teams) => emit(TeamsLoaded(teams: teams)));
     });
   }
 }

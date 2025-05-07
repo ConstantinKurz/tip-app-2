@@ -61,7 +61,7 @@ class _MatchListState extends State<MatchList> {
 
     return Center(
       child: Container(
-        width: screenWidth * 0.6,
+        width: screenWidth * 0.5,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

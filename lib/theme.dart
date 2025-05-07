@@ -46,13 +46,22 @@ class AppTheme {
   static final TextTheme _darkTextTheme = TextTheme(
     displayLarge: _darkThemeHeadingTextStyle,
     bodyLarge: _darkThemeBodyeTextStyle,
+    bodyMedium: _darkMediumText,
     bodySmall: _darkMenuText,
   );
+
+ static const TextStyle _darkMediumText = TextStyle(
+      color: _darkTextColorPrimary,
+      fontFamily: "Rubik",
+      fontSize: 16,
+      fontStyle: FontStyle.italic,
+      fontWeight: FontWeight.w500,);
 
  static const TextStyle _darkMenuText = TextStyle(
       color: _darkTextColorPrimary,
       fontFamily: "Rubik",
       fontSize: 12,
+      fontStyle: FontStyle.italic,
       fontWeight: FontWeight.w400,
       letterSpacing: 4);
 

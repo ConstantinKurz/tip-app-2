@@ -3,7 +3,7 @@ part of 'matchesform_bloc.dart';
 
 @immutable
 sealed class MatchesformEvent {}
-
+//TODO: all nullable?
 class CreateMatchEvent extends MatchesformEvent {
   final String? id;
   final String? homeTeamId;

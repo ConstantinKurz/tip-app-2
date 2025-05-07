@@ -49,12 +49,12 @@ class UserItem extends StatelessWidget {
                         children: [
                           Text(
                             'Email: ${user.email}',
-                            style: themeData.textTheme.bodyLarge,
+                            style: themeData.textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 8.0),
                           Text(
                             'Rang: ${user.rank}',
-                            style: themeData.textTheme.bodyLarge,
+                            style: themeData.textTheme.bodyMedium,
                           ),
                         ],
                       ),
@@ -65,17 +65,17 @@ class UserItem extends StatelessWidget {
                         children: [
                           Text(
                             'Punkte: ${user.score}',
-                            style: themeData.textTheme.bodyLarge,
+                            style: themeData.textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 8.0),
                           Text(
                             'Champion: ${user.championId}',
-                            style: themeData.textTheme.bodyLarge,
+                            style: themeData.textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 8.0),
                           Text(
                             'Joker: ${user.jokerSum}',
-                            style: themeData.textTheme.bodyLarge,
+                            style: themeData.textTheme.bodyMedium,
                           ),
                         ],
                       ),
@@ -97,15 +97,15 @@ class UserItem extends StatelessWidget {
                 },
               ),
               const SizedBox(width: 8.0),
-              FancyIconButton(
-                icon: Icons.delete,
-                backgroundColor: themeData.colorScheme.onPrimary,
-                hoverColor: Colors.red,
-                borderColor: Colors.red,
-                callback: () {
-                  // _showDeleteMatchDialog(context, match);
-                },
-              ),
+              // FancyIconButton(
+              //   icon: Icons.delete,
+              //   backgroundColor: themeData.colorScheme.onPrimary,
+              //   hoverColor: Colors.red,
+              //   borderColor: Colors.red,
+              //   callback: () {
+              //     // _showDeleteMatchDialog(context, match);
+              //   },
+              // ),
             ],
           ),
         ],

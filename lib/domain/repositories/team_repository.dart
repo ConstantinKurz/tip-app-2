@@ -14,7 +14,5 @@ abstract class TeamRepository {
 
   Future<Either<TeamFailure, Team>> get(String teamId);
 
-  Future<Either<TeamFailure, List<Team>>> getAllTeams(); 
-
   Stream<Either<TeamFailure, List<Team>>> watchAllTeams();
 }

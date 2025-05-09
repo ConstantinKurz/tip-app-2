@@ -45,7 +45,7 @@ class DeleteMatchDialog extends StatelessWidget {
           content: IntrinsicWidth(
             child: Column(
               children: [
-                Text(contentString),
+                Text(contentString, style: const TextStyle(color: Colors.white),),
                 const Spacer(),
                 Row(
                   children: [

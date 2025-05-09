@@ -5,6 +5,7 @@ import 'package:flutter_web/application/matches/controller/matchescontroller_blo
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/application/signupform/signupform_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_bloc.dart';
+import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/tipform/tipform_bloc.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
@@ -47,6 +48,7 @@ Future<void> init() async {
   sl.registerFactory(() => MatchesControllerBloc(matchRepository: sl()));
   sl.registerFactory(() => TipControllerBloc(tipRepository: sl()));
   sl.registerFactory(() => TeamsBloc(teamRepository: sl()));
+  sl.registerFactory(() => TeamsformBloc(teamRepository: sl()));
   sl.registerFactory(() => TipFormBloc());
   sl.registerFactory(() => AuthformBloc(authRepository: sl()));
 

@@ -13,12 +13,17 @@ class TeamsformBloc extends Bloc<TeamsformEvent, TeamsformState> {
 
   TeamsformBloc({required this.teamRepository}) : super(TeamsformInitialState()) {
     on<TeamFormCreateTeamEvent>((event, emit) async {
+      if (event.team == null){
+        emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
+      }
+      else {
       emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
-      final failureOrSuccess = await teamRepository.create(event.team);
+      final failureOrSuccess = await teamRepository.create(event.team!);
         emit(state.copyWith(
           isSubmitting: false,
           teamFailureOrSuccessOption: optionOf(failureOrSuccess),
         ));
+      }
     });
 
 

@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_web/application/auth/form/authform_bloc.dart';
-import 'package:flutter_web/domain/entities/match.dart';
-import 'package:flutter_web/domain/entities/team.dart';
-import 'package:flutter_web/domain/entities/user.dart';
+import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
+import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/injections.dart';
-import 'package:flutter_web/presentation/core/dialogs/match_delete_dialog.dart';
-import 'package:flutter_web/presentation/core/forms/create_user_form.dart';
-import 'package:flutter_web/presentation/core/forms/update_user_form.dart';
-
+import 'package:flutter_web/presentation/core/forms/create_team.dart';
 
 enum TeamAction { create, update, delete }
+
 class TeamDialog extends StatelessWidget {
   final String dialogText;
   final TeamAction teamAction;
@@ -26,26 +22,42 @@ class TeamDialog extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return BlocProvider<AuthformBloc>(
-      create: (context) => sl<AuthformBloc>(),
-      child: AlertDialog(
-        title: Text(dialogText),
-        content: SizedBox(
-          width: screenWidth * 0.3,
-          height: screenHeight * 0.6,
-          child: Builder(
-            builder: (context) {
-              switch (teamAction) {
-                // case teamAction.update:
-                //   return UpdateUserForm();
-                // case teamAction.delete:
-                //   // return DeleteMatchDialog(match: match!);
-                // case teamAction.create:
-                //   return const CreateUserForm();
-                default:
-                  return const CreateUserForm();
-              }
-            },
+    return BlocProvider<TeamsformBloc>(
+      create: (context) => sl<TeamsformBloc>(),
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(dialogText,
+                  style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: screenWidth * 0.3,
+                height: screenHeight * 0.6,
+                child: Builder(
+                  builder: (context) {
+                    switch (teamAction) {
+                      default:
+                        return const CreateTeamForm();
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),

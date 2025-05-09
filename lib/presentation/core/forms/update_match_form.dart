@@ -152,7 +152,7 @@ class UpdateMatchForm extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text(":"),
+                  const Text(":", style: TextStyle(color: Colors.white),),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextFormField(

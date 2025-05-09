@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/form/authform_bloc.dart';
 import 'package:flutter_web/constants.dart';
-import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 
 class CreateUserForm extends StatefulWidget {

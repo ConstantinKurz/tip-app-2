@@ -58,18 +58,17 @@ class _TeamListState extends State<TeamList> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  width: screenWidth * .2, // Adjust width as needed
+                  width: screenWidth * .1, // Adjust width as needed
                   child: TextField(
                     cursorColor: Colors.white,
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
-                      hintText: 'Suche Teams', // Hint text adjusted
+                      hintText: 'Suche',
                       prefixIcon: Icon(Icons.search),
                     ),
                     onChanged: (text) {
                       setState(() {
-                        _searchText =
-                            text; // Update search text to trigger filter
+                        _searchText = text;
                       });
                     },
                   ),

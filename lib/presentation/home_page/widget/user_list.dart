@@ -63,7 +63,7 @@ class _UserListState extends State<UserList> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  width: screenWidth * .2,
+                  width: screenWidth * .1,
                   child: TextField(
                     cursorColor: Colors.white,
                     style: const TextStyle(color: Colors.white),

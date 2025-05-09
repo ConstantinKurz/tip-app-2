@@ -4,7 +4,7 @@ part of 'teamsform_bloc.dart';
 sealed class TeamsformEvent {}
 
 class TeamFormCreateTeamEvent extends TeamsformEvent {
-  final Team team;
+  final Team? team;
 
   TeamFormCreateTeamEvent({required this.team});
 }

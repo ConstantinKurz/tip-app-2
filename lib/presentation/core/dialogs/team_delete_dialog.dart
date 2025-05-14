@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
+import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
 import 'package:flutter_web/constants.dart';
-import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 
-class DeleteMatchDialog extends StatelessWidget {
-  final CustomMatch match;
+class DeleteTeamDialog extends StatelessWidget {
+  final Team team;
 
-  const DeleteMatchDialog({
+  const DeleteTeamDialog({
     Key? key,
-    required this.match,
+    required this.team,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final String contentString =
-        "Soll das Match ${match.homeTeamId} vs ${match.guestTeamId} an Spieltag ${match.matchDay} wirklich gelöscht werden?";
+        "Soll das Team ${team.name} wirklich gelöscht werden?";
 
-    return BlocConsumer<MatchesformBloc, MatchesformState>(
+    return BlocConsumer<TeamsformBloc, TeamsformState>(
       listenWhen: (p, c) =>
-          p.matchFailureOrSuccessOption != c.matchFailureOrSuccessOption,
+          p.teamFailureOrSuccessOption != c.teamFailureOrSuccessOption,
       listener: (context, state) {
-        state.matchFailureOrSuccessOption?.fold(
+        state.teamFailureOrSuccessOption?.fold(
           () {},
           (eitherFailureOrSuccess) => eitherFailureOrSuccess.fold(
             (failure) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 backgroundColor: Colors.redAccent,
                 content: Text(
-                  "Fehler beim Löschen des Matches",
+                  "Fehler beim Löschen des Teams",
                   style: themeData.textTheme.bodyLarge,
                 ),
               ));
@@ -39,7 +39,7 @@ class DeleteMatchDialog extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 backgroundColor: Colors.green,
                 content: Text(
-                  "Match gelöscht!",
+                  "Team gelöscht!",
                   style: themeData.textTheme.bodyLarge,
                 ),
               ));
@@ -62,8 +62,8 @@ class DeleteMatchDialog extends StatelessWidget {
                   borderColor: Colors.red,
                   buttonText: 'Löschen',
                   callback: () {
-                    BlocProvider.of<MatchesformBloc>(context)
-                        .add(MatchFormDeleteEvent(id: match.id));
+                    BlocProvider.of<TeamsformBloc>(context)
+                        .add(TeamFormDeleteEvent(id: team.id));
                     Navigator.pop(context);
                   },
                 ),

@@ -4,6 +4,7 @@ import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/dialogs/custom_dialog.dart';
+import 'package:flutter_web/presentation/core/dialogs/team_delete_dialog.dart';
 import 'package:flutter_web/presentation/core/forms/create_team_form.dart';
 import 'package:flutter_web/presentation/core/forms/update_team_form.dart';
 
@@ -38,9 +39,9 @@ class TeamDialog extends StatelessWidget {
               case TeamAction.create:
                 return const CreateTeamForm();
               case TeamAction.delete:
-                return CreateTeamForm();
+                return DeleteTeamDialog(team: team!);
               default:
-                return CreateTeamForm();
+                return const CreateTeamForm();
             }
           },
         ),

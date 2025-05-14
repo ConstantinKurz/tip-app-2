@@ -40,7 +40,9 @@ class TeamItem extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 ),
-                const SizedBox(height: 16,),
+                const SizedBox(
+                  height: 16,
+                ),
                 Text(
                   team.name,
                   style: themeData.textTheme.bodyLarge,
@@ -85,7 +87,7 @@ class TeamItem extends StatelessWidget {
                 hoverColor: Colors.red,
                 borderColor: Colors.red,
                 callback: () {
-                  print("Delete Team: ${team.name}");
+                  _showDeleteMatchDialog(context, team);
                 },
               ),
             ],
@@ -96,18 +98,35 @@ class TeamItem extends StatelessWidget {
   }
 }
 
-  void _showUpdateUserDialog(
-      BuildContext context, Team team) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Builder(
-            builder: (BuildContext newContext) {
-              return TeamDialog(
-                team: team,
-                dialogText: "Team bearbeiten",
-                teamAction: TeamAction.update,
-              );
-            },
+void _showDeleteMatchDialog(BuildContext context, Team team) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Builder(
+        builder: (BuildContext newContext) {
+          return TeamDialog(
+            team: team,
+            dialogText: "Team löschen",
+            teamAction: TeamAction.delete,
           );
-        });}
+        },
+      );
+    },
+  );
+}
+
+void _showUpdateUserDialog(BuildContext context, Team team) {
+  showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Builder(
+          builder: (BuildContext newContext) {
+            return TeamDialog(
+              team: team,
+              dialogText: "Team bearbeiten",
+              teamAction: TeamAction.update,
+            );
+          },
+        );
+      });
+}

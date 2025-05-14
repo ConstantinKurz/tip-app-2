@@ -4,6 +4,7 @@ import 'package:flutter_web/constants.dart';
 
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
+import 'package:flutter_web/presentation/core/dialogs/team_dialog.dart';
 
 class TeamItem extends StatelessWidget {
   final Team team;
@@ -74,7 +75,7 @@ class TeamItem extends StatelessWidget {
                 hoverColor: primaryDark,
                 borderColor: primaryDark,
                 callback: () {
-                  print("Edit Team: ${team.name}");
+                  _showUpdateUserDialog(context, team);
                 },
               ),
               const SizedBox(width: 8.0),
@@ -94,3 +95,19 @@ class TeamItem extends StatelessWidget {
     );
   }
 }
+
+  void _showUpdateUserDialog(
+      BuildContext context, Team team) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Builder(
+            builder: (BuildContext newContext) {
+              return TeamDialog(
+                team: team,
+                dialogText: "Team bearbeiten",
+                teamAction: TeamAction.update,
+              );
+            },
+          );
+        });}

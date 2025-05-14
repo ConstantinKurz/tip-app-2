@@ -126,7 +126,6 @@ class MatchItem extends StatelessWidget {
 
   void _showDeleteMatchDialog(BuildContext context, CustomMatch match) {
     showDialog(
-      barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
         return Builder(
@@ -145,7 +144,6 @@ class MatchItem extends StatelessWidget {
   void _showUpdateMatchDialog(
       BuildContext context, List<Team> teams, CustomMatch match) {
     showDialog(
-        barrierColor: Colors.transparent,
         context: context,
         builder: (BuildContext context) {
           return Builder(

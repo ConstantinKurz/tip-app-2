@@ -117,7 +117,6 @@ class UserItem extends StatelessWidget {
   void _showUpdateUserDialog(
       BuildContext context, List<Team> teams, AppUser user) {
     showDialog(
-        barrierColor: Colors.transparent,
         context: context,
         builder: (BuildContext context) {
           return Builder(

@@ -111,7 +111,6 @@ class _UserListState extends State<UserList> {
   void _showAddUsersDialog(
       BuildContext context) {
     showDialog(
-      barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
         return Builder(

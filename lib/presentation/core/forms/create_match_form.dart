@@ -17,6 +17,7 @@ class CreateMatchForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeData = Theme.of(context);
     String? validateTeam(String? input) {
       if (input == null) {
         return "Bitte wählen Sie ein Team";
@@ -62,6 +63,7 @@ class CreateMatchForm extends StatelessWidget {
               : AutovalidateMode.disabled,
           key: formKey,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               DropdownButtonFormField<Team>(
                 value: state.homeTeamId == null
@@ -147,6 +149,7 @@ class CreateMatchForm extends StatelessWidget {
                   CustomButton(
                     buttonText: 'Speichern',
                     borderColor: primaryDark,
+                    backgroundColor: themeData.colorScheme.primaryContainer,
                     hoverColor: primaryDark,
                     callback: () {
                       if (formKey.currentState!.validate()) {
@@ -182,6 +185,7 @@ class CreateMatchForm extends StatelessWidget {
                   CustomButton(
                     borderColor: primaryDark,
                     hoverColor: primaryDark,
+                    backgroundColor: themeData.colorScheme.primaryContainer,
                     buttonText: 'Abbrechen',
                     callback: () => Navigator.of(context).pop(),
                   ),

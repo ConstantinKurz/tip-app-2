@@ -126,7 +126,6 @@ class _MatchListState extends State<MatchList> {
 
   void _showAddMatchDialog(BuildContext context, List<Team> teams) {
     showDialog(
-      barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
         return Builder(

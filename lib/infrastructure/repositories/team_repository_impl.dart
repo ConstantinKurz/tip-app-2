@@ -12,7 +12,7 @@ class TeamRepositoryImpl implements TeamRepository {
       FirebaseFirestore.instance.collection('teams');
 
   @override
-  Future<Either<TeamFailure, Unit>> create(Team team) async {
+  Future<Either<TeamFailure, Unit>> createTeam(Team team) async {
     try {
       final teamModel = TeamModel.fromDomain(team);
       await teamsCollection.doc(teamModel.id).set(teamModel.toMap());
@@ -28,15 +28,29 @@ class TeamRepositoryImpl implements TeamRepository {
   }
 
   @override
-  Future<Either<TeamFailure, Unit>> delete(Team todo) {
-    // TODO: implement delete
-    throw UnimplementedError();
+  Future<Either<TeamFailure, Unit>> deleteTeam(String id) async {
+    try {
+      await teamsCollection.doc(id).delete();
+      return right(unit);
+    } catch (e) {
+      return left(UnexpectedFailure());
+    }
   }
 
   @override
-  Future<Either<TeamFailure, Unit>> update(Team todo) {
-    // TODO: implement update
-    throw UnimplementedError();
+  Future<Either<TeamFailure, Unit>> updateTeam(Team team) async {
+    try {
+      final teamModel = TeamModel.fromDomain(team);
+      await teamsCollection.doc(teamModel.id).update(teamModel.toMap());
+      return right(unit);
+    } on FirebaseException catch (e) {
+      print("Error updating team: $e");
+      if (e.code.contains("PERMISSION_DENIED")) {
+        return left(InsufficientPermisssons());
+      } else {
+        return left(UnexpectedFailure());
+      }
+    }
   }
 
   @override

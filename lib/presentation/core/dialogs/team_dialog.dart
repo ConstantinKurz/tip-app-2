@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
-import 'package:flutter_web/constants.dart';
+import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/injections.dart';
-import 'package:flutter_web/presentation/core/forms/create_team.dart';
+import 'package:flutter_web/presentation/core/dialogs/custom_dialog.dart';
+import 'package:flutter_web/presentation/core/forms/create_team_form.dart';
+import 'package:flutter_web/presentation/core/forms/update_team_form.dart';
 
 enum TeamAction { create, update, delete }
 
 class TeamDialog extends StatelessWidget {
+  final Team? team;
   final String dialogText;
   final TeamAction teamAction;
 
   const TeamDialog({
     Key? key,
+    this.team,
     required this.dialogText,
     required this.teamAction,
   }) : super(key: key);
@@ -24,42 +28,25 @@ class TeamDialog extends StatelessWidget {
 
     return BlocProvider<TeamsformBloc>(
       create: (context) => sl<TeamsformBloc>(),
-      child: Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(dialogText,
-                  style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: screenWidth * 0.3,
-                height: screenHeight * 0.6,
-                child: Builder(
-                  builder: (context) {
-                    switch (teamAction) {
-                      default:
-                        return const CreateTeamForm();
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
+      child: CustomDialog(
+        dialogText: dialogText,
+        content: Builder(
+          builder: (context) {
+            switch (teamAction) {
+              case TeamAction.update:
+                return UpdateTeamForm(team: team!);
+              case TeamAction.create:
+                return const CreateTeamForm();
+              case TeamAction.delete:
+                return CreateTeamForm();
+              default:
+                return CreateTeamForm();
+            }
+          },
         ),
+        width: screenWidth * 0.3,
+        height: screenHeight * 0.6,
+        borderColor: Colors.white,
       ),
     );
   }

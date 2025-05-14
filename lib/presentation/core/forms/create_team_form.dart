@@ -185,10 +185,10 @@ class _CreateTeamFormState extends State<CreateTeamForm> {
                               winPoints: _winPoints,
                               champion: _champion);
                           BlocProvider.of<TeamsformBloc>(context)
-                              .add(TeamFormCreateTeamEvent(team: team));
+                              .add(TeamFormCreateEvent(team: team));
                         } else {
                           BlocProvider.of<TeamsformBloc>(context)
-                              .add(TeamFormCreateTeamEvent(team: null));
+                              .add(TeamFormCreateEvent(team: null));
                         }
                       },
                     ),

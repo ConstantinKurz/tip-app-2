@@ -2,8 +2,8 @@
 import 'package:flutter_web/domain/entities/id.dart';
 
 class Tip {
-  final UniqueID id;
-  final UniqueID userId;
+  final String id;
+  final String userId;
   final String? matchId;
   final DateTime tipDate;
   final int? tipHome;
@@ -20,8 +20,8 @@ class Tip {
 
   factory Tip.empty(UniqueID userId) {
     return Tip(
-      id: UniqueID(),
-      userId: userId,
+      id: "",
+      userId: "",
       matchId: "",
       tipDate: DateTime.now(),
       tipHome: null,
@@ -31,8 +31,8 @@ class Tip {
   }
 
   Tip copyWith({
-    UniqueID? id,
-    UniqueID? userId,
+    String? id,
+    String? userId,
     String? matchId,
     DateTime? tipDate,
     int? tipHome,

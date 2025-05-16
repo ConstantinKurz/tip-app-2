@@ -7,7 +7,7 @@ import 'package:flutter_web/application/signupform/signupform_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_bloc.dart';
 import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
-import 'package:flutter_web/application/tips/tipform/tipform_bloc.dart';
+import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/repositories/team_repository.dart';
 import 'package:flutter_web/infrastructure/repositories/match_repository_impl.dart';

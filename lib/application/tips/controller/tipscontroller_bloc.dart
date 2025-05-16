@@ -13,7 +13,6 @@ part 'tipscontroller_state.dart';
 class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   final TipRepository tipRepository;
   StreamSubscription<Either<TipFailure, Map<String, List<Tip>>>>? _tipStreamSub;
-  StreamSubscription<Either<TipFailure, List<Tip>>>? _userTipStreamSub;
   TipControllerBloc({
     required this.tipRepository,
   }) : super(TipControllerInitial()) {

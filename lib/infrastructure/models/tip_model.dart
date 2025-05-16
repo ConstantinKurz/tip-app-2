@@ -12,8 +12,7 @@ class TipModel {
   final int? tipHome;
   final int? tipGuest;
   final bool joker;
-  final String userId; // Referenz auf die Benutzer-ID
-
+  final String userId;
   TipModel({
     required this.id,
     required this.matchId,
@@ -26,7 +25,7 @@ class TipModel {
 
   TipModel copyWith({
     String? id,
-    MatchModel? match,
+    String? matchId,
     DateTime? tipDate,
     int? tipHome,
     int? tipGuest,
@@ -75,25 +74,25 @@ class TipModel {
 
   Tip toDomain() {
     return Tip(
-      id: UniqueID.fromUniqueString(id),
+      id: id,
       matchId: matchId,
       tipDate: tipDate,
       tipHome: tipHome,
       tipGuest: tipGuest,
       joker: joker,
-      userId: UniqueID.fromUniqueString(userId),
+      userId: userId,
     );
   }
 
   factory TipModel.fromDomain(Tip tip) {
     return TipModel(
-      id: tip.id.value,
+      id: tip.id,
       matchId: tip.matchId,
       tipDate: tip.tipDate,
       tipHome: tip.tipHome,
       tipGuest: tip.tipGuest,
       joker: tip.joker,
-      userId: tip.id.toString(),
+      userId: tip.userId,
     );
   }
 }

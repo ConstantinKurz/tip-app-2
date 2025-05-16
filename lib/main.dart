@@ -34,6 +34,7 @@ class AppRoutes {
   static const dev = '/dev';
   static const eco = '/eco';
   static const platform = '/dev/plattform/:id';
+  static const userTips = '/tips/user/:id';
 }
 
 Page authGuard({

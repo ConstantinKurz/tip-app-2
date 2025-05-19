@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/constants.dart';
+import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
+import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
+import 'package:flutter_web/presentation/tip_page/widgets/tip_item.dart';
 import 'package:intl/intl.dart';
 
 class TipList extends StatefulWidget {
   final String userId;
   final List<Tip> tips;
   final List<Team> teams;
-  final List<Match> matches;
+  final List<CustomMatch> matches;
 
-  const TipList({Key? key, required this.userId, required this.tips, required this.teams, required this.matches})
+  const TipList(
+      {Key? key,
+      required this.userId,
+      required this.tips,
+      required this.teams,
+      required this.matches})
       : super(key: key);
 
   @override
@@ -47,7 +57,7 @@ class _MatchListState extends State<TipList> {
     //   // Aufteilen des Suchtextes in einzelne Begriffe
     //   final searchTerms = _searchText.toLowerCase().split(' ');
 
-      // Prüfen, ob alle Suchbegriffe in den Match-Informationen enthalten sind
+    // Prüfen, ob alle Suchbegriffe in den Match-Informationen enthalten sind
     //   bool allTermsMatch = true;
     //   for (final term in searchTerms) {
     //     if (!matchInfo.contains(term)) {
@@ -68,7 +78,6 @@ class _MatchListState extends State<TipList> {
           children: [
             Row(
               children: [
-                Text('Matches', style: themeData.textTheme.headline6),
                 const Spacer(),
                 // Suchleiste
                 Container(
@@ -91,18 +100,6 @@ class _MatchListState extends State<TipList> {
                     },
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
-                FancyIconButton(
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    hoverColor: primaryDark,
-                    borderColor: primaryDark,
-                    icon: Icons.add,
-                    callback: () => {
-                          print(
-                              "Tips passed to _showAddTipDialog: ${widget.tips}"),
-                        }),
               ],
             ),
             const SizedBox(height: 16.0),
@@ -110,10 +107,32 @@ class _MatchListState extends State<TipList> {
                 child: ListView.builder(
               physics: const BouncingScrollPhysics(),
               shrinkWrap: true,
-              itemCount: widget.tips.length,
+              itemCount: widget.matches.length,
               itemBuilder: (context, index) {
-                final tip = widget.tips[index];
-                // return MatchItem(match: match, teams: widget.teams);
+                final match = widget.matches[index];
+
+                Tip? tip;
+                try {
+                  tip =
+                      widget.tips.firstWhere((tip) => tip.matchId == match.id);
+                } catch (_) {
+                  tip = null;
+                }
+
+                final homeTeam = widget.teams
+                    .firstWhere((team) => team.id == match.homeTeamId);
+                final guestTeam = widget.teams
+                    .firstWhere((team) => team.id == match.guestTeamId);
+
+                return BlocProvider<TipFormBloc>(
+                  create: (_) => sl<TipFormBloc>(),
+                  child: TipItem(
+                    tip: tip,
+                    homeTeam: homeTeam,
+                    guestTeam: guestTeam,
+                    match: match,
+                  ),
+                );
               },
             )),
             const SizedBox(height: 16.0),
@@ -122,21 +141,4 @@ class _MatchListState extends State<TipList> {
       ),
     );
   }
-
-  // void _showAddMatchDialog(BuildContext context, List<Team> teams) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return Builder(
-  //         builder: (BuildContext newContext) {
-  //           return MatchDialog(
-  //             teams: teams,
-  //             dialogText: "Neues Match",
-  //             matchAction: MatchAction.create,
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
 }

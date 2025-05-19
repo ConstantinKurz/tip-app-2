@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/constants.dart';
-import 'package:flutter_web/domain/entities/id.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 import 'package:flutter_web/presentation/core/date_picker/custom_date_picker.dart';

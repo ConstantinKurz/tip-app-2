@@ -8,6 +8,4 @@ abstract class TipRepository {
   Stream<Either<TipFailure, List<Tip>>> watchUserTips(String userID);
 
   Future<Either<TipFailure, Unit>> create(Tip tip);
-
-  Future<Either<TipFailure, Unit>> update(Tip tip);
 }

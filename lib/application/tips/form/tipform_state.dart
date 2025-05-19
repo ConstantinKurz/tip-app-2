@@ -2,40 +2,68 @@
 part of 'tipform_bloc.dart';
 
 class TipFormState {
-  final Tip tip;
-  final bool showErrorMessages;
-  final bool isSaving;
-  final bool isEditing;
+  final String? id;
+  final String? userId;
+  final String? matchId;
+  final DateTime? tipDate;
+  final int? tipHome;
+  final int? tipGuest;
+  final bool? joker;
+  final bool showValidationMessages;
+  final bool isSubmitting;
   final Option<Either<TipFailure, Unit>> failureOrSuccessOption;
   TipFormState({
-    required this.tip,
-    required this.showErrorMessages,
-    required this.isSaving,
-    required this.isEditing,
+    this.id,
+    this.userId,
+    this.matchId,
+    required this.tipDate,
+    this.tipHome,
+    this.tipGuest,
+    this.joker,
+    required this.showValidationMessages,
+    required this.isSubmitting,
     required this.failureOrSuccessOption,
   });
 
-  factory TipFormState.initial() => TipFormState(
-      tip: Tip.empty(UniqueID()),
-      showErrorMessages: false,
-      isSaving: false,
-      isEditing: false,
-      failureOrSuccessOption: none());
-
   TipFormState copyWith({
-    Tip? tip,
-    bool? showErrorMessages,
-    bool? isSaving,
-    bool? isEditing,
+    String? id,
+    String? userId,
+    String? matchId,
+    DateTime? tipDate,
+    int? tipHome,
+    int? tipGuest,
+    bool? joker,
+    bool? showValidationMessages,
+    bool? isSubmitting,
     Option<Either<TipFailure, Unit>>? failureOrSuccessOption,
   }) {
     return TipFormState(
-      tip: tip ?? this.tip,
-      showErrorMessages: showErrorMessages ?? this.showErrorMessages,
-      isSaving: isSaving ?? this.isSaving,
-      isEditing: isEditing ?? this.isEditing,
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      matchId: matchId ?? this.matchId,
+      tipDate: tipDate ?? this.tipDate,
+      tipHome: tipHome ?? this.tipHome,
+      tipGuest: tipGuest ?? this.tipGuest,
+      joker: joker ?? this.joker,
+      showValidationMessages:
+          showValidationMessages ?? this.showValidationMessages,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
       failureOrSuccessOption:
           failureOrSuccessOption ?? this.failureOrSuccessOption,
     );
   }
+}
+
+final class TipFormInitialState extends TipFormState {
+  TipFormInitialState()
+      : super(
+            id: null,
+            userId: null,
+            matchId: null,
+            tipDate: null,
+            tipGuest: null,
+            tipHome: null,
+            isSubmitting: false,
+            showValidationMessages: false,
+            failureOrSuccessOption: none());
 }

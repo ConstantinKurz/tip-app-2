@@ -11,6 +11,7 @@ import 'package:flutter_web/presentation/not_found_page/no_found_page.dart';
 import 'package:flutter_web/presentation/signin/signin_page.dart';
 import 'package:flutter_web/presentation/signup/signup_page.dart';
 import 'package:flutter_web/presentation/splash_page/splash_page.dart';
+import 'package:flutter_web/presentation/tip_page/tip_page.dart';
 import 'package:flutter_web/theme.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:routemaster/routemaster.dart';
@@ -34,7 +35,7 @@ class AppRoutes {
   static const dev = '/dev';
   static const eco = '/eco';
   static const platform = '/dev/plattform/:id';
-  static const userTips = '/tips/user/:id';
+  static const userTips = '/tips/:id';
 }
 
 Page authGuard({
@@ -100,6 +101,10 @@ class MyApp extends StatelessWidget {
                       isAuthenticated: isAuthenticated,
                       page: const EcoPage(),
                     ),
+                AppRoutes.userTips: (info) {
+                  final userId = info.pathParameters['id'];
+                  return MaterialPage(child: TipPage(userId: userId!));
+                },
                 AppRoutes.platform: (info) {
                   if (!isAuthenticated) {
                     return const Redirect(AppRoutes.signin);

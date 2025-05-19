@@ -32,7 +32,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     on<TipUpdatedEvent>((event, emit) {
       event.failureOrTip.fold(
           (failures) => emit(TipControllerFailure(tipFailure: failures)),
-          (tips) => emit(TipControllerSuccess(tips: tips)));
+          (tips) => emit(TipControllerLoaded(tips: tips)));
     });
 
     @override

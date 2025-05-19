@@ -18,10 +18,10 @@ class Tip {
       required this.tipGuest,
       required this.joker});
 
-  factory Tip.empty(UniqueID userId) {
+  factory Tip.empty(String userId) {
     return Tip(
       id: "",
-      userId: "",
+      userId: userId,
       matchId: "",
       tipDate: DateTime.now(),
       tipHome: null,

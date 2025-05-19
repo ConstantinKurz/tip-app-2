@@ -15,9 +15,9 @@ class TipControllerFailure extends TipControllerState {
   });
 }
 
-final class TipControllerSuccess extends TipControllerState {
+final class TipControllerLoaded extends TipControllerState {
   final Map<String, List<Tip>> tips;
-  TipControllerSuccess({
+  TipControllerLoaded({
     required this.tips
   });
 }

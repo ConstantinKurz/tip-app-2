@@ -40,12 +40,6 @@ class TipRepositoryImpl implements TipRepository {
     }
   }
 
-  @override
-  Future<Either<TipFailure, Unit>> update(Tip tip) {
-    // TODO: implement update
-    throw UnimplementedError();
-  }
-
 @override
 Stream<Either<TipFailure, List<Tip>>> watchUserTips(String userId) async* {
   try {

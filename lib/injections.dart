@@ -49,7 +49,7 @@ Future<void> init() async {
   sl.registerFactory(() => TipControllerBloc(tipRepository: sl()));
   sl.registerFactory(() => TeamsBloc(teamRepository: sl()));
   sl.registerFactory(() => TeamsformBloc(teamRepository: sl()));
-  sl.registerFactory(() => TipFormBloc());
+  sl.registerFactory(() => TipFormBloc(tipRepository: sl()));
   sl.registerFactory(() => AuthformBloc(authRepository: sl()));
 
   // Register other services if necessary

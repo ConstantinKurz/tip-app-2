@@ -133,6 +133,7 @@ class TipItem extends StatelessWidget {
                       maxLines: 1,
                       minLines: 1,
                       decoration: InputDecoration(
+                        counterText: "",
                         filled: true,
                         fillColor: themeData.colorScheme.primaryContainer
                             .withOpacity(.2),
@@ -157,7 +158,7 @@ class TipItem extends StatelessWidget {
                   SizedBox(
                     width: 50,
                     child: TextFormField(
-                      textAlign: TextAlign.center,
+                      textAlignVertical: TextAlignVertical.center,
                       controller: guestTipController,
                       style: themeData.textTheme.bodyLarge,
                       cursorColor: themeData.colorScheme.primaryContainer,
@@ -167,6 +168,7 @@ class TipItem extends StatelessWidget {
                       maxLines: 1,
                       minLines: 1,
                       decoration: InputDecoration(
+                        counterText: "",
                         filled: true,
                         fillColor: themeData.colorScheme.primaryContainer
                             .withOpacity(.2),

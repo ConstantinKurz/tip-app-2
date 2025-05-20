@@ -3,15 +3,13 @@ import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
-import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
-import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/forms/create_team_form.dart';
 import 'package:intl/intl.dart';
 
 class TipItem extends StatelessWidget {
+  final String userId;
   final Tip? tip;
   final Team homeTeam;
   final Team guestTeam;
@@ -21,10 +19,14 @@ class TipItem extends StatelessWidget {
   TipItem(
       {Key? key,
       this.tip,
+      required this.userId,
       required this.homeTeam,
       required this.guestTeam,
       required this.match})
-      : super(key: key);
+      : super(key: key) {
+    homeTipController.text = tip?.tipHome?.toString() ?? '';
+    guestTipController.text = tip?.tipGuest?.toString() ?? '';
+  }
 
   String? _validateScore(String? value, TipFormState state,
       BuildContext context, String scoreType) {
@@ -119,30 +121,31 @@ class TipItem extends StatelessWidget {
                   const SizedBox(width: 16.0),
                   // Heim- und Gastscore nebeneinander
                   SizedBox(
-                    width: 70,
+                    width: 50,
                     child: TextFormField(
+                      textAlign: TextAlign.center,
                       controller: homeTipController,
                       style: themeData.textTheme.bodyLarge,
-                      cursorColor: themeData.colorScheme.onPrimary,
+                      cursorColor: themeData.colorScheme.primaryContainer,
                       validator: (value) =>
                           _validateScore(value, state, context, 'home'),
                       maxLength: 2,
                       maxLines: 1,
                       minLines: 1,
                       decoration: InputDecoration(
-                        labelText: "Heim",
-                        hintText: state.tipHome == null
-                            ? ""
-                            : state.tipHome.toString(),
-                        counterText: "",
+                        filled: true,
+                        fillColor: themeData.colorScheme.primaryContainer
+                            .withOpacity(.2),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       onChanged: (value) => context.read<TipFormBloc>().add(
                           TipFormFieldUpdatedEvent(
-                              tipHome: int.tryParse(value),
-                              tipGuest: state.tipGuest)),
+                              matchId: match.id,
+                              userId: userId,
+                              tipGuest: state.tipGuest,
+                              tipHome: int.tryParse(value))),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -151,36 +154,30 @@ class TipItem extends StatelessWidget {
                     style: themeData.textTheme.bodyLarge,
                   ),
                   const SizedBox(width: 16),
-                  // Gastteam
                   SizedBox(
-                    width: 70,
+                    width: 50,
                     child: TextFormField(
+                      textAlign: TextAlign.center,
                       controller: guestTipController,
                       style: themeData.textTheme.bodyLarge,
                       cursorColor: themeData.colorScheme.primaryContainer,
                       validator: (value) =>
                           _validateScore(value, state, context, 'guest'),
-                      maxLength: 1,
+                      maxLength: 2,
                       maxLines: 1,
                       minLines: 1,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: themeData.colorScheme.primaryContainer
                             .withOpacity(.2),
-                        // labelText: "Gast",
-                        // labelStyle: themeData.textTheme.bodyLarge,
-                        hintText: state.tipGuest == null
-                            ? ""
-                            : state.tipGuest.toString(),
-                        hintStyle: themeData.textTheme.bodyLarge,
-                        counterText: "",
                         border: OutlineInputBorder(
-                          
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       onChanged: (value) => context.read<TipFormBloc>().add(
                           TipFormFieldUpdatedEvent(
+                              matchId: match.id,
+                              userId: userId,
                               tipGuest: int.tryParse(value),
                               tipHome: state.tipHome)),
                     ),
@@ -206,29 +203,6 @@ class TipItem extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Row(
-                    children: [
-                      FancyIconButton(
-                        icon: Icons.edit,
-                        backgroundColor: themeData.colorScheme.onPrimary,
-                        hoverColor: primaryDark,
-                        borderColor: primaryDark,
-                        callback: () {
-                          // _showUpdateMatchDialog(context, teams, match);
-                        },
-                      ),
-                      const SizedBox(width: 8.0),
-                      FancyIconButton(
-                        icon: Icons.delete,
-                        backgroundColor: themeData.colorScheme.onPrimary,
-                        hoverColor: Colors.red,
-                        borderColor: Colors.red,
-                        callback: () {
-                          // _showDeleteMatchDialog(context, match);
-                        },
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ],

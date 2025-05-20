@@ -60,8 +60,17 @@ class TipPage extends StatelessWidget {
                         ),
                       );
                     }
+                    print("================");
+                    print(tipState);
+                    print(teamState);
+                    print(matchState);
+                    print("================");
 
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    );
                   },
                 );
               },

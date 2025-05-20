@@ -46,7 +46,7 @@ Page authGuard({
   return isAuthenticated ? MaterialPage(child: page) : Redirect(redirectTo);
 }
 
-Page signedInGuard({
+Page signedInGuard({ 
   required bool isAuthenticated,
   required Widget page,
   //TODO: Add signout page here

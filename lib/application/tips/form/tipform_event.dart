@@ -22,3 +22,8 @@ class TipFormFieldUpdatedEvent extends TipFormEvent {
       this.tipGuest,
       this.joker});
 }
+
+class TipFormInitializedEvent extends TipFormEvent {
+  final Tip tip;
+  TipFormInitializedEvent({required this.tip});
+}

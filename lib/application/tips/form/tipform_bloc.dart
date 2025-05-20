@@ -12,10 +12,25 @@ part 'tipform_state.dart';
 class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
   final TipRepository tipRepository;
   TipFormBloc({required this.tipRepository}) : super(TipFormInitialState()) {
+    on<TipFormInitializedEvent>((event, emit) {
+      emit(state.copyWith(
+        id: event.tip.id,
+        userId: event.tip.userId,
+        matchId: event.tip.matchId,
+        tipDate: event.tip.tipDate,
+        tipHome: event.tip.tipHome,
+        tipGuest: event.tip.tipGuest,
+        joker: event.tip.joker,
+      ));
+    });
+
     on<TipFormFieldUpdatedEvent>((event, emit) async {
       if (event.tipGuest == null || event.tipHome == null) {
-        emit(
-            state.copyWith(isSubmitting: false, showValidationMessages: false, tipGuest: event.tipGuest, tipHome: event.tipHome));
+        emit(state.copyWith(
+            isSubmitting: false,
+            showValidationMessages: false,
+            tipGuest: event.tipGuest,
+            tipHome: event.tipHome));
       } else if ((event.tipGuest == null || event.tipHome == null) &&
           event.joker != null) {
         emit(state.copyWith(isSubmitting: false, showValidationMessages: true));

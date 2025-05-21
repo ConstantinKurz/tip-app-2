@@ -4,6 +4,8 @@ import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
+import 'package:flutter_web/presentation/core/buttons/star_icon_button.dart';
+import 'package:flutter_web/presentation/tip_page/widgets/tip_score_field.dart';
 import 'package:intl/intl.dart';
 import 'package:flag/flag.dart';
 
@@ -96,9 +98,13 @@ class _TipItemContentState extends State<TipItemContent> {
           margin: const EdgeInsets.only(bottom: 8.0),
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            color: themeData.colorScheme.onPrimaryContainer,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+              color: themeData.colorScheme.onPrimaryContainer,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(
+                  color: (state.joker ?? false)
+                      ? Colors.amber
+                      : themeData.colorScheme.primary,
+                  width: 3)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -127,69 +133,20 @@ class _TipItemContentState extends State<TipItemContent> {
                     ),
                   ),
                   const SizedBox(width: 16.0),
-                  SizedBox(
-                    width: 50,
-                    child: TextFormField(
-                        textAlign: TextAlign.center,
-                        controller: homeTipController,
-                        style: themeData.textTheme.bodyLarge,
-                        cursorColor: themeData.colorScheme.primaryContainer,
-                        validator: (value) =>
-                            _validateScore(value, state, 'home'),
-                        maxLength: 2,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: themeData.colorScheme.primaryContainer
-                              .withOpacity(.2),
-                          counterText: "",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onChanged: (value) => {
-                              context.read<TipFormBloc>().add(
-                                    TipFormFieldUpdatedEvent(
-                                      matchId: widget.match.id,
-                                      userId: widget.userId,
-                                      tipGuest: state.tipGuest,
-                                      tipHome: int.tryParse(value),
-                                    ),
-                                  ),
-                            }),
+                  TipScoreField(
+                    controller: homeTipController,
+                    scoreType: 'home',
+                    userId: widget.userId,
+                    matchId: widget.match.id,
                   ),
                   const SizedBox(width: 16),
                   Text(":", style: themeData.textTheme.bodyLarge),
                   const SizedBox(width: 16),
-                  SizedBox(
-                    width: 50,
-                    child: TextFormField(
-                      textAlign: TextAlign.center,
-                      controller: guestTipController,
-                      style: themeData.textTheme.bodyLarge,
-                      cursorColor: themeData.colorScheme.primaryContainer,
-                      validator: (value) =>
-                          _validateScore(value, state, 'guest'),
-                      maxLength: 2,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: themeData.colorScheme.primaryContainer
-                            .withOpacity(.2),
-                        counterText: "",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: (value) => {
-                        context
-                            .read<TipFormBloc>()
-                            .add(TipFormFieldUpdatedEvent(
-                              matchId: widget.match.id,
-                              userId: widget.userId,
-                              tipGuest: int.tryParse(value),
-                              tipHome: state.tipHome,
-                            ))
-                      },
-                    ),
+                  TipScoreField(
+                    controller: guestTipController,
+                    scoreType: 'guest',
+                    userId: widget.userId,
+                    matchId: widget.match.id,
                   ),
                   const SizedBox(width: 16.0),
                   Expanded(
@@ -207,6 +164,21 @@ class _TipItemContentState extends State<TipItemContent> {
                             style: themeData.textTheme.bodyLarge),
                       ],
                     ),
+                  ),
+                  StarIconButton(
+                    isStar: state.joker ?? false,
+                    onTap: () {
+                      context.read<TipFormBloc>().add(
+                            TipFormFieldUpdatedEvent(
+                              matchId: widget.match.id,
+                              userId: widget.userId,
+                              tipHome: state.tipHome,
+                              tipGuest: state.tipGuest,
+                              joker: !(state.joker ?? false),
+                            ),
+                          );
+                    },
+                    tooltipMessage: "Joker setzen",
                   ),
                   const Spacer(),
                 ],

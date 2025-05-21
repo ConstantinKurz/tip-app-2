@@ -49,48 +49,39 @@ class _TipItemContentState extends State<TipItemContent> {
     super.dispose();
   }
 
-  String? _validateScore(String? value, TipFormState state, String scoreType) {
-    if (value == null || value.isEmpty) {
-      if ((state.tipHome == null && scoreType == 'guest') ||
-          (state.tipGuest == null && scoreType == 'home')) {
-        return '[0-10]';
-      }
-      return null;
+  Widget _buildStatusIcon(TipFormState state) {
+    const double statusIconSize = 20;
+    if (state.isSubmitting) {
+      return const SizedBox(
+        height: statusIconSize,
+        width: statusIconSize,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
     }
-    final intValue = int.tryParse(value);
-    if (intValue == null || intValue < 0 || intValue > 10) {
-      return '[0-10]';
-    }
-    return null;
+
+    return state.failureOrSuccessOption.fold(
+      () => const SizedBox(height: statusIconSize),
+      (either) => either.fold(
+        (_) => const Icon(Icons.close, color: Colors.red, size: statusIconSize),
+        (_) =>
+            const Icon(Icons.check, color: Colors.green, size: statusIconSize),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+
     return BlocConsumer<TipFormBloc, TipFormState>(
       listener: (context, state) {
         state.failureOrSuccessOption.fold(
           () {},
-          (either) => either.fold(
-            (failure) => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.redAccent,
-                content: Text(
-                  "Fehler beim Aktualisieren des Tipps",
-                  style: themeData.textTheme.bodyLarge,
-                ),
-              ),
-            ),
-            (_) => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.green,
-                content: Text(
-                  "Tipp erfolgreich aktualisiert!",
-                  style: themeData.textTheme.bodyLarge,
-                ),
-              ),
-            ),
-          ),
+          (either) {
+            Future.delayed(const Duration(seconds: 10), () {
+              context.read<TipFormBloc>().add(TipFormResetStatusEvent());
+            });
+          },
         );
       },
       builder: (context, state) {
@@ -108,11 +99,15 @@ class _TipItemContentState extends State<TipItemContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Spieltag: ${widget.match.matchDay}, ${DateFormat('dd.MM.yyyy HH:mm').format(widget.match.matchDate)}',
-                style: themeData.textTheme.bodySmall,
-              ),
-              const SizedBox(height: 8.0),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text(
+                  'Spieltag: ${widget.match.matchDay}, ${DateFormat('dd.MM.yyyy HH:mm').format(widget.match.matchDate)}',
+                  style: themeData.textTheme.bodySmall,
+                ),
+                // Spacer(),
+                _buildStatusIcon(state),
+              ]),
+              const SizedBox(height: 24.0),
               Row(
                 children: [
                   const Spacer(),

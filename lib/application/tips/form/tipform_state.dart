@@ -42,8 +42,8 @@ class TipFormState {
       userId: userId ?? this.userId,
       matchId: matchId ?? this.matchId,
       tipDate: tipDate ?? this.tipDate,
-      tipHome: tipHome ?? this.tipHome,
-      tipGuest: tipGuest ?? this.tipGuest,
+      tipHome: tipHome,
+      tipGuest: tipGuest,
       joker: joker ?? this.joker,
       showValidationMessages:
           showValidationMessages ?? this.showValidationMessages,

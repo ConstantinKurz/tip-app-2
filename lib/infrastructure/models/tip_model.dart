@@ -70,7 +70,6 @@ class TipModel {
   factory TipModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     final tipmodel = TipModel.fromMap(data).copyWith(id: doc.id);
-    print(tipmodel);
     return TipModel.fromMap(data).copyWith(id: doc.id);
   }
 

@@ -13,6 +13,9 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
   final TipRepository tipRepository;
   TipFormBloc({required this.tipRepository}) : super(TipFormInitialState()) {
     on<TipFormInitializedEvent>((event, emit) {
+      print("Intialze");
+      print(event.tip.tipHome);
+      print(event.tip.tipGuest);
       emit(state.copyWith(
         id: event.tip.id,
         userId: event.tip.userId,
@@ -28,7 +31,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       if (event.tipGuest == null || event.tipHome == null) {
         emit(state.copyWith(
             isSubmitting: false,
-            showValidationMessages: false,
+            showValidationMessages: true,
             tipGuest: event.tipGuest,
             tipHome: event.tipHome));
       } else if ((event.tipGuest == null || event.tipHome == null) &&
@@ -42,8 +45,9 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
             tipGuest: event.tipGuest,
             joker: event.joker);
         final failureOrSucces = await tipRepository.create(newTip);
-
         emit(state.copyWith(
+            tipGuest: event.tipGuest,
+            tipHome: event.tipHome,
             isSubmitting: false,
             failureOrSuccessOption: optionOf(failureOrSucces)));
       }

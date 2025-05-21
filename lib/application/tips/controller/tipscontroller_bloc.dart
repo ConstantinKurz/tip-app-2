@@ -18,8 +18,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     required this.tipRepository,
   }) : super(TipControllerInitial()) {
     on<TipAllEvent>((event, emit) async {
-      print(
-          "TipAllEvent received in TipControllerBloc. Emitting TipControllerLoading."); // <-- Debug-Ausgabe 1 für Tips
+      // print(
+      //     "TipAllEvent received in TipControllerBloc. Emitting TipControllerLoading."); // <-- Debug-Ausgabe 1 für Tips
       emit(TipControllerLoading());
 
       // close old subs
@@ -27,7 +27,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
 
       // Abonnieren des Streams vom Repository
       _tipStreamSub = tipRepository.watchAll().listen((failureOrTip) {
-        print("Stream received value (tips)!"); // <-- Debug-Ausgabe 2 für Tips
+        // print("Stream received value (tips)!"); // <-- Debug-Ausgabe 2 für Tips
         // Wir fügen das UpdatedEvent hinzu, das dann den Zustand ändert
         add(TipUpdatedEvent(failureOrTip: failureOrTip));
       },
@@ -49,7 +49,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     });
 
     on<TipUpdatedEvent>((event, emit) {
-      print("TipUpdatedEvent received!"); // <-- Debug-Ausgabe 5 für Tips
+      // print("TipUpdatedEvent received!"); // <-- Debug-Ausgabe 5 für Tips
       // Prüfe, was im Event enthalten ist
       event.failureOrTip.fold((failures) {
         print(
@@ -61,8 +61,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         int totalTipsCount = 0;
         tips.values.forEach((tipList) =>
             totalTipsCount += tipList.length); // Gesamtzahl der einzelnen Tipps
-        print(
-            "TipUpdatedEvent contained Success with $totalTipLists user tip lists and $totalTipsCount total tips."); // <-- Debug-Ausgabe 7 für Tips (Erfolg)
+        // print(
+            // "TipUpdatedEvent contained Success with $totalTipLists user tip lists and $totalTipsCount total tips."); // <-- Debug-Ausgabe 7 für Tips (Erfolg)
         emit(TipControllerLoaded(tips: tips));
       });
     });

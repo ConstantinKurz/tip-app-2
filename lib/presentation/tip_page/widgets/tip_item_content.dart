@@ -110,7 +110,7 @@ class _TipItemContentState extends State<TipItemContent> {
               const SizedBox(height: 24.0),
               Row(
                 children: [
-                  const Spacer(),
+                  // const Spacer(),
                   Expanded(
                     child: Column(
                       children: [
@@ -128,22 +128,68 @@ class _TipItemContentState extends State<TipItemContent> {
                     ),
                   ),
                   const SizedBox(width: 16.0),
-                  TipScoreField(
-                    controller: homeTipController,
-                    scoreType: 'home',
-                    userId: widget.userId,
-                    matchId: widget.match.id,
-                  ),
-                  const SizedBox(width: 16),
-                  Text(":", style: themeData.textTheme.bodyLarge),
-                  const SizedBox(width: 16),
-                  TipScoreField(
-                    controller: guestTipController,
-                    scoreType: 'guest',
-                    userId: widget.userId,
-                    matchId: widget.match.id,
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          TipScoreField(
+                            controller: homeTipController,
+                            scoreType: 'home',
+                            userId: widget.userId,
+                            matchId: widget.match.id,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(":", style: themeData.textTheme.bodyLarge),
+                          const SizedBox(width: 16),
+                          TipScoreField(
+                            controller: guestTipController,
+                            scoreType: 'guest',
+                            userId: widget.userId,
+                            matchId: widget.match.id,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8.0),
+                      Row(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                  widget.match.homeScore != null
+                                      ? widget.match.homeScore.toString()
+                                      : '-',
+                                  style: themeData.textTheme.bodyMedium),
+                              const SizedBox(width: 16),
+                              Text(":", style: themeData.textTheme.bodyMedium),
+                              const SizedBox(width: 16),
+                              Text(
+                                  widget.match.guestScore != null
+                                      ? widget.match.guestScore.toString()
+                                      : '-',
+                                  style: themeData.textTheme.bodyMedium),
+                            ],
+                          )
+                        ],
+                      )
+                    ],
                   ),
                   const SizedBox(width: 16.0),
+                  StarIconButton(
+                    isStar: state.joker ?? false,
+                    onTap: () {
+                      context.read<TipFormBloc>().add(
+                            TipFormFieldUpdatedEvent(
+                              matchId: widget.match.id,
+                              userId: widget.userId,
+                              tipHome: state.tipHome,
+                              tipGuest: state.tipGuest,
+                              joker: !(state.joker ?? false),
+                            ),
+                          );
+                    },
+                    tooltipMessage: "Joker setzen",
+                  ),
                   Expanded(
                     child: Column(
                       children: [
@@ -160,22 +206,7 @@ class _TipItemContentState extends State<TipItemContent> {
                       ],
                     ),
                   ),
-                  StarIconButton(
-                    isStar: state.joker ?? false,
-                    onTap: () {
-                      context.read<TipFormBloc>().add(
-                            TipFormFieldUpdatedEvent(
-                              matchId: widget.match.id,
-                              userId: widget.userId,
-                              tipHome: state.tipHome,
-                              tipGuest: state.tipGuest,
-                              joker: !(state.joker ?? false),
-                            ),
-                          );
-                    },
-                    tooltipMessage: "Joker setzen",
-                  ),
-                  const Spacer(),
+                  // const Spacer(),
                 ],
               ),
             ],

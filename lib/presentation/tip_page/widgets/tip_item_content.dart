@@ -49,8 +49,9 @@ class _TipItemContentState extends State<TipItemContent> {
     super.dispose();
   }
 
+// todo: add jokercheck here
   Widget _buildStatusIcon(TipFormState state) {
-    const double statusIconSize = 20;
+    const double statusIconSize = 24;
     if (state.isSubmitting) {
       return const SizedBox(
         height: statusIconSize,
@@ -60,7 +61,10 @@ class _TipItemContentState extends State<TipItemContent> {
     }
 
     return state.failureOrSuccessOption.fold(
-      () => const SizedBox(height: statusIconSize),
+      () => const SizedBox(
+        height: statusIconSize,
+        width: statusIconSize,
+      ),
       (either) => either.fold(
         (_) => const Icon(Icons.close, color: Colors.red, size: statusIconSize),
         (_) =>
@@ -77,11 +81,7 @@ class _TipItemContentState extends State<TipItemContent> {
       listener: (context, state) {
         state.failureOrSuccessOption.fold(
           () {},
-          (either) {
-            Future.delayed(const Duration(seconds: 10), () {
-              context.read<TipFormBloc>().add(TipFormResetStatusEvent());
-            });
-          },
+          (either) {},
         );
       },
       builder: (context, state) {
@@ -89,12 +89,12 @@ class _TipItemContentState extends State<TipItemContent> {
           margin: const EdgeInsets.only(bottom: 8.0),
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-              color: themeData.colorScheme.onPrimaryContainer,
+              color: themeData.colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(
                   color: (state.joker ?? false)
                       ? Colors.amber
-                      : themeData.colorScheme.primary,
+                      : themeData.colorScheme.primaryContainer,
                   width: 3)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,10 +102,29 @@ class _TipItemContentState extends State<TipItemContent> {
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text(
                   'Spieltag: ${widget.match.matchDay}, ${DateFormat('dd.MM.yyyy HH:mm').format(widget.match.matchDate)}',
-                  style: themeData.textTheme.bodySmall,
+                  style: themeData.textTheme.bodyMedium,
                 ),
-                // Spacer(),
-                _buildStatusIcon(state),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '${widget.tip?.points ?? "0"}',
+                      style: themeData.textTheme.displayLarge?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'pkt',
+                      style: themeData.textTheme.bodySmall?.copyWith(
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                )
               ]),
               const SizedBox(height: 24.0),
               Row(
@@ -127,7 +146,9 @@ class _TipItemContentState extends State<TipItemContent> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16.0),
+                  Tooltip(
+                      message: "Gespeichert?", child: _buildStatusIcon(state)),
+                  const SizedBox(width: 32.0),
                   Column(
                     children: [
                       Row(
@@ -150,31 +171,35 @@ class _TipItemContentState extends State<TipItemContent> {
                         ],
                       ),
                       const SizedBox(height: 8.0),
-                      Row(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                  widget.match.homeScore != null
-                                      ? widget.match.homeScore.toString()
-                                      : '-',
-                                  style: themeData.textTheme.bodyMedium),
-                              const SizedBox(width: 16),
-                              Text(":", style: themeData.textTheme.bodyMedium),
-                              const SizedBox(width: 16),
-                              Text(
-                                  widget.match.guestScore != null
-                                      ? widget.match.guestScore.toString()
-                                      : '-',
-                                  style: themeData.textTheme.bodyMedium),
-                            ],
-                          )
-                        ],
+                      Tooltip(
+                        message: 'Ergebnis',
+                        child: Row(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                    widget.match.homeScore != null
+                                        ? widget.match.homeScore.toString()
+                                        : '-',
+                                    style: themeData.textTheme.bodyMedium),
+                                const SizedBox(width: 16),
+                                Text(":",
+                                    style: themeData.textTheme.bodyMedium),
+                                const SizedBox(width: 16),
+                                Text(
+                                    widget.match.guestScore != null
+                                        ? widget.match.guestScore.toString()
+                                        : '-',
+                                    style: themeData.textTheme.bodyMedium),
+                              ],
+                            )
+                          ],
+                        ),
                       )
                     ],
                   ),
-                  const SizedBox(width: 16.0),
+                  const SizedBox(width: 32.0),
                   StarIconButton(
                     isStar: state.joker ?? false,
                     onTap: () {
@@ -206,7 +231,6 @@ class _TipItemContentState extends State<TipItemContent> {
                       ],
                     ),
                   ),
-                  // const Spacer(),
                 ],
               ),
             ],

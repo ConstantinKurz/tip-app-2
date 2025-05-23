@@ -13,25 +13,26 @@ class TipModel {
   final int? tipGuest;
   final bool joker;
   final String userId;
-  TipModel({
-    required this.id,
-    required this.matchId,
-    required this.tipDate,
-    required this.tipHome,
-    required this.tipGuest,
-    required this.joker,
-    required this.userId,
-  });
+  final int? points;
+  TipModel(
+      {required this.id,
+      required this.matchId,
+      required this.tipDate,
+      required this.tipHome,
+      required this.tipGuest,
+      required this.joker,
+      required this.userId,
+      required this.points});
 
-  TipModel copyWith({
-    String? id,
-    String? matchId,
-    DateTime? tipDate,
-    int? tipHome,
-    int? tipGuest,
-    bool? joker,
-    String? userId,
-  }) {
+  TipModel copyWith(
+      {String? id,
+      String? matchId,
+      DateTime? tipDate,
+      int? tipHome,
+      int? tipGuest,
+      bool? joker,
+      String? userId,
+      int? points}) {
     return TipModel(
       id: id ?? this.id,
       matchId: matchId ?? this.matchId,
@@ -40,6 +41,7 @@ class TipModel {
       tipGuest: tipGuest ?? this.tipGuest,
       joker: joker ?? this.joker,
       userId: userId ?? this.userId,
+      points: points ?? this.points,
     );
   }
 
@@ -52,6 +54,7 @@ class TipModel {
       'tipGuest': tipGuest,
       'joker': joker,
       'userId': userId,
+      'points': points,
     };
   }
 
@@ -63,13 +66,13 @@ class TipModel {
       tipHome: map['tipHome'] as int?,
       tipGuest: map['tipGuest'] as int?,
       joker: map['joker'] as bool,
-        userId: map['userId'] as String,
+      userId: map['userId'] as String,
+      points: map['points'] as int?
     );
   }
 
   factory TipModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    final tipmodel = TipModel.fromMap(data).copyWith(id: doc.id);
     return TipModel.fromMap(data).copyWith(id: doc.id);
   }
 
@@ -82,6 +85,7 @@ class TipModel {
       tipGuest: tipGuest,
       joker: joker,
       userId: userId,
+      points: points
     );
   }
 
@@ -94,6 +98,7 @@ class TipModel {
       tipGuest: tip.tipGuest,
       joker: tip.joker,
       userId: tip.userId,
+      points: tip.points,
     );
   }
 }

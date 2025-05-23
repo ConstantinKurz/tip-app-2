@@ -29,13 +29,13 @@ class TipScoreField extends StatelessWidget {
             textAlign: TextAlign.center,
             controller: controller,
             style: themeData.textTheme.bodyLarge,
-            cursorColor: themeData.colorScheme.primaryContainer,
+            cursorColor: themeData.colorScheme.onPrimary,
             maxLength: 1,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
              decoration: InputDecoration(
               filled: true,
-              fillColor: themeData.colorScheme.primaryContainer.withOpacity(.2),
+              fillColor: themeData.colorScheme.primary,
               counterText: "",
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),

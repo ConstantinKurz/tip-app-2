@@ -116,7 +116,6 @@ class UpdateTeamForm extends StatelessWidget {
                 cursorColor: Colors.white,
                 decoration: InputDecoration(
                     labelText: 'Punkte', hintText: team.winPoints.toString()),
-                keyboardType: TextInputType.number,
                 validator: _validateWinPoints,
                 onChanged: (value) => context.read<TeamsformBloc>().add(
                     TeamFormFieldUpdatedEvent(winPoints: int.tryParse(value))),

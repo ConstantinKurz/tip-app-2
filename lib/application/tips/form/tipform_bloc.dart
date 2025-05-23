@@ -58,9 +58,5 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
         failureOrSuccessOption: optionOf(result),
       ));
     });
-
-    on<TipFormResetStatusEvent>((event, emit) {
-      emit(state.copyWith(failureOrSuccessOption: none()));
-    });
   }
 }

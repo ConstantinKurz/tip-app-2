@@ -23,8 +23,6 @@ class TipFormFieldUpdatedEvent extends TipFormEvent {
       this.joker});
 }
 
-class TipFormResetStatusEvent extends TipFormEvent {}
-
 class TipFormInitializedEvent extends TipFormEvent {
   final Tip tip;
   TipFormInitializedEvent({required this.tip});

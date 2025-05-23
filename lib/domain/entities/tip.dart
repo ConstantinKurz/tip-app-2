@@ -9,6 +9,7 @@ class Tip {
   final int? tipHome;
   final int? tipGuest;
   final bool joker;
+  final int? points;
   Tip(
       {required this.id,
       required this.userId,
@@ -16,7 +17,8 @@ class Tip {
       required this.tipDate,
       required this.tipHome,
       required this.tipGuest,
-      required this.joker});
+      required this.joker,
+      required this.points});
 
   factory Tip.empty(String userId) {
     return Tip(
@@ -27,6 +29,7 @@ class Tip {
       tipHome: null,
       tipGuest: null,
       joker: false,
+      points: null
     );
   }
 
@@ -38,6 +41,7 @@ class Tip {
     int? tipHome,
     int? tipGuest,
     bool? joker,
+    int? points,
   }) {
     return Tip(
       id: id ?? this.id,
@@ -47,6 +51,7 @@ class Tip {
       tipHome: tipHome ?? this.tipHome,
       tipGuest: tipGuest ?? this.tipGuest,
       joker: joker ?? this.joker,
+      points: points ?? this.points
     );
   }
 }

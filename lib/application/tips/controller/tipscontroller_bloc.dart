@@ -68,7 +68,6 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     });
   }
 
-  // Diese Methode gehört direkt zur Klasse, außerhalb der on<> Blöcke
   @override
   Future<void> close() async {
     print(

@@ -22,7 +22,7 @@ class TeamItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: themeData.colorScheme.onPrimary,
+        color: themeData.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Row(
@@ -73,7 +73,7 @@ class TeamItem extends StatelessWidget {
             children: [
               FancyIconButton(
                 icon: Icons.edit,
-                backgroundColor: themeData.colorScheme.onPrimary,
+                backgroundColor: themeData.colorScheme.primaryContainer,
                 hoverColor: primaryDark,
                 borderColor: primaryDark,
                 callback: () {
@@ -83,7 +83,7 @@ class TeamItem extends StatelessWidget {
               const SizedBox(width: 8.0),
               FancyIconButton(
                 icon: Icons.delete,
-                backgroundColor: themeData.colorScheme.onPrimary,
+                backgroundColor: themeData.colorScheme.primaryContainer,
                 hoverColor: Colors.red,
                 borderColor: Colors.red,
                 callback: () {

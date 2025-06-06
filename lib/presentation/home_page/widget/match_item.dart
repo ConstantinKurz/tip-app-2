@@ -33,7 +33,7 @@ class MatchItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: themeData.colorScheme.onPrimary,
+        color: themeData.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -42,7 +42,7 @@ class MatchItem extends StatelessWidget {
           // Spieltag und Spielzeit oben links
           Text(
             'Spieltag:${match.matchDay}, ${DateFormat('dd.MM.yyyy HH:mm').format(match.matchDate)}',
-            style: themeData.textTheme.bodySmall,
+            style: themeData.textTheme.bodyMedium,
           ),
           const SizedBox(height: 8.0),
           Row(
@@ -98,7 +98,7 @@ class MatchItem extends StatelessWidget {
                 children: [
                   FancyIconButton(
                     icon: Icons.edit,
-                    backgroundColor: themeData.colorScheme.onPrimary,
+                    backgroundColor: themeData.colorScheme.primaryContainer,
                     hoverColor: primaryDark,
                     borderColor: primaryDark,
                     callback: () {
@@ -108,7 +108,7 @@ class MatchItem extends StatelessWidget {
                   const SizedBox(width: 8.0),
                   FancyIconButton(
                     icon: Icons.delete,
-                    backgroundColor: themeData.colorScheme.onPrimary,
+                    backgroundColor: themeData.colorScheme.primaryContainer,
                     hoverColor: Colors.red,
                     borderColor: Colors.red,
                     callback: () {

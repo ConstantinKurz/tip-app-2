@@ -22,7 +22,7 @@ class UserItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: themeData.colorScheme.onPrimary,
+        color: themeData.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8.0),
         boxShadow: [
           BoxShadow(
@@ -111,7 +111,7 @@ class UserItem extends StatelessWidget {
               ),
               FancyIconButton(
                 icon: Icons.edit,
-                backgroundColor: themeData.colorScheme.onPrimary,
+                backgroundColor: themeData.colorScheme.primaryContainer,
                 hoverColor: primaryDark,
                 borderColor: primaryDark,
                 callback: () {

@@ -107,23 +107,6 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers() async* {
     try {
-      print("===============watchAllUsers()====================");
-      try {
-        final snapshots = usersCollection.snapshots();
-        snapshots.listen((value) => print("Value received:" + value.toString()),
-            onError: (error) => print("Stream error" + error.toString()));
-
-        print("watchAllUsers: snapshots() called, stream obtained"); // Add this
-      } catch (e) {
-        print("watchAllUsers: Outer catch error: $e"); // Catch any outer errors
-        yield left(UnexpectedFailure()); // Make sure to yield an error
-      }
-    } catch (e) {
-      print("Initial exception caught" + e.toString());
-
-      yield Left(UnexpectedFailure());
-    }
-    try {
       print("watchAllUsers: Stream started");
       try {
         final snapshots = usersCollection.snapshots();

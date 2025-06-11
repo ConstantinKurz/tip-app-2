@@ -7,14 +7,15 @@ import 'package:flutter_web/presentation/signup/widgets/sign_up_form.dart';
 
 class SignUpPage extends StatelessWidget {
   static String signupPagePath = "/signup";
-  const SignUpPage({super.key});
+    final bool isAuthenticated;
+  const SignUpPage({super.key, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocProvider(
         create: (context) => sl<SignupformBloc>(),
-        child: const PageTemplate(child: SignUpForm())
+        child: PageTemplate(isAuthenticated: isAuthenticated,  child: const SignUpForm())
       ),
     );
   }

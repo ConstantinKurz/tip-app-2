@@ -12,7 +12,8 @@ import '../../injections.dart';
 
 class HomePage extends StatelessWidget {
   static String homePagePath = "/home";
-  HomePage({Key? key}) : super(key: key);
+  final bool isAuthenticated;
+  HomePage({Key? key, required this.isAuthenticated}) : super(key: key);
 
   final CarouselController _carouselController = CarouselController();
 
@@ -63,6 +64,7 @@ class HomePage extends StatelessWidget {
                       matchState is MatchesControllerLoaded &&
                       teamState is TeamsLoaded) {
                     return PageTemplate(
+                      isAuthenticated: isAuthenticated,
                       child: Column(
                         children: [
                           Expanded(

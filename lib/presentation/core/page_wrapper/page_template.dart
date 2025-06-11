@@ -6,8 +6,9 @@ import 'package:flutter_web/presentation/core/menu/menu_bar.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class PageTemplate extends StatelessWidget {
+  final bool isAuthenticated;
   final Widget child;
-  const PageTemplate({super.key, required this.child});
+  const PageTemplate({super.key, required this.child, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +20,9 @@ class PageTemplate extends StatelessWidget {
       appBar: responsiveValue.isSmallerThan(DESKTOP)
           ? const PreferredSize(
               preferredSize: Size(double.infinity, 60), child: CustomAppBar())
-          : const PreferredSize(
-              preferredSize: Size(double.infinity, 66),
-              child: MyMenuBar(),
+          : PreferredSize(
+              preferredSize: const Size(double.infinity, 66),
+              child: MyMenuBar(isAuthenticated: isAuthenticated),
             ),
       body: child,
     );

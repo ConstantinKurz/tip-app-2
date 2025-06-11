@@ -3,10 +3,11 @@ import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 
 class DevPage extends StatelessWidget {
     static String devPagePath = "/development";
-  const DevPage({super.key});
+    final bool isAuthenticated;
+  const DevPage({super.key, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
-    return  const PageTemplate(child: Placeholder());
+    return  PageTemplate(isAuthenticated: isAuthenticated,child: const Placeholder(),);
   }
 }

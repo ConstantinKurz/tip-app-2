@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web/presentation/core/buttons/signin_button.dart';
+import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
 import 'package:flutter_web/presentation/core/buttons/signup_button.dart';
 import 'package:flutter_web/presentation/core/menu/home_logo.dart';
 import 'package:flutter_web/presentation/core/menu/menu_item.dart';
 import 'package:flutter_web/presentation/dev_page/dev_page.dart';
 import 'package:flutter_web/presentation/eco_page/eco_page.dart';
-import 'package:flutter_web/presentation/tip_page/tip_page.dart';
 
 class MyMenuBar extends StatelessWidget {
-  const MyMenuBar({super.key});
+  final bool isAuthenticated;
+  const MyMenuBar({super.key, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+    print(isAuthenticated);
     return Container(
         height: 66,
         width: double.infinity,
@@ -31,7 +33,7 @@ class MyMenuBar extends StatelessWidget {
             MenuItem(
                 text: "Ecosystem", inDrawer: false, path: EcoPage.ecoPagePath),
             const Spacer(),
-            const SignInButton(inDrawer: false),
+            isAuthenticated? const SignOutButton(inDrawer: false) : const SignInButton(inDrawer: false,),
             const SizedBox(
               width: 10,
             ),

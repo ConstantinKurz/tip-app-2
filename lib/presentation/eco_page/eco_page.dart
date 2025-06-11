@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 
 class EcoPage extends StatelessWidget {
+  final bool isAuthenticated;
   static String ecoPagePath = "/ecosystem";
-  const EcoPage({super.key});
+  
+  const EcoPage({super.key, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
-    return  const PageTemplate(child: Placeholder(color: Colors.blue));
+    return  PageTemplate(isAuthenticated: isAuthenticated,  child: const Placeholder(color: Colors.blue));
   }
 }

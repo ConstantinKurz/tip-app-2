@@ -9,8 +9,9 @@ import 'package:flutter_web/presentation/tip_page/widgets/tip_list.dart';
 
 class TipPage extends StatelessWidget {
   final String userId;
-
-  const TipPage({Key? key, required this.userId}) : super(key: key);
+  final bool isAuthenticated;
+  const TipPage({Key? key, required this.userId, required this.isAuthenticated})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +53,7 @@ class TipPage extends StatelessWidget {
                       final userTips = tipState.tips[userId] ?? [];
 
                       return PageTemplate(
+                        isAuthenticated: isAuthenticated,
                         child: TipList(
                           userId: userId,
                           tips: userTips,

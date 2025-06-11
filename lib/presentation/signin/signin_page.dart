@@ -7,14 +7,15 @@ import 'package:flutter_web/presentation/signin/widgets/sign_in_form.dart';
 
 class SignInPage extends StatelessWidget {
   static String signinPagePath = "/signin";
-  const SignInPage({super.key});
+  final bool isAuthenticated;
+  const SignInPage({super.key, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocProvider(
         create: (context) => sl<SignupformBloc>(),
-        child: const PageTemplate(child: SignInForm())
+        child: PageTemplate(isAuthenticated: isAuthenticated, child: const SignInForm())
       ),
     );
   }

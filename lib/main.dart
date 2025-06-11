@@ -77,33 +77,34 @@ class MyApp extends StatelessWidget {
         routerDelegate: RoutemasterDelegate(
           routesBuilder: (context) {
             final authState = context.watch<AuthBloc>().state;
-            final isAuthenticated = authState is AuthStateUnAuthenticated;
+            final isAuthenticated = authState is AuthStateAuthenticated;
+            // Router uses current page for Guard checks.
 
             return RouteMap(
-              onUnknownRoute: (_) => const MaterialPage(child: NotFoundPage()),
+              onUnknownRoute: (_) => MaterialPage(child: NotFoundPage(isAuthenticated:  isAuthenticated,)),
               routes: {
                 '/': (_) => Redirect(AppRoutes.splash),
                 AppRoutes.splash: (_) =>
-                    const MaterialPage(child: SplashPage()),
+                    MaterialPage(child: SplashPage(isAuthenticated: isAuthenticated,)),
                 AppRoutes.signin: (_) => signedInGuard(
-                    isAuthenticated: isAuthenticated, page: const SignInPage()),
+                    isAuthenticated: isAuthenticated, page: SignInPage(isAuthenticated: isAuthenticated,)),
                 AppRoutes.signup: (_) =>
-                    const MaterialPage(child: SignUpPage()),
+                    MaterialPage(child: SignUpPage(isAuthenticated: isAuthenticated,)),
                 AppRoutes.home: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
-                      page: HomePage(),
+                      page: HomePage(isAuthenticated: isAuthenticated,),
                     ),
                 AppRoutes.dev: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
-                      page: const DevPage(),
+                      page: DevPage(isAuthenticated: isAuthenticated,),
                     ),
                 AppRoutes.eco: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
-                      page: const EcoPage(),
+                      page: EcoPage(isAuthenticated: isAuthenticated,),
                     ),
                 AppRoutes.userTips: (info) {
                   final userId = info.pathParameters['id'];
-                  return MaterialPage(child: TipPage(userId: userId!));
+                  return MaterialPage(child: TipPage(isAuthenticated: isAuthenticated, userId: userId!));
                 },
                 AppRoutes.platform: (info) {
                   if (!isAuthenticated) {

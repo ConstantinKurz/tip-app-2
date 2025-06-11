@@ -8,11 +8,13 @@ import '../core/page_wrapper/centered_constrained_wrapper.dart';
 import '../home_page/home_page.dart';
 
 class NotFoundPage extends StatelessWidget {
-  const NotFoundPage({super.key});
+  final bool isAuthenticated;
+  const NotFoundPage({super.key, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
     return PageTemplate(
+      isAuthenticated: isAuthenticated,
         child: ListView(children: [
       CenterConstrainedWrapper(
         child: Padding(

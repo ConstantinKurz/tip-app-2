@@ -59,9 +59,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> signOut() => Future.wait([
-        firebaseAuth.signOut(),
-      ]);
+  Future<void> signOut() async {
+    firebaseAuth.signOut();
+  }
 
   @override
   Future<Option<AppUser>> getSignedInUser() async {
@@ -81,8 +81,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<AuthFailure, Unit>> updateUser(
-      {required AppUser user}) async {
+  Future<Either<AuthFailure, Unit>> updateUser({required AppUser user}) async {
     try {
       // Firestore-Dokument aktualisieren
       final userModel = UserModel.fromDomain(user);

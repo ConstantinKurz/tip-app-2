@@ -1,62 +1,74 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter_web/constants.dart';
-
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
-import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/user_dialog.dart';
-import 'package:flutter_web/presentation/home_page/widget/user_item.dart';
+import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
+import 'package:flutter_web/presentation/admin_page/widget/match_item.dart';
+import 'package:intl/intl.dart';
 
-class UserList extends StatefulWidget {
-  final List<AppUser> users;
+class MatchList extends StatefulWidget {
   final List<CustomMatch> matches;
   final List<Team> teams;
-  const UserList({
-    Key? key,
-    required this.users,
-    required this.matches,
-    required this.teams,
-  }) : super(key: key);
+
+  const MatchList({Key? key, required this.matches, required this.teams})
+      : super(key: key);
 
   @override
-  _UserListState createState() => _UserListState();
+  _MatchListState createState() => _MatchListState();
 }
 
-class _UserListState extends State<UserList> {
+class _MatchListState extends State<MatchList> {
   String _searchText = '';
+
   @override
   Widget build(BuildContext context) {
-    List<AppUser> filteredUsers = widget.users.where((user) {
-      // Erstellen eines Strings, der den Benutzernamen enthält
-      final username = user.username.toLowerCase();
+    final themeData = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    List<CustomMatch> filteredMatches = widget.matches.where((match) {
+      final homeTeam = widget.teams.firstWhere(
+        (team) => team.id == match.homeTeamId,
+        orElse: () => Team.empty(),
+      );
+      final guestTeam = widget.teams.firstWhere(
+        (team) => team.id == match.guestTeamId,
+        orElse: () => Team.empty(),
+      );
+
+      // Erstellen eines Strings, der alle relevanten Informationen des Matches enthält
+      //TODO: hier muss es was besseres geben
+      final matchInfo =
+          '${homeTeam.name} ${guestTeam.name} Spieltag:${match.matchDay} '
+                  '${match.homeScore ?? '-'}:${match.guestScore ?? '-'} '
+                  '${DateFormat('dd.MM.yyyy HH:mm').format(match.matchDate)}'
+              .toLowerCase();
+
       // Aufteilen des Suchtextes in einzelne Begriffe
       final searchTerms = _searchText.toLowerCase().split(' ');
-      // Prüfen, ob alle Suchbegriffe im Benutzernamen enthalten sind
+
+      // Prüfen, ob alle Suchbegriffe in den Match-Informationen enthalten sind
       bool allTermsMatch = true;
       for (final term in searchTerms) {
-        if (!username.contains(term)) {
+        if (!matchInfo.contains(term)) {
           allTermsMatch = false;
           break;
         }
       }
-      // Benutzer zur Liste hinzufügen, wenn alle Suchbegriffe übereinstimmen
+      // add match to list if true
       return allTermsMatch;
     }).toList();
 
-    final themeData = Theme.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
     return Center(
       child: Container(
-        width: screenWidth * 0.4,
+        width: screenWidth * 0.5,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Text('Tipper', style: themeData.textTheme.headline6),
+                Text('Matches', style: themeData.textTheme.headline6),
                 const Spacer(),
                 // Suchleiste
                 Container(
@@ -73,7 +85,8 @@ class _UserListState extends State<UserList> {
                     ),
                     onChanged: (text) {
                       setState(() {
-                        _searchText = text;
+                        _searchText =
+                            text; // Aktualisieren des Suchtextes bei jeder Änderung
                       });
                     },
                   ),
@@ -86,8 +99,9 @@ class _UserListState extends State<UserList> {
                     hoverColor: primaryDark,
                     borderColor: primaryDark,
                     icon: Icons.add,
-                    callback: () => _showAddUsersDialog(
-                        context)),
+                    callback: () => {
+                          _showAddMatchDialog(context, widget.teams)
+                        }),
               ],
             ),
             const SizedBox(height: 16.0),
@@ -95,10 +109,10 @@ class _UserListState extends State<UserList> {
                 child: ListView.builder(
               physics: const BouncingScrollPhysics(),
               shrinkWrap: true,
-              itemCount: filteredUsers.length,
+              itemCount: filteredMatches.length,
               itemBuilder: (context, index) {
-                final user = filteredUsers[index];
-                return UserItem(user: user, teams: widget.teams);
+                final match = filteredMatches[index];
+                return MatchItem(match: match, teams: widget.teams);
               },
             )),
             const SizedBox(height: 16.0),
@@ -108,16 +122,16 @@ class _UserListState extends State<UserList> {
     );
   }
 
-  void _showAddUsersDialog(
-      BuildContext context) {
+  void _showAddMatchDialog(BuildContext context, List<Team> teams) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Builder(
           builder: (BuildContext newContext) {
-            return const UserDialog(
-              dialogText: "Tipper hinzufügen",
-              userAction: UserAction.create,
+            return MatchDialog(
+              teams: teams,
+              dialogText: "Neues Match",
+              matchAction: MatchAction.create,
             );
           },
         );

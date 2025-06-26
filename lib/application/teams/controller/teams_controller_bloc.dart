@@ -7,16 +7,16 @@ import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/repositories/team_repository.dart';
 import 'package:meta/meta.dart';
 
-part 'teams_event.dart';
-part 'teams_state.dart';
+part 'teams_controller_event.dart';
+part 'teams_controller_state.dart';
 
-class TeamsBloc extends Bloc<TeamEvent, TeamsState> {
+class TeamsControllerBloc extends Bloc<TeamsControllerEvent, TeamsControllerState> {
   final TeamRepository teamRepository;
   StreamSubscription<Either<TeamFailure, List<Team>>>? _teamStreamSubscription;
 
-  TeamsBloc({required this.teamRepository}) : super(TeamInitial()) {
-    on<TeamsAllEvent>((event, emit) async {
-      emit(TeamsLoading());
+  TeamsControllerBloc({required this.teamRepository}) : super(TeamsControllerInitial()) {
+    on<TeamsControllerAllEvent>((event, emit) async {
+      emit(TeamsControllerLoading());
       print("TeamsAllEvent received in TeamsBloc. Emitting TeamsLoading."); // <-- Debug-Ausgabe 1 für Teams
       await _teamStreamSubscription?.cancel();
 
@@ -27,7 +27,7 @@ class TeamsBloc extends Bloc<TeamEvent, TeamsState> {
           // Dieser Callback wird aufgerufen, wenn der Stream einen Wert emittiert
           print("Stream received value (teams)!"); // <-- Debug-Ausgabe 2 für Teams
           // Wir fügen das UpdatedEvent hinzu, das dann den Zustand ändert
-          add(TeamsUpdatedEvent(failureOrTeams: failureOrTeams));
+          add(TeamsControllerUpdatedEvent(failureOrTeams: failureOrTeams));
         },
         // Füge einen onError-Callback hinzu, um Stream-Fehler zu fangen
         onError: (error) {
@@ -39,17 +39,17 @@ class TeamsBloc extends Bloc<TeamEvent, TeamsState> {
        print("teams listen initiated"); // <-- Debug-Ausgabe 4 für Teams
     });
 
-    on<TeamsUpdatedEvent>((event, emit) {
+    on<TeamsControllerUpdatedEvent>((event, emit) {
       print("TeamsUpdatedEvent received!"); // <-- Debug-Ausgabe 5 für Teams
       // Prüfe, was im Event enthalten ist
       event.failureOrTeams.fold(
           (failure) {
             print("TeamsUpdatedEvent contained Failure: $failure"); // <-- Debug-Ausgabe 6 für Teams (Fehler)
-            emit(TeamFailureState(teamFailure: failure));
+            emit(TeamsControllerFailureState(teamFailure: failure));
           },
           (teams) {
             print("TeamsUpdatedEvent contained Success with ${teams.length} teams"); // <-- Debug-Ausgabe 7 für Teams (Erfolg)
-            emit(TeamsLoaded(teams: teams));
+            emit(TeamsControllerLoaded(teams: teams));
           });
     });
   }

@@ -1,12 +1,11 @@
-// team_list.dart
+
 import 'package:flutter/material.dart';
-import 'package:flutter_web/constants.dart'; // Assuming this contains primaryDark etc.
+import 'package:flutter_web/constants.dart';
 
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
 import 'package:flutter_web/presentation/core/dialogs/team_dialog.dart';
-import 'package:flutter_web/presentation/home_page/widget/team_item.dart';
-// import 'package:flutter_web/presentation/core/dialogs/team_dialog.dart'; // You'll need a TeamDialog
+import 'package:flutter_web/presentation/admin_page/widget/team_item.dart';
 
 class TeamList extends StatefulWidget {
   final List<Team> teams;

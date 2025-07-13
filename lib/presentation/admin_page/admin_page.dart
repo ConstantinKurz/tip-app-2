@@ -11,7 +11,7 @@ import 'package:flutter_web/presentation/admin_page/widget/user_list.dart';
 import '../../injections.dart';
 
 class AdminPage extends StatelessWidget {
-  static String homePagePath = "/admin";
+  static String adminPagePath = "/admin";
   final bool isAuthenticated;
   AdminPage({Key? key, required this.isAuthenticated}) : super(key: key);
 

@@ -88,11 +88,8 @@ class MyApp extends StatelessWidget {
                 isAuthenticated: isAuthenticated,
               )),
               routes: {
-                '/': (_) => Redirect(AppRoutes.splash),
-                AppRoutes.splash: (_) => MaterialPage(
-                        child: SplashPage(
-                      isAuthenticated: isAuthenticated,
-                    )),
+                '/': (_) => const Redirect(AppRoutes.splash),
+                AppRoutes.splash: (_) => const MaterialPage(child: SplashPage()),
                 AppRoutes.signin: (_) => signedInGuard(
                     isAuthenticated: isAuthenticated,
                     page: SignInPage(

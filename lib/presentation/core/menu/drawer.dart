@@ -35,9 +35,9 @@ class CustomDrawer extends StatelessWidget {
                     height: 40,
                   ),
                   const MenuItem(
-                    text: "Docs",
+                    text: "Admin",
                     inDrawer: true,
-                    path: ""
+                    path: "/admin"
                   ),
                   const SizedBox(
                     height: 20,

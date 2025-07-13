@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web/presentation/admin_page/admin_page.dart';
 import 'package:flutter_web/presentation/core/buttons/signin_button.dart';
 import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
 import 'package:flutter_web/presentation/core/buttons/signup_button.dart';
@@ -24,7 +25,7 @@ class MyMenuBar extends StatelessWidget {
         child: Row(
           children: [
             const HomeLogo(),
-            const MenuItem(text: "Docs", inDrawer: false, path: ""),
+            MenuItem(text: "Admin", inDrawer: false, path: AdminPage.adminPagePath),
             // MenuItem(text: "Tipp", inDrawer: false, path: TipPage.tipPagePath),
             MenuItem(
                 text: "Development",

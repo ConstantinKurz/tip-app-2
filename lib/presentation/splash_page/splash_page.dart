@@ -8,8 +8,7 @@ import 'package:routemaster/routemaster.dart';
 
 class SplashPage extends StatelessWidget {
   static String splashPagePath = "/splash";
-  final bool isAuthenticated;
-  const SplashPage({super.key, required this.isAuthenticated});
+  const SplashPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +22,7 @@ class SplashPage extends StatelessWidget {
       },
       child: Scaffold(
         body: PageTemplate(
-          isAuthenticated: isAuthenticated,
+          isAuthenticated: false,
           child: Center(
             child: CircularProgressIndicator(
               color: Theme.of(context).colorScheme.secondary,

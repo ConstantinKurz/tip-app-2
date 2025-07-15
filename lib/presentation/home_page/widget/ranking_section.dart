@@ -31,8 +31,6 @@ class RankingSection extends StatelessWidget {
               if (teamState is TeamsControllerLoaded) {
                 final themeData = Theme.of(context);
                 final teams = (teamState).teams;
-                final sortedUsers = [...rankingState.users]
-                  ..sort((a, b) => a.rank.compareTo(b.rank));
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,12 +48,12 @@ class RankingSection extends StatelessWidget {
                     AnimatedCrossFade(
                       duration: const Duration(milliseconds: 300),
                       firstChild: RankingUserList(
-                        users: sortedUsers.take(2).toList(),
+                        users: rankingState.users.take(2).toList(),
                         teams: teams,
                         currentUser: rankingState.currentUser,
                       ),
                       secondChild: RankingUserList(
-                        users: sortedUsers,
+                        users: rankingState.users,
                         teams: teams,
                         currentUser: rankingState.currentUser,
                       ),
@@ -63,7 +61,7 @@ class RankingSection extends StatelessWidget {
                           ? CrossFadeState.showSecond
                           : CrossFadeState.showFirst,
                     ),
-                    if (sortedUsers.length > 2)
+                    if (rankingState.users.length > 2)
                       Center(
                         child: IconButton(
                           icon: Icon(

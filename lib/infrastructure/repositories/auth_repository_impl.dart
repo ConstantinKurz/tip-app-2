@@ -109,23 +109,23 @@ class AuthRepositoryImpl implements AuthRepository {
       print("watchAllUsers: Stream started");
       try {
         final snapshots = usersCollection.snapshots();
-        print("watchAllUsers: snapshots() called, stream obtained"); // Add this
+        print("watchAllUsers: snapshots() called, stream obtained"); 
         yield* snapshots.map((snapshot) {
-          print("watchAllUsers: Snapshot received"); // Debugging
+          print("watchAllUsers: Snapshot received");
           print(
-              "watchAllUsers: Number of documents: ${snapshot.docs.length}"); // Debugging
+              "watchAllUsers: Number of documents: ${snapshot.docs.length}"); 
 
           for (var doc in snapshot.docs) {
-            print("watchAllUsers: Document data: ${doc.data()}"); // Debugging
+            print("watchAllUsers: Document data: ${doc.data()}");
           }
 
           final users = snapshot.docs
               .map((doc) => UserModel.fromFirestore(doc).toDomain())
               .toList();
-          print("watchAllUsers: Users list: $users"); // Debugging
+          print("watchAllUsers: Users list: $users");
           return right<AuthFailure, List<AppUser>>(users);
         }).handleError((e) {
-          print("watchAllUsers: Error occurred: $e"); // Debugging
+          print("watchAllUsers: Error occurred: $e");
           if (e is FirebaseException) {
             if (e.code.contains('permission-denied') ||
                 e.code.contains("PERMISSION_DENIED")) {
@@ -138,8 +138,8 @@ class AuthRepositoryImpl implements AuthRepository {
           }
         });
       } catch (e) {
-        print("watchAllUsers: Outer catch error: $e"); // Catch any outer errors
-        yield left(UnexpectedFailure()); // Make sure to yield an error
+        print("watchAllUsers: Outer catch error: $e");
+        yield left(UnexpectedFailure());
       }
     } catch (e) {
       print("Initial exception caught" + e.toString());

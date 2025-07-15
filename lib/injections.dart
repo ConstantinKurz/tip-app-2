@@ -3,6 +3,7 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/application/auth/form/authform_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
+import 'package:flutter_web/application/ranking/ranking_bloc.dart';
 import 'package:flutter_web/application/signupform/signupform_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
@@ -51,6 +52,7 @@ Future<void> init() async {
   sl.registerFactory(() => TeamsformBloc(teamRepository: sl()));
   sl.registerFactory(() => TipFormBloc(tipRepository: sl()));
   sl.registerFactory(() => AuthformBloc(authRepository: sl()));
+  sl.registerFactory(() => RankingBloc(authRepository: sl()));
 
   // Register other services if necessary
 }

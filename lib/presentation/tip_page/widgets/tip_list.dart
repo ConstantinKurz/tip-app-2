@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
-import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/tip_page/widgets/tip_item_content.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_item.dart';
 
 class TipList extends StatefulWidget {
   final String userId;
@@ -29,6 +27,7 @@ class TipList extends StatefulWidget {
 
 class _TipListState extends State<TipList> {
   final Map<String, TipFormBloc> _tipFormBlocs = {};
+  //TODO: add search
   String _searchText = '';
 
   @override

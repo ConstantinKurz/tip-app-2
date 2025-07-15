@@ -21,9 +21,9 @@ class HomePage extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => sl<AuthControllerBloc>()..add(AuthAllEvent()),
-        ),
+        // BlocProvider(
+        //   create: (context) => sl<AuthControllerBloc>()..add(AuthAllEvent()),
+        // ),
         BlocProvider(
           create: (context) => sl<MatchesControllerBloc>()..add(MatchesAllEvent()),
         ),
@@ -32,56 +32,52 @@ class HomePage extends StatelessWidget {
         ),
       ],
       child: Scaffold(
-        body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
-          builder: (context, authState) {
-            return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
-              builder: (context, matchState) {
-                return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
-                  builder: (context, teamState) {
-                    if (authState is AuthControllerLoading ||
-                        matchState is MatchesControllerLoading ||
-                        teamState is TeamsControllerLoading) {
-                      return Center(
-                        child: CircularProgressIndicator(
-                          color: themeData.colorScheme.onPrimaryContainer,
-                        ),
-                      );
-                    }
-
-                    if (authState is AuthControllerLoaded &&
-                        matchState is MatchesControllerLoaded &&
-                        teamState is TeamsControllerLoaded) {
-                      return PageTemplate(
-                        isAuthenticated: isAuthenticated,
-                        child: Center( 
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: screenWidth * 0.5,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                                    child: RankingSection(users: authState.users, teams: teamState.teams,),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: screenWidth * 0.5,
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                                    child: Placeholder(), // UpcomingMatchesPreview()
-                                  ),
-                                ),
-                              ],
+        body: BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
+          builder: (context, matchState) {
+            return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
+              builder: (context, teamState) {
+                if (
+                    matchState is MatchesControllerLoading ||
+                    teamState is TeamsControllerLoading) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: themeData.colorScheme.onPrimaryContainer,
+                    ),
+                  );
+                }
+        
+                if (
+                    matchState is MatchesControllerLoaded &&
+                    teamState is TeamsControllerLoaded) {
+                  return PageTemplate(
+                    isAuthenticated: isAuthenticated,
+                    child: Center( 
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: screenWidth * 0.5,
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16.0),
+                                child: RankingSection(),
+                              ),
                             ),
-                          ),
+                            SizedBox(
+                              width: screenWidth * 0.5,
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16.0),
+                                child: Placeholder(), // UpcomingMatchesPreview()
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    }
-
-                    return const SizedBox(); // fallback
-                  },
-                );
+                      ),
+                    ),
+                  );
+                }
+        
+                return const SizedBox(); // fallback
               },
             );
           },

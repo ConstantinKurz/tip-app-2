@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter_web/core/failures/ranking_failure.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/domain/repositories/auth_repository.dart';
 import 'package:meta/meta.dart';
@@ -9,7 +10,7 @@ part 'ranking_state.dart';
 class RankingBloc extends Bloc<RankingEvent, RankingState> {
   final AuthRepository authRepository;
 
-  RankingBloc({required this.authRepository}) : super(RankingStateInitial()) {
+  RankingBloc({required this.authRepository}) : super(RankingInitial()) {
     on<LoadRankingEvent>(_onLoadRanking);
     on<ToggleExpandedEvent>(
         (event, emit) => emit(state.copyWith(expanded: !state.expanded)));

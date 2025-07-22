@@ -28,7 +28,8 @@ class MatchesControllerBloc
         add(MatchUpdatedEvent(failureOrMatches: failureOrMatches));
       }, onError: (error) {
         print(
-            '!!! Firestore stream error detected in MatchesControllerBloc: $error'); // <-- Debug-Ausgabe für Fehler
+          //TODO: Add exceptions for blocs / failure state
+            '!!! Firestore stream error detected in MatchesControllerBloc: $error'); 
       });
       print("matches listen initiated");
     });

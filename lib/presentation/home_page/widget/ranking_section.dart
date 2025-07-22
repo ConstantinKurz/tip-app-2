@@ -10,7 +10,6 @@ class RankingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool expanded = false;
     return MultiBlocProvider(
       providers: [
         BlocProvider<RankingBloc>(
@@ -23,13 +22,10 @@ class RankingSection extends StatelessWidget {
       ],
       child: BlocBuilder<RankingBloc, RankingState>(
         builder: (context, rankingState) {
-          if (rankingState.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
           return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
             builder: (context, teamState) {
-              if (teamState is TeamsControllerLoaded) {
+              if (teamState is TeamsControllerLoaded &&
+                  rankingState is RankingLoaded) {
                 final themeData = Theme.of(context);
                 final teams = (teamState).teams;
 
@@ -49,41 +45,44 @@ class RankingSection extends StatelessWidget {
                     AnimatedCrossFade(
                       duration: const Duration(milliseconds: 300),
                       firstChild: RankingUserList(
-                        users: rankingState.users.take(2).toList(),
+                        users: rankingState.sortedUsers.take(2).toList(),
                         teams: teams,
                         currentUser: rankingState.currentUser,
                       ),
                       secondChild: RankingUserList(
-                        users: rankingState.users,
+                        users: rankingState.sortedUsers,
                         teams: teams,
                         currentUser: rankingState.currentUser,
                       ),
-                      crossFadeState: expanded
+                      crossFadeState: rankingState.expanded
                           ? CrossFadeState.showSecond
                           : CrossFadeState.showFirst,
                     ),
-                    if (rankingState.users.length > 2)
+                    if (rankingState.sortedUsers.length > 2)
                       Center(
                         child: IconButton(
                           icon: Icon(
-                            expanded
+                            rankingState.expanded
                                 ? Icons.keyboard_arrow_up
                                 : Icons.keyboard_arrow_down,
                             color: themeData.primaryIconTheme.color,
                           ),
-                          onPressed: () => expanded = !expanded,
-                          tooltip: expanded
-                              ? 'Weniger anzeigen'
-                              : 'Mehr anzeigen',
+                          onPressed: () {
+                            context
+                                .read<RankingBloc>()
+                                .add(ToggleRankingViewEvent());
+                          },
+                          tooltip:
+                              rankingState.expanded ? 'Weniger anzeigen' : 'Mehr anzeigen',
                         ),
                       ),
                   ],
                 );
-              } else if (teamState is TeamsControllerFailureState) {
-                return Center(
-                    child: Text("Team-Fehler: ${teamState.teamFailure}"));
-              } else {
+              } else if (teamState is TeamsControllerLoading ||
+                  rankingState is RankingLoading) {
                 return const Center(child: CircularProgressIndicator());
+              } else {
+                return const Center(child: Text("Failure"));
               }
             },
           );

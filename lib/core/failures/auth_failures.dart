@@ -8,4 +8,4 @@ class InvalidEmailAndPasswordCombinationFailure extends AuthFailure{}
 
 class InsufficientPermisssons extends AuthFailure {}
 
-class UnexpectedFailure extends AuthFailure {}
+class UnexpectedAuthFailure extends AuthFailure {}

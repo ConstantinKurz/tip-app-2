@@ -94,11 +94,11 @@ class AuthRepositoryImpl implements AuthRepository {
             e.code.contains("PERMISSION_DENIED")) {
           return left(InsufficientPermisssons());
         } else {
-          return left(UnexpectedFailure());
+          return left(UnexpectedAuthFailure());
         }
       } else {
         (print("Update User: Outer catch error: $e"));
-        return left(UnexpectedFailure());
+        return left(UnexpectedAuthFailure());
       }
     }
   }
@@ -131,19 +131,19 @@ class AuthRepositoryImpl implements AuthRepository {
                 e.code.contains("PERMISSION_DENIED")) {
               return left(InsufficientPermisssons());
             } else {
-              return left(UnexpectedFailure());
+              return left(UnexpectedAuthFailure());
             }
           } else {
-            return left(UnexpectedFailure());
+            return left(UnexpectedAuthFailure());
           }
         });
       } catch (e) {
         print("watchAllUsers: Outer catch error: $e");
-        yield left(UnexpectedFailure());
+        yield left(UnexpectedAuthFailure());
       }
     } catch (e) {
       print("Initial exception caught" + e.toString());
-      yield Left(UnexpectedFailure());
+      yield Left(UnexpectedAuthFailure());
     }
   }
 }

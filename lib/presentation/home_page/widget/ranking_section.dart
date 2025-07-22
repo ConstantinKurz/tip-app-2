@@ -10,6 +10,7 @@ class RankingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool expanded = false;
     return MultiBlocProvider(
       providers: [
         BlocProvider<RankingBloc>(
@@ -57,7 +58,7 @@ class RankingSection extends StatelessWidget {
                         teams: teams,
                         currentUser: rankingState.currentUser,
                       ),
-                      crossFadeState: rankingState.expanded
+                      crossFadeState: expanded
                           ? CrossFadeState.showSecond
                           : CrossFadeState.showFirst,
                     ),
@@ -65,15 +66,13 @@ class RankingSection extends StatelessWidget {
                       Center(
                         child: IconButton(
                           icon: Icon(
-                            rankingState.expanded
+                            expanded
                                 ? Icons.keyboard_arrow_up
                                 : Icons.keyboard_arrow_down,
                             color: themeData.primaryIconTheme.color,
                           ),
-                          onPressed: () => context
-                              .read<RankingBloc>()
-                              .add(ToggleExpandedEvent()),
-                          tooltip: rankingState.expanded
+                          onPressed: () => expanded = !expanded,
+                          tooltip: expanded
                               ? 'Weniger anzeigen'
                               : 'Mehr anzeigen',
                         ),

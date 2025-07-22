@@ -12,8 +12,6 @@ class RankingBloc extends Bloc<RankingEvent, RankingState> {
 
   RankingBloc({required this.authRepository}) : super(RankingInitial()) {
     on<LoadRankingEvent>(_onLoadRanking);
-    on<ToggleExpandedEvent>(
-        (event, emit) => emit(state.copyWith(expanded: !state.expanded)));
   }
 
   Future<void> _onLoadRanking(

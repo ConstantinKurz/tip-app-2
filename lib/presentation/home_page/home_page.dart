@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/widget/ranking_section.dart';
+import 'package:flutter_web/presentation/home_page/widget/upcoming_tips.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatelessWidget {
   static const String homePagePath = "/home";
   final bool isAuthenticated;
+
 
   const HomePage({
     Key? key,
@@ -16,6 +20,11 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
+    final authState = context.watch<AuthControllerBloc>().state;
+    user
+    if (authState is AuthControllerLoaded) {
+      final userId = authState.signedInUser?.username;
+    }
 
     return Scaffold(
       body: PageTemplate(
@@ -37,7 +46,7 @@ class HomePage extends StatelessWidget {
                   width: screenWidth * 0.5,
                   child: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Placeholder(), // UpcomingMatchesPreview()
+                    child: UpcomingTipSection(userId: userId), // UpcomingMatchesPreview()
                   ),
                 ),
               ],

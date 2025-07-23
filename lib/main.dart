@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
+import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
@@ -67,6 +68,10 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               di.sl<AuthBloc>()..add(AuthCheckRequestedEvent()),
         ),
+            BlocProvider(
+      create: (context) =>
+          di.sl<AuthControllerBloc>()..add(AuthAllEvent()),
+    ),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,

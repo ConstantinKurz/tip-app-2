@@ -29,26 +29,41 @@ class AuthControllerBloc
       });
     });
 
-    on<AuthUpdatedEvent>((event, emit) {
-      print(event.failureOrUsers);
-      print("User received!");
+    on<AuthUpdatedEvent>((event, emit) async {
+      final signedInOption = await authRepository.getSignedInUser();
+
       event.failureOrUsers.fold(
-        (failure) {
-          print("UsersUpdatedEvent contained Failure: $failure");
-          emit(AuthControllerFailure(authFailure: failure));
-        },
+        (failure) => emit(AuthControllerFailure(authFailure: failure)),
         (users) {
-          print(
-              "UsersUpdatedEvent contained Success with ${users.length} matches");
-          emit(AuthControllerLoaded(users: users));
+          emit(AuthControllerLoaded(
+            users: users,
+            signedInUser: signedInOption.getOrElse(() => users.first),
+          ));
         },
       );
     });
-  }
 
-  @override
-  Future<void> close() {
-    _usersStreamSub?.cancel();
-    return super.close();
+    //   on<AuthUpdatedEvent>((event, emit) {
+    //     print(event.failureOrUsers);
+    //     print("User received!");
+    //     event.failureOrUsers.fold(
+    //       (failure) {
+    //         print("UsersUpdatedEvent contained Failure: $failure");
+    //         emit(AuthControllerFailure(authFailure: failure));
+    //       },
+    //       (users) {
+    //         print(
+    //             "UsersUpdatedEvent contained Success with ${users.length} matches");
+    //         emit(AuthControllerLoaded(users: users));
+    //       },
+    //     );
+    //   });
+    // }
+
+    @override
+    Future<void> close() {
+      _usersStreamSub?.cancel();
+      return super.close();
+    }
   }
 }

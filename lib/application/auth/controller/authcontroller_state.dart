@@ -10,8 +10,9 @@ class AuthControllerLoading extends AuthControllerState {}
 
 class AuthControllerLoaded extends AuthControllerState {
   final List<AppUser> users;
+  final AppUser? signedInUser;
 
-  AuthControllerLoaded({required this.users});
+  AuthControllerLoaded({this.signedInUser, required this.users});
 }
 
 class AuthControllerFailure extends AuthControllerState {

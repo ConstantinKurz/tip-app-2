@@ -43,23 +43,6 @@ class AuthControllerBloc
       );
     });
 
-    //   on<AuthUpdatedEvent>((event, emit) {
-    //     print(event.failureOrUsers);
-    //     print("User received!");
-    //     event.failureOrUsers.fold(
-    //       (failure) {
-    //         print("UsersUpdatedEvent contained Failure: $failure");
-    //         emit(AuthControllerFailure(authFailure: failure));
-    //       },
-    //       (users) {
-    //         print(
-    //             "UsersUpdatedEvent contained Success with ${users.length} matches");
-    //         emit(AuthControllerLoaded(users: users));
-    //       },
-    //     );
-    //   });
-    // }
-
     @override
     Future<void> close() {
       _usersStreamSub?.cancel();

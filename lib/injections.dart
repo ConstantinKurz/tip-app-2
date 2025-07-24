@@ -52,7 +52,7 @@ Future<void> init() async {
   sl.registerFactory(() => TeamsformBloc(teamRepository: sl()));
   sl.registerFactory(() => TipFormBloc(tipRepository: sl()));
   sl.registerFactory(() => AuthformBloc(authRepository: sl()));
-  sl.registerFactory(() => RankingBloc(authRepository: sl()));
+  sl.registerFactory(() => RankingBloc());
 
   // Register other services if necessary
 }

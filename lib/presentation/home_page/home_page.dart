@@ -10,7 +10,6 @@ class HomePage extends StatelessWidget {
   static const String homePagePath = "/home";
   final bool isAuthenticated;
 
-
   const HomePage({
     Key? key,
     required this.isAuthenticated,
@@ -20,39 +19,46 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
-    final authState = context.watch<AuthControllerBloc>().state;
-    user
-    if (authState is AuthControllerLoaded) {
-      final userId = authState.signedInUser?.username;
-    }
 
     return Scaffold(
-      body: PageTemplate(
-        isAuthenticated: isAuthenticated,
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Ranking Section lädt seine Daten selbst
-                SizedBox(
-                  width: screenWidth * 0.5,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: RankingSection(),
-                  ),
+      body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
+        builder: (context, authState) {
+          if (authState is! AuthControllerLoaded ||
+              authState.signedInUser == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final userId = authState.signedInUser!.username;
+          final users = authState.users;
+
+          return PageTemplate(
+            isAuthenticated: isAuthenticated,
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: screenWidth * 0.5,
+                      // ignore: prefer_const_constructors
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: RankingSection(userId: userId,users: users,),
+                      ),
+                    ),
+                    SizedBox(
+                      width: screenWidth * 0.5,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: UpcomingTipSection(userId: userId),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  width: screenWidth * 0.5,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: UpcomingTipSection(userId: userId), // UpcomingMatchesPreview()
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.all(16.0),

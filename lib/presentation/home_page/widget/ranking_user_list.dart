@@ -6,7 +6,7 @@ import 'package:flutter_web/domain/entities/user.dart';
 class RankingUserList extends StatelessWidget {
   final List<AppUser> users;
   final List<Team> teams;
-  final AppUser? currentUser;
+  final String currentUser;
   const RankingUserList(
       {required this.users,
       required this.teams,
@@ -22,7 +22,7 @@ class RankingUserList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final user = users[index];
-        final isCurrentUser = currentUser?.username == user.username;
+        final isCurrentUser = currentUser == user.username;
         final champion =
             teams.where((element) => element.id == user.championId).firstOrNull;
         final textTheme = Theme.of(context).textTheme;

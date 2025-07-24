@@ -21,10 +21,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       // print(
       //     "TipAllEvent received in TipControllerBloc. Emitting TipControllerLoading."); // <-- Debug-Ausgabe 1 für Tips
       emit(TipControllerLoading());
-
       // close old subs
       await _tipStreamSub?.cancel();
-
       // Abonnieren des Streams vom Repository
       _tipStreamSub = tipRepository.watchAll().listen((failureOrTip) {
         // print("Stream received value (tips)!"); // <-- Debug-Ausgabe 2 für Tips

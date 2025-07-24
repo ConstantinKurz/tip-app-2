@@ -27,7 +27,6 @@ class TipList extends StatefulWidget {
 
 class _TipListState extends State<TipList> {
   final Map<String, TipFormBloc> _tipFormBlocs = {};
-  //TODO: add search
   String _searchText = '';
 
   @override
@@ -62,12 +61,14 @@ class _TipListState extends State<TipList> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+
     return Center(
       child: Container(
         width: screenWidth * 0.5,
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
+          shrinkWrap: true,
+          physics: const BouncingScrollPhysics(),
           children: [
             Row(
               children: [
@@ -94,41 +95,34 @@ class _TipListState extends State<TipList> {
               ],
             ),
             const SizedBox(height: 16.0),
-            Expanded(
-              child: ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                itemCount: widget.matches.length,
-                itemBuilder: (context, index) {
-                  final match = widget.matches[index];
+            ...widget.matches.map((match) {
+              final tip = widget.tips.firstWhere(
+                (t) => t.matchId == match.id,
+                orElse: () =>
+                    Tip.empty(widget.userId).copyWith(matchId: match.id),
+              );
 
-                  Tip? tip;
-                  try {
-                    tip = widget.tips
-                        .firstWhere((tip) => tip.matchId == match.id);
-                  } catch (_) {
-                    tip = null;
-                  }
+              final homeTeam =
+                  widget.teams.firstWhere((t) => t.id == match.homeTeamId);
+              final guestTeam =
+                  widget.teams.firstWhere((t) => t.id == match.guestTeamId);
 
-                  final homeTeam = widget.teams
-                      .firstWhere((team) => team.id == match.homeTeamId);
-                  final guestTeam = widget.teams
-                      .firstWhere((team) => team.id == match.guestTeamId);
+              final bloc = _tipFormBlocs[match.id]!;
 
-                  final bloc = _tipFormBlocs[match.id]!;
-
-                  return BlocProvider<TipFormBloc>.value(
-                    value: bloc,
-                    child: TipItemContent(
-                      userId: widget.userId,
-                      tip: tip,
-                      homeTeam: homeTeam,
-                      guestTeam: guestTeam,
-                      match: match,
-                    ),
-                  );
-                },
-              ),
-            ),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: BlocProvider<TipFormBloc>.value(
+                  value: bloc,
+                  child: TipItemContent(
+                    userId: widget.userId,
+                    tip: tip,
+                    homeTeam: homeTeam,
+                    guestTeam: guestTeam,
+                    match: match,
+                  ),
+                ),
+              );
+            }).toList(),
             const SizedBox(height: 16.0),
           ],
         ),

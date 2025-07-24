@@ -9,56 +9,41 @@ import 'package:flutter_web/presentation/tip_page/widgets/tip_list.dart';
 class UpcomingTipSection extends StatelessWidget {
   final String userId;
 
-  const UpcomingTipSection({
-    Key? key,
-    required this.userId,
-  }) : super(key: key);
+  const UpcomingTipSection({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-            create: (_) => sl<MatchesControllerBloc>()..add(MatchesAllEvent())),
-        BlocProvider(
-            create: (_) =>
-                sl<TeamsControllerBloc>()..add(TeamsControllerAllEvent())),
-        BlocProvider(
-            create: (_) => sl<TipControllerBloc>()..add(TipAllEvent())),
-      ],
-      child: BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
-        builder: (context, matchState) {
-          return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
-            builder: (context, teamState) {
-              return BlocBuilder<TipControllerBloc, TipControllerState>(
-                builder: (context, tipState) {
-                  if (matchState is MatchesControllerLoaded &&
-                      teamState is TeamsControllerLoaded &&
-                      tipState is TipControllerLoaded) {
-                    final upcomingMatches = matchState.matches
-                        .where((m) => m.matchDate.isAfter(DateTime.now()))
-                        .toList()
-                      ..sort((a, b) => a.matchDate.compareTo(b.matchDate));
+    return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
+      builder: (context, matchState) {
+        return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
+          builder: (context, teamState) {
+            return BlocBuilder<TipControllerBloc, TipControllerState>(
+              builder: (context, tipState) {
+                if (matchState is MatchesControllerLoaded &&
+                    teamState is TeamsControllerLoaded &&
+                    tipState is TipControllerLoaded) {
+                  final upcomingMatches = matchState.matches
+                      .where((m) => m.matchDate.isAfter(DateTime.now()))
+                      .toList()
+                    ..sort((a, b) => a.matchDate.compareTo(b.matchDate));
 
-                    final nextThree = upcomingMatches.take(3).toList();
+                  final nextThree = upcomingMatches.take(3).toList();
+                  final userTips = tipState.tips[userId] ?? [];
 
-                    final userTips = tipState.tips[userId] ?? [];
+                  return TipList(
+                    userId: userId,
+                    tips: userTips,
+                    matches: nextThree,
+                    teams: teamState.teams,
+                  );
+                }
 
-                    return TipList(
-                      userId: userId,
-                      tips: userTips,
-                      matches: nextThree,
-                      teams: teamState.teams,
-                    );
-                  }
-
-                  return const Center(child: CircularProgressIndicator());
-                },
-              );
-            },
-          );
-        },
-      ),
+                return const Center(child: CircularProgressIndicator());
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

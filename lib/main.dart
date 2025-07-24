@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
+import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
+import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
+import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
@@ -68,10 +71,19 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               di.sl<AuthBloc>()..add(AuthCheckRequestedEvent()),
         ),
-            BlocProvider(
-      create: (context) =>
-          di.sl<AuthControllerBloc>()..add(AuthAllEvent()),
-    ),
+        BlocProvider(
+          create: (context) => di.sl<AuthControllerBloc>()..add(AuthAllEvent()),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<MatchesControllerBloc>()..add(MatchesAllEvent()),
+        ),
+        BlocProvider(
+          create: (_) =>
+              di.sl<TeamsControllerBloc>()..add(TeamsControllerAllEvent()),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<TipControllerBloc>()..add(TipAllEvent()),
+        ),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
@@ -94,7 +106,8 @@ class MyApp extends StatelessWidget {
               )),
               routes: {
                 '/': (_) => const Redirect(AppRoutes.splash),
-                AppRoutes.splash: (_) => const MaterialPage(child: SplashPage()),
+                AppRoutes.splash: (_) =>
+                    const MaterialPage(child: SplashPage()),
                 AppRoutes.signin: (_) => signedInGuard(
                     isAuthenticated: isAuthenticated,
                     page: SignInPage(

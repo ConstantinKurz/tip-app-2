@@ -15,7 +15,7 @@ class SplashPage extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthStateAuthenticated) {
-          Routemaster.of(context).push(HomePage.homePagePath);
+          Routemaster.of(context).replace(HomePage.homePagePath);
         } else if (state is AuthStateUnAuthenticated) {
           Routemaster.of(context).push(SignInPage.signinPagePath);
         }

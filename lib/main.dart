@@ -94,59 +94,54 @@ class MyApp extends StatelessWidget {
         routeInformationParser: const RoutemasterParser(),
         routerDelegate: RoutemasterDelegate(
           routesBuilder: (context) {
-            // watches state and if changed calls RouteMap with updated value of isAuthenticated!
             final authState = context.watch<AuthBloc>().state;
+
+            // Warte auf AuthBloc, bevor Routing erlaubt wird
+            if (authState is AuthInitial) {
+              return RouteMap(routes: {
+                '/': (_) => const MaterialPage(child: SplashPage()),
+              });
+            }
+
             final isAuthenticated = authState is AuthStateAuthenticated;
-            // Router uses current page for Guard checks.
 
             return RouteMap(
               onUnknownRoute: (_) => MaterialPage(
-                  child: NotFoundPage(
-                isAuthenticated: isAuthenticated,
-              )),
+                child: NotFoundPage(isAuthenticated: isAuthenticated),
+              ),
               routes: {
-                '/': (_) => const Redirect(AppRoutes.splash),
-                AppRoutes.splash: (_) =>
-                    const MaterialPage(child: SplashPage()),
+                '/': (_) => const MaterialPage(child: SplashPage()),
                 AppRoutes.signin: (_) => signedInGuard(
-                    isAuthenticated: isAuthenticated,
-                    page: SignInPage(
                       isAuthenticated: isAuthenticated,
-                    )),
+                      page: SignInPage(isAuthenticated: isAuthenticated),
+                    ),
                 AppRoutes.signup: (_) => MaterialPage(
-                        child: SignUpPage(
-                      isAuthenticated: isAuthenticated,
-                    )),
+                      child: SignUpPage(isAuthenticated: isAuthenticated),
+                    ),
                 AppRoutes.admin: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
-                      page: AdminPage(
-                        isAuthenticated: isAuthenticated,
-                      ),
+                      page: AdminPage(isAuthenticated: isAuthenticated),
                     ),
                 AppRoutes.home: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
-                      page: HomePage(
-                        isAuthenticated: isAuthenticated,
-                      ),
+                      page: HomePage(isAuthenticated: isAuthenticated),
                     ),
                 AppRoutes.dev: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
-                      page: DevPage(
-                        isAuthenticated: isAuthenticated,
-                      ),
+                      page: DevPage(isAuthenticated: isAuthenticated),
                     ),
                 AppRoutes.eco: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
-                      page: EcoPage(
-                        isAuthenticated: isAuthenticated,
-                      ),
+                      page: EcoPage(isAuthenticated: isAuthenticated),
                     ),
                 AppRoutes.userTips: (info) {
                   final userId = info.pathParameters['id'];
                   return authGuard(
                     isAuthenticated: isAuthenticated,
                     page: TipPage(
-                        isAuthenticated: isAuthenticated, userId: userId!),
+                      isAuthenticated: isAuthenticated,
+                      userId: userId!,
+                    ),
                   );
                 },
                 AppRoutes.platform: (info) {

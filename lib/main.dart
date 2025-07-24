@@ -100,6 +100,8 @@ class MyApp extends StatelessWidget {
             if (authState is AuthInitial) {
               return RouteMap(routes: {
                 '/': (_) => const MaterialPage(child: SplashPage()),
+                AppRoutes.signin: (_) =>
+        const MaterialPage(child: SignInPage(isAuthenticated: false)),
               });
             }
 

@@ -40,7 +40,6 @@ class HomePage extends StatelessWidget {
                   children: [
                     SizedBox(
                       width: screenWidth * 0.5,
-                      // ignore: prefer_const_constructors
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
                         child: RankingSection(userId: userId,users: users,),

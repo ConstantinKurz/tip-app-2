@@ -53,6 +53,7 @@ class TipPage extends StatelessWidget {
                         tips: userTips,
                         teams: teamState.teams,
                         matches: matchState.matches,
+                        showSearchBar: true,
                       ),
                     );
                   }

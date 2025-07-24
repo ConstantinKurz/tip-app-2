@@ -35,6 +35,7 @@ class UpcomingTipSection extends StatelessWidget {
                     tips: userTips,
                     matches: nextThree,
                     teams: teamState.teams,
+                    showSearchBar: false,
                   );
                 }
 

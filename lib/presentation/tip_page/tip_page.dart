@@ -17,6 +17,7 @@ class TipPage extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  // TODO: remove blocs
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<TipControllerBloc, TipControllerState>(

@@ -51,12 +51,13 @@ class _TipItemContentState extends State<TipItemContent> {
 
 // todo: add jokercheck here
   Widget _buildStatusIcon(TipFormState state) {
+    final themeData = Theme.of(context);
     const double statusIconSize = 24;
     if (state.isSubmitting) {
-      return const SizedBox(
+      return  SizedBox(
         height: statusIconSize,
         width: statusIconSize,
-        child: CircularProgressIndicator(strokeWidth: 2),
+        child: CircularProgressIndicator(strokeWidth: 2, color: themeData.colorScheme.onPrimaryContainer,),
       );
     }
 
@@ -75,6 +76,7 @@ class _TipItemContentState extends State<TipItemContent> {
 
   @override
   Widget build(BuildContext context) {
+    //Todo: add is preview bool for preview on home page
     final themeData = Theme.of(context);
 
     return BlocConsumer<TipFormBloc, TipFormState>(

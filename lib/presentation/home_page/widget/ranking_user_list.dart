@@ -104,6 +104,28 @@ class RankingUserList extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                             children: [
+                              TextSpan(text: '${user.sixer}'),
+                              TextSpan(
+                                text: ' 6er',
+                                style:
+                                    textTheme.bodySmall?.copyWith(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      SizedBox(
+                        width: 100,
+                        child: RichText(
+                          textAlign: TextAlign.end,
+                          text: TextSpan(
+                            style: textTheme.displayMedium?.copyWith(
+                              fontSize: 24,
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            children: [
                               TextSpan(text: '${user.score}'),
                               TextSpan(
                                 text: ' pkt',

@@ -2,7 +2,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
-import 'package:flutter_web/infrastructure/models/match_model.dart';
 
 class TipModel {
   final String id;

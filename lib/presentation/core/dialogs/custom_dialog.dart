@@ -34,14 +34,6 @@ class CustomDialog extends StatelessWidget {
             color: borderColor ?? Colors.white,
             width: borderWidth,
           ),
-          // boxShadow: boxShadow ??
-          //     [
-          //       BoxShadow(
-          //         color: Colors.black.withOpacity(0.5),
-          //         blurRadius: 20,
-          //         offset: const Offset(0, 10),
-          //       ),
-          //     ],
         ),
         padding: const EdgeInsets.all(16),
         child: Column(

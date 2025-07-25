@@ -19,12 +19,14 @@ class UserFormFieldUpdatedEvent extends AuthFormEvent {
   final int? rank;
   final int? score;
   final int? jokerSum;
+  final int? sixer;
   UserFormFieldUpdatedEvent({
     this.username,
     this.championId,
     this.rank,
     this.score,
     this.jokerSum,
+    this.sixer
   });
 }
 

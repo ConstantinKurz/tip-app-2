@@ -13,6 +13,7 @@ class AuthformState {
   final int? rank;
   final int? score;
   final int? jokerSum;
+  final int? sixer;
 
   final AppUser currentUser;
 
@@ -23,6 +24,7 @@ class AuthformState {
       this.rank,
       this.score,
       this.jokerSum,
+      this.sixer,
       required this.isSubmitting,
       required this.sendingResetMail,
       required this.showValidationMessages,
@@ -40,6 +42,7 @@ class AuthformState {
     int? rank,
     int? score,
     int? jokerSum,
+    int? sixer,
     AppUser? curentUser,
   }) {
     return AuthformState(
@@ -49,6 +52,7 @@ class AuthformState {
       rank: rank ?? this.rank,
       score: score ?? this.score,
       jokerSum: jokerSum ?? this.jokerSum,
+      sixer: sixer ?? this.sixer,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       sendingResetMail: sendingResetMail ?? this.sendingResetMail,
       showValidationMessages:

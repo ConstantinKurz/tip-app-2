@@ -9,6 +9,7 @@ class UserModel {
   final int rank;
   final int score;
   final int jokerSum;
+  final int sixer;
 
   UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     required this.rank,
     required this.score,
     required this.jokerSum,
+    required this.sixer
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -27,6 +29,7 @@ class UserModel {
       rank: map['rank'] as int,
       score: map['score'] as int,
       jokerSum: map['jokerSum'] as int,
+      sixer: map['sixer'] as int,
     );
   }
 
@@ -42,6 +45,7 @@ class UserModel {
     int? rank,
     int? score,
     int? jokerSum,
+    int? sixer,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -50,6 +54,7 @@ class UserModel {
       rank: rank ?? this.rank,
       score: score ?? this.score,
       jokerSum: jokerSum ?? this.jokerSum,
+      sixer: sixer ?? this.sixer,
     );
   }
 
@@ -61,6 +66,7 @@ class UserModel {
       rank: rank,
       score: score,
       jokerSum: jokerSum,
+      sixer: sixer
     );
   }
 
@@ -72,6 +78,7 @@ class UserModel {
       rank: user.rank,
       score: user.score,
       jokerSum: user.jokerSum,
+      sixer: user.sixer
     );
   }
 
@@ -83,6 +90,7 @@ class UserModel {
       'rank': rank,
       'score': score,
       'jokerSum': jokerSum,
+      'sixer': sixer
     };
   }
 
@@ -93,6 +101,7 @@ class UserModel {
         email: email,
         rank: 0,
         score: 0,
-        jokerSum: 0);
+        jokerSum: 0,
+        sixer: 0);
   }
 }

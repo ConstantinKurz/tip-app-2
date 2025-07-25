@@ -52,24 +52,6 @@ class UserItem extends StatelessWidget {
               ),
             ],
           ),
-          // const SizedBox(height: 16.0),
-
-          // Edit button aligned right
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.end,
-          //   children: [
-          //     FancyIconButton(
-          //       icon: Icons.edit,
-          //       backgroundColor: themeData.colorScheme.onPrimary,
-          //       hoverColor: primaryDark,
-          //       borderColor: primaryDark,
-          //       callback: () {
-          //         _showUpdateUserDialog(context, teams, user);
-          //       },
-          //     ),
-          //   ],
-          // ),
-          // User details
           Row(
             children: [
               Expanded(
@@ -77,7 +59,11 @@ class UserItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Email: ${user.email}',
+                      'Email:',
+                      style: themeData.textTheme.bodyMedium,
+                    ),
+                    Text(
+                      user.email,
                       style: themeData.textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 8.0),
@@ -106,6 +92,11 @@ class UserItem extends StatelessWidget {
                       'Joker: ${user.jokerSum}',
                       style: themeData.textTheme.bodyMedium,
                     ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      'Sechser: ${user.sixer}',
+                      style: themeData.textTheme.bodyMedium,
+                    ),
                   ],
                 ),
               ),
@@ -124,7 +115,7 @@ class UserItem extends StatelessWidget {
       ),
     );
   }
-
+//todo: add new page instead of dialog
   void _showUpdateUserDialog(
       BuildContext context, List<Team> teams, AppUser user) {
     showDialog(

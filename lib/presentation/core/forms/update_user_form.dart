@@ -15,6 +15,7 @@ class UpdateUserForm extends StatelessWidget {
   final TextEditingController scoreController = TextEditingController();
   final TextEditingController jokerSumController = TextEditingController();
   final TextEditingController championIdController = TextEditingController();
+  final TextEditingController sixerController = TextEditingController();
 
   UpdateUserForm({Key? key, required this.user, required this.teams})
       : super(key: key);
@@ -28,7 +29,7 @@ class UpdateUserForm extends StatelessWidget {
 
   String? _validateEmail(String? value) {
     const emailRegex =
-        r"""^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+""";
+        r"""^[a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+""";
     if (value == null || value.isEmpty) {
       return "Gebe eine Mail ein";
     } else if (!RegExp(emailRegex).hasMatch(value)) {
@@ -56,6 +57,7 @@ class UpdateUserForm extends StatelessWidget {
     scoreController.text = user.score.toString();
     jokerSumController.text = user.jokerSum.toString();
     championIdController.text = user.championId;
+    sixerController.text = user.sixer.toString();
 
     return BlocConsumer<AuthformBloc, AuthformState>(
       listenWhen: (previous, current) =>
@@ -86,136 +88,157 @@ class UpdateUserForm extends StatelessWidget {
                   ),
                 ),
               );
-              Navigator.of(context).pop(); // Close on success
+              Navigator.of(context).pop();
             },
           ),
         );
       },
       builder: (context, state) {
-        return Form(
-          autovalidateMode: state.showValidationMessages
-              ? AutovalidateMode.always
-              : AutovalidateMode.disabled,
-          key: formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              TextFormField(
-                controller: usernameController,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: Colors.white,
-                validator: _validateString,
-                decoration: InputDecoration(
-                  labelText: "Benutzername",
-                  hintText: user.username,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+        return SingleChildScrollView(
+          child: Form(
+            autovalidateMode: state.showValidationMessages
+                ? AutovalidateMode.always
+                : AutovalidateMode.disabled,
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: usernameController,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: Colors.white,
+                  validator: _validateString,
+                  decoration: InputDecoration(
+                    labelText: "Benutzername",
+                    hintText: user.username,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  onChanged: (value) => context
+                      .read<AuthformBloc>()
+                      .add(UserFormFieldUpdatedEvent(username: value)),
                 ),
-                onChanged: (value) => context
-                    .read<AuthformBloc>()
-                    .add(UserFormFieldUpdatedEvent(username: value)),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: rankController,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: Colors.white,
-                validator: _validateInt,
-                decoration: InputDecoration(
-                  labelText: "Rang",
-                  hintText: user.rank.toString(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: rankController,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: Colors.white,
+                  validator: _validateInt,
+                  decoration: InputDecoration(
+                    labelText: "Rang",
+                    hintText: user.rank.toString(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  onChanged: (value) => context
+                      .read<AuthformBloc>()
+                      .add(UserFormFieldUpdatedEvent(rank: int.tryParse(value))),
                 ),
-                onChanged: (value) => context
-                    .read<AuthformBloc>()
-                    .add(UserFormFieldUpdatedEvent(rank: int.tryParse(value))),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: scoreController,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: Colors.white,
-                validator: _validateInt,
-                decoration: InputDecoration(
-                  labelText: "Punkte",
-                  hintText: user.score.toString(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: scoreController,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: Colors.white,
+                  validator: _validateInt,
+                  decoration: InputDecoration(
+                    labelText: "Punkte",
+                    hintText: user.score.toString(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  onChanged: (value) => context
+                      .read<AuthformBloc>()
+                      .add(UserFormFieldUpdatedEvent(score: int.tryParse(value))),
                 ),
-                onChanged: (value) => context
-                    .read<AuthformBloc>()
-                    .add(UserFormFieldUpdatedEvent(score: int.tryParse(value))),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: jokerSumController,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: Colors.white,
-                validator: _validateInt,
-                decoration: InputDecoration(
-                  labelText: "Joker Summe",
-                  hintText: user.jokerSum.toString(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: jokerSumController,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: Colors.white,
+                  validator: _validateInt,
+                  decoration: InputDecoration(
+                    labelText: "Joker Summe",
+                    hintText: user.jokerSum.toString(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  onChanged: (value) => context
+                      .read<AuthformBloc>()
+                      .add(UserFormFieldUpdatedEvent(jokerSum: int.tryParse(value))),
                 ),
-                onChanged: (value) => context.read<AuthformBloc>().add(
-                    UserFormFieldUpdatedEvent(jokerSum: int.tryParse(value))),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: user.championId,
-                decoration: const InputDecoration(labelText: 'Champion'),
-                items: teams
-                    .map((team) => DropdownMenuItem<String>(
-                        value: team.id, child: Text(team.name)))
-                    .toList(),
-                onChanged: (String? selectedChampionId) {
-                  context.read<AuthformBloc>().add(UserFormFieldUpdatedEvent(
-                      championId: selectedChampionId));
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomButton(
-                    buttonText: 'Speichern',
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    borderColor: primaryDark,
-                    hoverColor: primaryDark,
-                    callback: () {
-                      if (formKey.currentState!.validate()) {
-                        final AppUser updatedUser = AppUser(
-                          username: state.username ?? user.username,
-                          email: state.email ?? user.email,
-                          rank: state.rank ?? user.rank,
-                          score: state.score ?? user.score,
-                          jokerSum: state.jokerSum ?? user.jokerSum,
-                          championId: state.championId ?? user.championId,
-                        );
-                        context.read<AuthformBloc>().add(UpdateUserEvent(
-                            user: updatedUser, currentUser: user));
-                      }
-                    },
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: sixerController,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: Colors.white,
+                  validator: _validateInt,
+                  decoration: InputDecoration(
+                    labelText: "Sechser",
+                    hintText: user.sixer.toString(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  CustomButton(
-                    buttonText: 'Abbrechen',
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    borderColor: primaryDark,
-                    hoverColor: primaryDark,
-                    callback: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              ),
-            ],
+                  onChanged: (value) => context
+                      .read<AuthformBloc>()
+                      .add(UserFormFieldUpdatedEvent(sixer: int.tryParse(value))),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: user.championId,
+                  decoration: const InputDecoration(labelText: 'Champion'),
+                  items: teams
+                      .map((team) => DropdownMenuItem<String>(
+                          value: team.id, child: Text(team.name)))
+                      .toList(),
+                  onChanged: (String? selectedChampionId) {
+                    context.read<AuthformBloc>().add(UserFormFieldUpdatedEvent(
+                        championId: selectedChampionId));
+                  },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CustomButton(
+                      buttonText: 'Speichern',
+                      backgroundColor: themeData.colorScheme.primaryContainer,
+                      borderColor: primaryDark,
+                      hoverColor: primaryDark,
+                      callback: () {
+                        if (formKey.currentState!.validate()) {
+                          final AppUser updatedUser = AppUser(
+                            username: state.username ?? user.username,
+                            email: state.email ?? user.email,
+                            rank: state.rank ?? user.rank,
+                            score: state.score ?? user.score,
+                            jokerSum: state.jokerSum ?? user.jokerSum,
+                            championId: state.championId ?? user.championId,
+                            sixer: state.sixer ?? user.sixer,
+                          );
+                          context.read<AuthformBloc>().add(UpdateUserEvent(
+                              user: updatedUser, currentUser: user));
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    CustomButton(
+                      buttonText: 'Abbrechen',
+                      backgroundColor: themeData.colorScheme.primaryContainer,
+                      borderColor: primaryDark,
+                      hoverColor: primaryDark,
+                      callback: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },

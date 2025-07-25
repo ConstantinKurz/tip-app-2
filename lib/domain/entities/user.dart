@@ -8,6 +8,7 @@ class AppUser {
   final int rank;
   final int score;
   final int jokerSum;
+  final int sixer;
   AppUser({
     required this.championId,
     required this.username,
@@ -15,6 +16,7 @@ class AppUser {
     required this.rank,
     required this.score,
     required this.jokerSum,
+    required this.sixer
   });
 
   factory AppUser.empty() {
@@ -25,6 +27,7 @@ class AppUser {
       rank: 0,
       score: 0,
       jokerSum: 0,
+      sixer: 0
     );
   }
 
@@ -35,6 +38,7 @@ class AppUser {
     int? rank,
     int? score,
     int? jokerSum,
+    int? sixer
   }) {
     return AppUser(
       championId: championId ?? this.championId,
@@ -43,6 +47,7 @@ class AppUser {
       rank: rank ?? this.rank,
       score: score ?? this.score,
       jokerSum: jokerSum ?? this.jokerSum,
+      sixer: sixer ?? this.sixer,
     );
   }
 }

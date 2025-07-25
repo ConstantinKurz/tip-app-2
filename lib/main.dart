@@ -9,6 +9,7 @@ import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
+import 'package:flutter_web/presentation/dashboard_page/dashboard_page.dart';
 import 'package:flutter_web/presentation/dev_page/dev_page.dart';
 import 'package:flutter_web/presentation/eco_page/eco_page.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
@@ -42,6 +43,7 @@ class AppRoutes {
   static const eco = '/eco';
   static const platform = '/dev/plattform/:id';
   static const userTips = '/tips/:id';
+  static const dashboard = '/dashboard';
 }
 
 Page authGuard({
@@ -100,8 +102,8 @@ class MyApp extends StatelessWidget {
             if (authState is AuthInitial) {
               return RouteMap(routes: {
                 '/': (_) => const MaterialPage(child: SplashPage()),
-                AppRoutes.signin: (_) =>
-        const MaterialPage(child: SignInPage(isAuthenticated: false)),
+                AppRoutes.signin: (_) => const MaterialPage(
+                    child: SignInPage(isAuthenticated: false)),
               });
             }
 
@@ -127,6 +129,10 @@ class MyApp extends StatelessWidget {
                 AppRoutes.home: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
                       page: HomePage(isAuthenticated: isAuthenticated),
+                    ),
+                AppRoutes.dashboard: (_) => authGuard(
+                      isAuthenticated: isAuthenticated,
+                      page: DashboardPage(isAuthenticated: isAuthenticated),
                     ),
                 AppRoutes.dev: (_) => authGuard(
                       isAuthenticated: isAuthenticated,

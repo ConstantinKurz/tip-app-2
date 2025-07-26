@@ -72,7 +72,7 @@ class HomePage extends StatelessWidget {
               ),
               ButtonConfig(
                 label: 'Tipps',
-                route: '/tips/$userId',
+                route: '/tips-detail',
                 icon: Icons.list_alt,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: themeData.colorScheme.onPrimary,

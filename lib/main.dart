@@ -17,6 +17,7 @@ import 'package:flutter_web/presentation/not_found_page/no_found_page.dart';
 import 'package:flutter_web/presentation/signin/signin_page.dart';
 import 'package:flutter_web/presentation/signup/signup_page.dart';
 import 'package:flutter_web/presentation/splash_page/splash_page.dart';
+import 'package:flutter_web/presentation/tip_details_page/tip_details_page.dart';
 import 'package:flutter_web/presentation/tip_page/tip_page.dart';
 import 'package:flutter_web/theme.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -43,6 +44,7 @@ class AppRoutes {
   static const eco = '/eco';
   static const platform = '/dev/plattform/:id';
   static const userTips = '/tips/:id';
+  static const userDetailTips = '/tips-detail';
   static const dashboard = '/dashboard';
 }
 
@@ -134,14 +136,11 @@ class MyApp extends StatelessWidget {
                       isAuthenticated: isAuthenticated,
                       page: DashboardPage(isAuthenticated: isAuthenticated),
                     ),
-                AppRoutes.dev: (_) => authGuard(
+                AppRoutes.userDetailTips: (_) => authGuard(
                       isAuthenticated: isAuthenticated,
-                      page: DevPage(isAuthenticated: isAuthenticated),
+                      page: TipDetailsPage(isAuthenticated: isAuthenticated),
                     ),
-                AppRoutes.eco: (_) => authGuard(
-                      isAuthenticated: isAuthenticated,
-                      page: EcoPage(isAuthenticated: isAuthenticated),
-                    ),
+                //todo:remove path parameter
                 AppRoutes.userTips: (info) {
                   final userId = info.pathParameters['id'];
                   return authGuard(

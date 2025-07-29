@@ -9,12 +9,14 @@ import 'package:flutter_web/presentation/tip_page/widgets/tip_score_field.dart';
 import 'package:intl/intl.dart';
 import 'package:flag/flag.dart';
 
+// Die optimierte Version von TipItemContent – ohne RenderFlex-Overflow
 class TipItemContent extends StatefulWidget {
   final String userId;
   final Tip? tip;
   final Team homeTeam;
   final Team guestTeam;
   final CustomMatch match;
+  final Widget? bottomContent;
 
   const TipItemContent({
     Key? key,
@@ -23,6 +25,7 @@ class TipItemContent extends StatefulWidget {
     required this.homeTeam,
     required this.guestTeam,
     required this.match,
+    this.bottomContent,
   }) : super(key: key);
 
   @override
@@ -36,10 +39,8 @@ class _TipItemContentState extends State<TipItemContent> {
   @override
   void initState() {
     super.initState();
-    homeTipController =
-        TextEditingController(text: widget.tip?.tipHome?.toString() ?? '');
-    guestTipController =
-        TextEditingController(text: widget.tip?.tipGuest?.toString() ?? '');
+    homeTipController = TextEditingController(text: widget.tip?.tipHome?.toString() ?? '');
+    guestTipController = TextEditingController(text: widget.tip?.tipGuest?.toString() ?? '');
   }
 
   @override
@@ -49,196 +50,161 @@ class _TipItemContentState extends State<TipItemContent> {
     super.dispose();
   }
 
-// todo: add jokercheck here
   Widget _buildStatusIcon(TipFormState state) {
-    final themeData = Theme.of(context);
-    const double statusIconSize = 24;
+    const double size = 24;
+    final color = Theme.of(context).colorScheme.onPrimaryContainer;
+
     if (state.isSubmitting) {
-      return  SizedBox(
-        height: statusIconSize,
-        width: statusIconSize,
-        child: CircularProgressIndicator(strokeWidth: 2, color: themeData.colorScheme.onPrimaryContainer,),
+      return SizedBox(
+        height: size,
+        width: size,
+        child: CircularProgressIndicator(strokeWidth: 2, color: color),
       );
     }
 
     return state.failureOrSuccessOption.fold(
-      () => const SizedBox(
-        height: statusIconSize,
-        width: statusIconSize,
-      ),
+      () => SizedBox(width: size, height: size),
       (either) => either.fold(
-        (_) => const Icon(Icons.close, color: Colors.red, size: statusIconSize),
-        (_) =>
-            const Icon(Icons.check, color: Colors.green, size: statusIconSize),
+        (_) => Icon(Icons.close, color: Colors.red, size: size),
+        (_) => Icon(Icons.check, color: Colors.green, size: size),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    //Todo: add is preview bool for preview on home page
-    final themeData = Theme.of(context);
+    final theme = Theme.of(context);
 
     return BlocConsumer<TipFormBloc, TipFormState>(
-      listener: (context, state) {
-        state.failureOrSuccessOption.fold(
-          () {},
-          (either) {},
-        );
-      },
+      listener: (_, __) {},
       builder: (context, state) {
         return Container(
-          margin: const EdgeInsets.only(bottom: 8.0),
-          padding: const EdgeInsets.all(16.0),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: themeData.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(
-                  color: (state.joker ?? false)
-                      ? Colors.amber
-                      : themeData.colorScheme.primaryContainer,
-                  width: 3)),
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: (state.joker ?? false) ? Colors.amber : theme.colorScheme.primaryContainer,
+              width: 3,
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text(
-                  'Spieltag: ${widget.match.matchDay}, ${DateFormat('dd.MM.yyyy HH:mm').format(widget.match.matchDate)}',
-                  style: themeData.textTheme.bodyMedium,
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '${widget.tip?.points ?? "0"}',
-                      style: themeData.textTheme.displayLarge?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'pkt',
-                      style: themeData.textTheme.bodySmall?.copyWith(
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                )
-              ]),
-              const SizedBox(height: 24.0),
+              // Header Row
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // const Spacer(),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        ClipOval(
-                          child: Flag.fromString(
-                            widget.homeTeam.flagCode,
-                            height: 30,
-                            width: 30,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Text(widget.homeTeam.name,
-                            style: themeData.textTheme.bodyLarge),
-                      ],
-                    ),
+                  Text(
+                    'Spieltag: ${widget.match.matchDay}, ${DateFormat('dd.MM.yyyy HH:mm').format(widget.match.matchDate)}',
+                    style: theme.textTheme.bodyMedium,
                   ),
-                  Tooltip(
-                      message: "Gespeichert?", child: _buildStatusIcon(state)),
-                  const SizedBox(width: 32.0),
-                  Column(
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Row(
-                        children: [
-                          TipScoreField(
-                            controller: homeTipController,
-                            scoreType: 'home',
-                            userId: widget.userId,
-                            matchId: widget.match.id,
-                          ),
-                          const SizedBox(width: 16),
-                          Text(":", style: themeData.textTheme.bodyLarge),
-                          const SizedBox(width: 16),
-                          TipScoreField(
-                            controller: guestTipController,
-                            scoreType: 'guest',
-                            userId: widget.userId,
-                            matchId: widget.match.id,
-                          ),
-                        ],
+                      Text(
+                        '${widget.tip?.points ?? "0"}',
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      const SizedBox(height: 8.0),
-                      Tooltip(
-                        message: 'Ergebnis',
-                        child: Row(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                    widget.match.homeScore != null
-                                        ? widget.match.homeScore.toString()
-                                        : '-',
-                                    style: themeData.textTheme.bodyMedium),
-                                const SizedBox(width: 16),
-                                Text(":",
-                                    style: themeData.textTheme.bodyMedium),
-                                const SizedBox(width: 16),
-                                Text(
-                                    widget.match.guestScore != null
-                                        ? widget.match.guestScore.toString()
-                                        : '-',
-                                    style: themeData.textTheme.bodyMedium),
-                              ],
-                            )
-                          ],
-                        ),
-                      )
+                      const SizedBox(width: 4),
+                      Text('pkt', style: theme.textTheme.bodySmall?.copyWith(fontSize: 14)),
                     ],
-                  ),
-                  const SizedBox(width: 32.0),
-                  StarIconButton(
-                    isStar: state.joker ?? false,
-                    onTap: () {
-                      context.read<TipFormBloc>().add(
-                            TipFormFieldUpdatedEvent(
-                              matchId: widget.match.id,
-                              userId: widget.userId,
-                              tipHome: state.tipHome,
-                              tipGuest: state.tipGuest,
-                              joker: !(state.joker ?? false),
-                            ),
-                          );
-                    },
-                    tooltipMessage: "Joker setzen",
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        ClipOval(
-                          child: Flag.fromString(
-                            widget.guestTeam.flagCode,
-                            height: 30,
-                            width: 30,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Text(widget.guestTeam.name,
-                            style: themeData.textTheme.bodyLarge),
-                      ],
-                    ),
-                  ),
+                  )
                 ],
               ),
+              const SizedBox(height: 24),
+
+              // Match Prediction Row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTeamColumn(widget.homeTeam),
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Tooltip(message: "Gespeichert?", child: _buildStatusIcon(state)),
+                            const SizedBox(width: 16),
+                            Flexible(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Flexible(child: TipScoreField(controller: homeTipController, scoreType: 'home', userId: widget.userId, matchId: widget.match.id)),
+                                  const SizedBox(width: 8),
+                                  Text(":", style: theme.textTheme.bodyLarge),
+                                  const SizedBox(width: 8),
+                                  Flexible(child: TipScoreField(controller: guestTipController, scoreType: 'guest', userId: widget.userId, matchId: widget.match.id)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            StarIconButton(
+                              isStar: state.joker ?? false,
+                              onTap: () {
+                                context.read<TipFormBloc>().add(TipFormFieldUpdatedEvent(
+                                  matchId: widget.match.id,
+                                  userId: widget.userId,
+                                  tipHome: state.tipHome,
+                                  tipGuest: state.tipGuest,
+                                  joker: !(state.joker ?? false),
+                                ));
+                              },
+                              tooltipMessage: "Joker setzen",
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Tooltip(
+                          message: "Ergebnis",
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(widget.match.homeScore?.toString() ?? '-', style: theme.textTheme.bodyMedium),
+                              const SizedBox(width: 8),
+                              Text(":", style: theme.textTheme.bodyMedium),
+                              const SizedBox(width: 8),
+                              Text(widget.match.guestScore?.toString() ?? '-', style: theme.textTheme.bodyMedium),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  _buildTeamColumn(widget.guestTeam),
+                ],
+              ),
+
+              if (widget.bottomContent != null) ...[
+                const SizedBox(height: 16),
+                widget.bottomContent!,
+              ],
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTeamColumn(Team team) {
+    final theme = Theme.of(context);
+    return Expanded(
+      flex: 2,
+      child: Column(
+        children: [
+          ClipOval(
+            child: Flag.fromString(team.flagCode, height: 30, width: 30, fit: BoxFit.cover),
+          ),
+          Text(team.name, style: theme.textTheme.bodyLarge),
+        ],
+      ),
     );
   }
 }

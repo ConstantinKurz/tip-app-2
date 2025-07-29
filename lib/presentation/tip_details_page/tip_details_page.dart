@@ -53,16 +53,16 @@ class TipDetailsPage extends StatelessWidget {
                         matchState is MatchesControllerLoaded &&
                         teamState is TeamsControllerLoaded &&
                         authState is AuthControllerLoaded) {
-                      final userTips =
-                          tipState.tips[authState.signedInUser!.username] ?? [];
+                      final tips = tipState.tips;
 
                       return PageTemplate(
                         isAuthenticated: isAuthenticated,
                         child: TipsSwipeView(
                           userId: authState.signedInUser!.username,
-                          tips: userTips,
+                          tips: tips,
                           teams: teamState.teams,
                           matches: matchState.matches,
+                          users: authState.users
                           //showSearchBar: true,
                         ),
                       );

@@ -9,6 +9,7 @@ import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
+import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/dashboard_page/dashboard_page.dart';
 import 'package:flutter_web/presentation/dev_page/dev_page.dart';
 import 'package:flutter_web/presentation/eco_page/eco_page.dart';
@@ -108,8 +109,16 @@ class MyApp extends StatelessWidget {
                   return RouteMap(
                     //dummy routes
                     routes: const {},
-                    onUnknownRoute: (_) =>
-                        const MaterialPage(child: SplashPage()),
+                    onUnknownRoute: (_) => MaterialPage(
+                      child: PageTemplate(
+                        isAuthenticated: false,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ),
+                    ),
                   );
                 }
 
@@ -187,20 +196,30 @@ class MyApp extends StatelessWidget {
                 );
               },
             ),
-            builder: (context, child) => ResponsiveWrapper.builder(
-              child!,
-              defaultScale: true,
-              minWidth: 400,
-              defaultName: MOBILE,
-              breakpoints: const [
-                ResponsiveBreakpoint.autoScale(450, name: MOBILE),
-                ResponsiveBreakpoint.resize(600, name: TABLET),
-                ResponsiveBreakpoint.resize(1000, name: DESKTOP),
-              ],
-              background: Container(
-                color: Theme.of(context).scaffoldBackgroundColor,
-              ),
-            ),
+            builder: (context, child) {
+              // Wenn child null ist, zeige Spinner, sonst ResponsiveWrapper
+              if (child == null) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                );
+              }
+              return ResponsiveWrapper.builder(
+                child,
+                defaultScale: true,
+                minWidth: 400,
+                defaultName: MOBILE,
+                breakpoints: const [
+                  ResponsiveBreakpoint.autoScale(450, name: MOBILE),
+                  ResponsiveBreakpoint.resize(600, name: TABLET),
+                  ResponsiveBreakpoint.resize(1000, name: DESKTOP),
+                ],
+                background: Container(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                ),
+              );
+            },
           );
         },
       ),

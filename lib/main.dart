@@ -35,7 +35,7 @@ void main() async {
 }
 
 class AppRoutes {
-  static const splash = '/splash';
+  static const splash = '/';
   static const signin = '/signin';
   static const signup = '/signup';
   static const admin = '/admin';
@@ -89,101 +89,120 @@ class MyApp extends StatelessWidget {
           create: (_) => di.sl<TipControllerBloc>()..add(TipAllEvent()),
         ),
       ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: 'Flutter Web',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        routeInformationParser: const RoutemasterParser(),
-        routerDelegate: RoutemasterDelegate(
-          routesBuilder: (context) {
-            final authState = context.watch<AuthBloc>().state;
+      // BlocBuilder rund um dein gesamtes Routing
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          final isAuthenticated = authState is AuthStateAuthenticated;
 
-            // Warte auf AuthBloc, bevor Routing erlaubt wird
-            if (authState is AuthInitial) {
-              return RouteMap(routes: {
-                '/': (_) => const MaterialPage(child: SplashPage()),
-                AppRoutes.signin: (_) => const MaterialPage(
-                    child: SignInPage(isAuthenticated: false)),
-              });
-            }
-
-            final isAuthenticated = authState is AuthStateAuthenticated;
-
-            return RouteMap(
-              onUnknownRoute: (_) => MaterialPage(
-                child: NotFoundPage(isAuthenticated: isAuthenticated),
-              ),
-              routes: {
-                '/': (_) => const MaterialPage(child: SplashPage()),
-                AppRoutes.signin: (_) => signedInGuard(
-                      isAuthenticated: isAuthenticated,
-                      page: SignInPage(isAuthenticated: isAuthenticated),
-                    ),
-                AppRoutes.signup: (_) => MaterialPage(
-                      child: SignUpPage(isAuthenticated: isAuthenticated),
-                    ),
-                AppRoutes.admin: (_) => authGuard(
-                      isAuthenticated: isAuthenticated,
-                      page: AdminPage(isAuthenticated: isAuthenticated),
-                    ),
-                AppRoutes.home: (_) => authGuard(
-                      isAuthenticated: isAuthenticated,
-                      page: HomePage(isAuthenticated: isAuthenticated),
-                    ),
-                AppRoutes.dashboard: (_) => authGuard(
-                      isAuthenticated: isAuthenticated,
-                      page: DashboardPage(isAuthenticated: isAuthenticated),
-                    ),
-                AppRoutes.userDetailTips: (_) => authGuard(
-                      isAuthenticated: isAuthenticated,
-                      page: TipDetailsPage(isAuthenticated: isAuthenticated),
-                    ),
-                //todo:remove path parameter
-                AppRoutes.userTips: (info) {
-                  final userId = info.pathParameters['id'];
-                  return authGuard(
-                    isAuthenticated: isAuthenticated,
-                    page: TipPage(
-                      isAuthenticated: isAuthenticated,
-                      userId: userId!,
-                    ),
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'Flutter Web',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.dark,
+            routeInformationParser: const RoutemasterParser(),
+            routerDelegate: RoutemasterDelegate(
+              routesBuilder: (_) {
+                // 1) Initialer Zustand → Splash
+                if (authState is AuthInitial) {
+                  return RouteMap(
+                    //dummy routes
+                    routes: const {},
+                    onUnknownRoute: (_) =>
+                        const MaterialPage(child: SplashPage()),
                   );
-                },
-                AppRoutes.platform: (info) {
-                  if (!isAuthenticated) {
-                    return const Redirect(AppRoutes.signin);
-                  }
+                }
 
-                  final id = info.pathParameters['id'];
-                  if (id == 'android') {
-                    return const MaterialPage(
-                        child: Placeholder(color: Colors.pink));
-                  }
-                  if (id == 'ios') {
-                    return const MaterialPage(
-                        child: Placeholder(color: Colors.teal));
-                  }
+                // 2) Eingeloggt → alle geschützten Seiten
+                if (isAuthenticated) {
+                  return RouteMap(
+                    onUnknownRoute: (_) => const MaterialPage(
+                      child: NotFoundPage(isAuthenticated: true),
+                    ),
+                    routes: {
+                      AppRoutes.home: (_) => authGuard(
+                            isAuthenticated: true,
+                            page: HomePage(isAuthenticated: true),
+                          ),
+                      AppRoutes.admin: (_) => authGuard(
+                            isAuthenticated: true,
+                            page: AdminPage(isAuthenticated: true),
+                          ),
+                      AppRoutes.dashboard: (_) => authGuard(
+                            isAuthenticated: true,
+                            page: DashboardPage(isAuthenticated: true),
+                          ),
+                      AppRoutes.dev: (_) => authGuard(
+                            isAuthenticated: true,
+                            page: DevPage(isAuthenticated: true),
+                          ),
+                      AppRoutes.eco: (_) => authGuard(
+                            isAuthenticated: true,
+                            page: EcoPage(isAuthenticated: true),
+                          ),
+                      AppRoutes.userDetailTips: (_) => authGuard(
+                            isAuthenticated: true,
+                            page: TipDetailsPage(isAuthenticated: true),
+                          ),
+                      AppRoutes.userTips: (info) {
+                        final id = info.pathParameters['id']!;
+                        return authGuard(
+                          isAuthenticated: true,
+                          page: TipPage(
+                            isAuthenticated: true,
+                            userId: id,
+                          ),
+                        );
+                      },
+                      AppRoutes.platform: (info) {
+                        final id = info.pathParameters['id']!;
+                        if (id == 'android') {
+                          return const MaterialPage(
+                              child: Placeholder(color: Colors.pink));
+                        }
+                        if (id == 'ios') {
+                          return const MaterialPage(
+                              child: Placeholder(color: Colors.teal));
+                        }
+                        return const Redirect(AppRoutes.dev);
+                      },
+                    },
+                  );
+                }
 
-                  return Redirect(AppRoutes.dev);
-                },
+                // 3) Nicht eingeloggt → Sign-In & Sign-Up
+                return RouteMap(
+                  onUnknownRoute: (_) => MaterialPage(
+                    child: NotFoundPage(isAuthenticated: false),
+                  ),
+                  routes: {
+                    AppRoutes.signin: (_) => signedInGuard(
+                          isAuthenticated: false,
+                          page: SignInPage(isAuthenticated: false),
+                        ),
+                    AppRoutes.signup: (_) => MaterialPage(
+                          child: SignUpPage(isAuthenticated: false),
+                        ),
+                  },
+                );
               },
-            );
-          },
-        ),
-        builder: (context, widget) => ResponsiveWrapper.builder(
-          widget,
-          defaultScale: true,
-          minWidth: 400,
-          defaultName: MOBILE,
-          breakpoints: const [
-            ResponsiveBreakpoint.autoScale(450, name: MOBILE),
-            ResponsiveBreakpoint.resize(600, name: TABLET),
-            ResponsiveBreakpoint.resize(1000, name: DESKTOP),
-          ],
-          background: Container(color: Colors.blue),
-        ),
+            ),
+            builder: (context, child) => ResponsiveWrapper.builder(
+              child!,
+              defaultScale: true,
+              minWidth: 400,
+              defaultName: MOBILE,
+              breakpoints: const [
+                ResponsiveBreakpoint.autoScale(450, name: MOBILE),
+                ResponsiveBreakpoint.resize(600, name: TABLET),
+                ResponsiveBreakpoint.resize(1000, name: DESKTOP),
+              ],
+              background: Container(
+                color: Theme.of(context).scaffoldBackgroundColor,
+              ),
+            ),
+          );
+        },
       ),
     );
   }

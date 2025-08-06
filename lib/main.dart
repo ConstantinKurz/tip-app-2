@@ -17,7 +17,6 @@ import 'package:flutter_web/presentation/home_page/home_page.dart';
 import 'package:flutter_web/presentation/not_found_page/no_found_page.dart';
 import 'package:flutter_web/presentation/signin/signin_page.dart';
 import 'package:flutter_web/presentation/signup/signup_page.dart';
-import 'package:flutter_web/presentation/splash_page/splash_page.dart';
 import 'package:flutter_web/presentation/tip_details_page/tip_details_page.dart';
 import 'package:flutter_web/presentation/tip_page/tip_page.dart';
 import 'package:flutter_web/theme.dart';
@@ -36,7 +35,6 @@ void main() async {
 }
 
 class AppRoutes {
-  static const splash = '/';
   static const signin = '/signin';
   static const signup = '/signup';
   static const admin = '/admin';
@@ -48,7 +46,7 @@ class AppRoutes {
   static const userDetailTips = '/tips-detail';
   static const dashboard = '/dashboard';
 }
-
+//TODO: remove guards
 Page authGuard({
   required bool isAuthenticated,
   required Widget page,
@@ -131,7 +129,7 @@ class MyApp extends StatelessWidget {
                     routes: {
                       AppRoutes.home: (_) => authGuard(
                             isAuthenticated: true,
-                            page: HomePage(isAuthenticated: true),
+                            page: const HomePage(isAuthenticated: true),
                           ),
                       AppRoutes.admin: (_) => authGuard(
                             isAuthenticated: true,
@@ -139,19 +137,19 @@ class MyApp extends StatelessWidget {
                           ),
                       AppRoutes.dashboard: (_) => authGuard(
                             isAuthenticated: true,
-                            page: DashboardPage(isAuthenticated: true),
+                            page: const DashboardPage(isAuthenticated: true),
                           ),
                       AppRoutes.dev: (_) => authGuard(
                             isAuthenticated: true,
-                            page: DevPage(isAuthenticated: true),
+                            page: const DevPage(isAuthenticated: true),
                           ),
                       AppRoutes.eco: (_) => authGuard(
                             isAuthenticated: true,
-                            page: EcoPage(isAuthenticated: true),
+                            page: const EcoPage(isAuthenticated: true),
                           ),
                       AppRoutes.userDetailTips: (_) => authGuard(
                             isAuthenticated: true,
-                            page: TipDetailsPage(isAuthenticated: true),
+                            page: const TipDetailsPage(isAuthenticated: true),
                           ),
                       AppRoutes.userTips: (info) {
                         final id = info.pathParameters['id']!;
@@ -181,15 +179,15 @@ class MyApp extends StatelessWidget {
 
                 // 3) Nicht eingeloggt → Sign-In & Sign-Up
                 return RouteMap(
-                  onUnknownRoute: (_) => MaterialPage(
+                  onUnknownRoute: (_) => const MaterialPage(
                     child: NotFoundPage(isAuthenticated: false),
                   ),
                   routes: {
                     AppRoutes.signin: (_) => signedInGuard(
                           isAuthenticated: false,
-                          page: SignInPage(isAuthenticated: false),
+                          page: const SignInPage(isAuthenticated: false),
                         ),
-                    AppRoutes.signup: (_) => MaterialPage(
+                    AppRoutes.signup: (_) => const MaterialPage(
                           child: SignUpPage(isAuthenticated: false),
                         ),
                   },

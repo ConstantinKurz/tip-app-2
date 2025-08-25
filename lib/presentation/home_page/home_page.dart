@@ -28,7 +28,7 @@ class HomePage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final userId = authState.signedInUser!.username;
+        final userId = authState.signedInUser!.name;
         final users = authState.users;
 
         return Scaffold(

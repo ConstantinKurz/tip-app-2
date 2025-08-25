@@ -56,18 +56,19 @@ class TipModel {
     };
   }
 
-  factory TipModel.fromMap(Map<String, dynamic> map) {
-    return TipModel(
-      id: map['id'] as String,
-      matchId: map['matchId'] as String,
-      tipDate: (map['tipDate'] as Timestamp).toDate(),
-      tipHome: map['tipHome'] as int?,
-      tipGuest: map['tipGuest'] as int?,
-      joker: map['joker'] as bool,
-      userId: map['userId'] as String,
-      points: map['points'] as int?
-    );
-  }
+factory TipModel.fromMap(Map<String, dynamic> map) {
+  return TipModel(
+    id: (map['id'] ?? '') as String,
+    matchId: map['matchId']?.toString(),
+    tipDate: (map['tipDate'] as Timestamp).toDate(),
+    tipHome: map['tipHome'] as int?,
+    tipGuest: map['tipGuest'] as int?,
+    joker: map['joker'] as bool? ?? false,
+    userId: (map['userId'] ?? '') as String,
+    points: map['points'] as int?,
+  );
+}
+
 
   factory TipModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;

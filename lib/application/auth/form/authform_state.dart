@@ -7,7 +7,8 @@ class AuthformState {
   final bool showValidationMessages;
   final Option<Either<AuthFailure, Unit>>? authFailureOrSuccessOption;
 
-  final String? username;
+  final String? id;
+  final String? name;
   final String? championId;
   final String? email;
   final int? rank;
@@ -18,7 +19,8 @@ class AuthformState {
   final AppUser currentUser;
 
   AuthformState(
-      {this.username,
+      {this.id,
+      this.name,
       this.championId,
       this.email,
       this.rank,
@@ -36,7 +38,8 @@ class AuthformState {
     bool? sendingResetMail,
     bool? showValidationMessages,
     Option<Either<AuthFailure, Unit>>? authFailureOrSuccessOption,
-    String? username,
+    String? id,
+    String? name,
     String? championId,
     String? email,
     int? rank,
@@ -46,7 +49,8 @@ class AuthformState {
     AppUser? curentUser,
   }) {
     return AuthformState(
-      username: username ?? this.username,
+      id: id ?? this.id,
+      name: name ?? this.name,
       championId: championId ?? this.championId,
       email: email ?? this.email,
       rank: rank ?? this.rank,
@@ -67,7 +71,8 @@ class AuthformState {
 class AuthFormIntialState extends AuthformState {
   AuthFormIntialState()
       : super(
-            username: null,
+            id: null,
+            name: null,
             championId: null,
             email: null,
             rank: null,

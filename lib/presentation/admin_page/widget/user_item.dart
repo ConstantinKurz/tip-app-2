@@ -40,14 +40,14 @@ class UserItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                user.username,
+                user.name,
                 style: themeData.textTheme.displayLarge,
               ),
               HoverLinkButton(
                 label: 'Tipps',
                 color: primaryDark,
                 onTap: () {
-                  Routemaster.of(context).push('/tips/${user.username}');
+                  Routemaster.of(context).push('/tips/${user.name}');
                 },
               ),
             ],

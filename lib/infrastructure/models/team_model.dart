@@ -30,7 +30,7 @@ class TeamModel {
 
   factory TeamModel.fromMap(Map<String, dynamic> map) {
     return TeamModel(
-      id: "",
+      id: (map['id'] ?? '') as String,
       name: map['name'] as String,
       flagCode: map['flag_code'] as String,
       winPoints: map['win_points'] as int,

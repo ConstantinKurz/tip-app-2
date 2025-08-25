@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_web/domain/entities/match.dart'; // Adjust import path as per your project structure
 
-
 class MatchModel {
   final String id;
   final String homeTeamId;
@@ -33,21 +32,19 @@ class MatchModel {
   }
 
   factory MatchModel.fromMap(Map<String, dynamic> map) {
-
     return MatchModel(
-      id: '',
-      homeTeamId: map['homeTeamId'] as String,
-      guestTeamId: map['guestTeamId'] as String,
+      id: (map['id'] ?? '') as String,
+      homeTeamId: (map['homeTeamId'] ?? '') as String,
+      guestTeamId: (map['guestTeamId'] ?? '') as String,
       matchDate: (map['matchDate'] as Timestamp).toDate(),
-      matchDay: map['matchDay'] as int,
+      matchDay: map['matchDay'] as int? ?? 0,
       homeScore: map['homeScore'] as int?,
       guestScore: map['guestScore'] as int?,
     );
   }
 
-
   // Only document on Firestore has document id.
-  factory MatchModel.fromFirestore(DocumentSnapshot doc)  {
+  factory MatchModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return MatchModel.fromMap(data).copyWith(id: doc.id);
   }

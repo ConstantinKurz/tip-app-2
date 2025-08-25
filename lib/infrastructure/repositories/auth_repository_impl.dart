@@ -85,7 +85,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       // Firestore-Dokument aktualisieren
       final userModel = UserModel.fromDomain(user);
-      await usersCollection.doc(user.username).update(userModel.toMap());
+      await usersCollection.doc(user.id).update(userModel.toMap());
 
       return right(unit);
     } catch (e) {

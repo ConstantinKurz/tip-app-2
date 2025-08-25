@@ -10,11 +10,9 @@ import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
-import 'package:flutter_web/presentation/dashboard_page/dashboard_page.dart';
 import 'package:flutter_web/presentation/dev_page/dev_page.dart';
 import 'package:flutter_web/presentation/eco_page/eco_page.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
-import 'package:flutter_web/presentation/not_found_page/no_found_page.dart';
 import 'package:flutter_web/presentation/signin/signin_page.dart';
 import 'package:flutter_web/presentation/signup/signup_page.dart';
 import 'package:flutter_web/presentation/tip_details_page/tip_details_page.dart';
@@ -124,7 +122,7 @@ class MyApp extends StatelessWidget {
                 if (isAuthenticated) {
                   return RouteMap(
                     onUnknownRoute: (_) => const MaterialPage(
-                      child: NotFoundPage(isAuthenticated: true),
+                      child: HomePage(isAuthenticated: true),
                     ),
                     routes: {
                       AppRoutes.home: (_) => authGuard(
@@ -134,10 +132,6 @@ class MyApp extends StatelessWidget {
                       AppRoutes.admin: (_) => authGuard(
                             isAuthenticated: true,
                             page: AdminPage(isAuthenticated: true),
-                          ),
-                      AppRoutes.dashboard: (_) => authGuard(
-                            isAuthenticated: true,
-                            page: const DashboardPage(isAuthenticated: true),
                           ),
                       AppRoutes.dev: (_) => authGuard(
                             isAuthenticated: true,
@@ -180,7 +174,8 @@ class MyApp extends StatelessWidget {
                 // 3) Nicht eingeloggt → Sign-In & Sign-Up
                 return RouteMap(
                   onUnknownRoute: (_) => const MaterialPage(
-                    child: NotFoundPage(isAuthenticated: false),
+                    child: 
+                    SignInPage(isAuthenticated: false),
                   ),
                   routes: {
                     AppRoutes.signin: (_) => signedInGuard(

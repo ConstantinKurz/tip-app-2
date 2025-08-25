@@ -52,7 +52,7 @@ class UpdateUserForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-    usernameController.text = user.username;
+    usernameController.text = user.name;
     rankController.text = user.rank.toString();
     scoreController.text = user.score.toString();
     jokerSumController.text = user.jokerSum.toString();
@@ -110,7 +110,7 @@ class UpdateUserForm extends StatelessWidget {
                   validator: _validateString,
                   decoration: InputDecoration(
                     labelText: "Benutzername",
-                    hintText: user.username,
+                    hintText: user.name,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -212,7 +212,8 @@ class UpdateUserForm extends StatelessWidget {
                       callback: () {
                         if (formKey.currentState!.validate()) {
                           final AppUser updatedUser = AppUser(
-                            username: state.username ?? user.username,
+                            id: state.id ?? user.id,
+                            name: state.name ?? user.name,
                             email: state.email ?? user.email,
                             rank: state.rank ?? user.rank,
                             score: state.score ?? user.score,

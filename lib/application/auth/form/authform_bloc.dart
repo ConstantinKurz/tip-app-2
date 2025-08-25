@@ -29,7 +29,7 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
 
     on<UserFormFieldUpdatedEvent>((event, emit) {
       emit(state.copyWith(
-        username: event.username ?? state.username,
+        name: event.username ?? state.name,
         championId: event.championId ?? state.championId,
         rank: event.rank ?? state.rank,
         score: event.score ?? state.score,

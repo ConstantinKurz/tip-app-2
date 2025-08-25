@@ -32,16 +32,16 @@ class TipDetailsRankingUserList extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final user = sortedUsers[index];
-        final isCurrentUser = currentUser == user.username;
+        final isCurrentUser = currentUser == user.name;
 
         final champion = teams.firstWhere(
           (team) => team.id == user.championId,
           orElse: () => Team.empty(),
         );
 
-        final tip = tips[user.username]?.firstWhere(
+        final tip = tips[user.name]?.firstWhere(
           (t) => t.matchId == match.id,
-          orElse: () => Tip.empty(user.username),
+          orElse: () => Tip.empty(user.name),
         );
 
         return Container(
@@ -62,7 +62,7 @@ class TipDetailsRankingUserList extends StatelessWidget {
                 Expanded(
                   flex: 1,
                   child: Text(
-                    user.username,
+                    user.name,
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),

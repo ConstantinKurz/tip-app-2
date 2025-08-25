@@ -29,7 +29,7 @@ class _UserListState extends State<UserList> {
   Widget build(BuildContext context) {
     List<AppUser> filteredUsers = widget.users.where((user) {
       // Erstellen eines Strings, der den Benutzernamen enthält
-      final username = user.username.toLowerCase();
+      final username = user.name.toLowerCase();
       // Aufteilen des Suchtextes in einzelne Begriffe
       final searchTerms = _searchText.toLowerCase().split(' ');
       // Prüfen, ob alle Suchbegriffe im Benutzernamen enthalten sind

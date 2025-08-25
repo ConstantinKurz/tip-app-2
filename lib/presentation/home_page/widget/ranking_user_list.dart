@@ -22,7 +22,7 @@ class RankingUserList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final user = users[index];
-        final isCurrentUser = currentUser == user.username;
+        final isCurrentUser = currentUser == user.name;
         final champion =
             teams.where((element) => element.id == user.championId).firstOrNull;
         final textTheme = Theme.of(context).textTheme;
@@ -45,7 +45,7 @@ class RankingUserList extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    user.username,
+                    user.name,
                     style: textTheme.bodyMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),

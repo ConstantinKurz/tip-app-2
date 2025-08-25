@@ -5,9 +5,8 @@ import 'package:flutter_web/application/matches/controller/matchescontroller_blo
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
-import 'package:flutter_web/presentation/tip_details_page/tip_details_list.dart';
 import 'package:flutter_web/presentation/tip_details_page/tip_swipe_view.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_list.dart';
+
 
 class TipDetailsPage extends StatelessWidget {
   final bool isAuthenticated;
@@ -58,7 +57,7 @@ class TipDetailsPage extends StatelessWidget {
                       return PageTemplate(
                         isAuthenticated: isAuthenticated,
                         child: TipsSwipeView(
-                          userId: authState.signedInUser!.username,
+                          userId: authState.signedInUser!.name,
                           tips: tips,
                           teams: teamState.teams,
                           matches: matchState.matches,

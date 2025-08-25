@@ -1,88 +1,103 @@
- import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:math';
 
-Future<void> seedTestData() async {
+Future<void> seedTestDataTwentyUsers() async {
   await Firebase.initializeApp();
   final firestore = FirebaseFirestore.instance;
+  final auth = FirebaseAuth.instance;
   final random = Random();
 
-  // --- Teams (immer überschreiben) ---
-  final teamsData = [
-    {'id': 'ARG', 'champion': false, 'flag_code': 'AR', 'name': 'Argentinien', 'win_points': 10},
-    {'id': 'FRA', 'champion': false, 'flag_code': 'FR', 'name': 'Frankreich', 'win_points': 8},
-    {'id': 'GER', 'champion': true,  'flag_code': 'DE', 'name': 'Deutschland', 'win_points': 15},
-    {'id': 'BRA', 'champion': false, 'flag_code': 'BR', 'name': 'Brasilien', 'win_points': 7},
-    {'id': 'SPA', 'champion': false, 'flag_code': 'ES', 'name': 'Spanien', 'win_points': 12},
-    {'id': 'ITA', 'champion': false, 'flag_code': 'IT', 'name': 'Italien', 'win_points': 9},
-    {'id': 'ENG', 'champion': false, 'flag_code': 'GB', 'name': 'England', 'win_points': 11},
-    {'id': 'NED', 'champion': false, 'flag_code': 'NL', 'name': 'Niederlande', 'win_points': 6},
-  ];
-  for (var team in teamsData) {
-    final teamId = team['id']?.toString() ?? '';
-    if (teamId.isEmpty) continue;
-    await firestore.collection('teams').doc(teamId).set(team);
-  }
-
-  // --- Spieler (nur hinzufügen, falls nicht vorhanden) ---
-  final List<Map<String, dynamic>> usersData = List.generate(20, (i) {
+  // --- 1. Test-User-Konfiguration (20 User) ---
+  final testUsers = List.generate(20, (i) {
+    final num = i + 1;
     return {
-      'id': 'user_${i + 1}',
-      'champion_id': teamsData[random.nextInt(teamsData.length)]['id'],
-      'email': 'user${i + 1}@example.com',
-      'jokerSum': random.nextInt(3),
-      'rank': i + 1,
-      'score': random.nextInt(50),
-      'sixer': random.nextInt(3),
+      'email': 'user$num@test.com',
+      'password': '123456',
+      'name': 'User $num',
+      'champion_id': _championPool[i % _championPool.length]['id'],
     };
   });
 
-  for (var user in usersData) {
-    final userId = user['id']?.toString() ?? '';
-    if (userId.isEmpty) continue;
-    final docRef = firestore.collection('users').doc(userId);
-    final snap = await docRef.get();
-    if (!snap.exists) {
-      await docRef.set(user);
+  final userIds = <String>[];
+
+  // --- 2. User in Auth & Firestore anlegen ---
+  for (final u in testUsers) {
+    try {
+      final cred = await auth.createUserWithEmailAndPassword(
+        email: u['email'] as String,
+        password: u['password'] as String,
+      );
+
+      print('✅ Auth-User erstellt: ${u['email']}');
+      userIds.add(cred.user!.uid);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        final existingUser = await auth.signInWithEmailAndPassword(
+          email: u['email'] as String,
+          password: u['password'] as String,
+        );
+        userIds.add(existingUser.user!.uid);
+        print('ℹ️ User existiert schon: ${u['email']}');
+      } else {
+        rethrow;
+      }
     }
   }
 
-  // --- Matches (immer neu schreiben) ---
+  // --- 3. Firestore-User-Dokumente setzen ---
+  for (var i = 0; i < userIds.length; i++) {
+    final uid = userIds[i];
+    final u = testUsers[i];
+    await firestore.collection('users').doc(uid).set({
+      'id': uid,
+      'champion_id': u['champion_id'],
+      'email': u['email'],
+      'name': u['name'],
+      'rank': i + 1,
+      'score': 0,
+      'jokerSum': 0,
+      'mixer': 0,
+    });
+  }
+
+  // --- 4. Teams anlegen ---
+  for (var team in _championPool) {
+    await firestore.collection('teams').doc(team['id']! as String?).set(team);
+  }
+
+  // --- 5. Matches generieren (jede Team-Kombi einmal) ---
   final matchesData = <Map<String, dynamic>>[];
   int matchCounter = 1;
-  outerLoop:
-  for (int i = 0; i < teamsData.length; i++) {
-    for (int j = i + 1; j < teamsData.length; j++) {
+  for (int i = 0; i < _championPool.length; i++) {
+    for (int j = i + 1; j < _championPool.length; j++) {
       matchesData.add({
-        'id': 'MATCH_$matchCounter',
-        'homeTeamId': teamsData[i]['id'],
-        'guestTeamId': teamsData[j]['id'],
-        'matchDate': Timestamp.fromDate(DateTime(2025, 9, (matchCounter % 28) + 1)),
+        'id': '${_championPool[i]['homeTeamId']}vs${_championPool[i]['guestTeamId']}_$matchCounter',
+        'homeTeamId': _championPool[i]['id'],
+        'guestTeamId': _championPool[j]['id'],
+        'matchDate': Timestamp.fromDate(
+            DateTime.now().add(Duration(days: matchCounter))),
         'matchDay': matchCounter,
         'homeScore': null,
         'guestScore': null,
       });
       matchCounter++;
-      if (matchesData.length >= 20) break outerLoop;
     }
   }
+
   for (var match in matchesData) {
-    final matchId = match['id']?.toString() ?? '';
-    if (matchId.isEmpty) continue;
-    await firestore.collection('matches').doc(matchId).set(match);
+    await firestore.collection('matches').doc(match['id']!).set(match);
   }
 
-  // --- Tipps (immer neu setzen) ---
+  // --- 6. Tipps für jeden User & jedes Match ---
   for (var match in matchesData) {
-    final matchId = match['id']?.toString() ?? '';
-    if (matchId.isEmpty) continue;
-
-    for (var user in usersData) {
-      final userId = user['id']?.toString() ?? '';
-      if (userId.isEmpty) continue;
-
-      await firestore.collection('tips').doc('${userId}_$matchId').set({
-        'userId': userId,
+    final matchId = match['id']!;
+    for (var uid in userIds) {
+      final tipId = '${uid}_$matchId';
+      await firestore.collection('tips').doc(tipId).set({
+        'id': tipId,
+        'userId': uid,
         'matchId': matchId,
         'joker': random.nextBool(),
         'points': null,
@@ -91,18 +106,82 @@ Future<void> seedTestData() async {
         'tipHome': random.nextInt(5),
       });
     }
-
-    // Leerer Tipp
-    await firestore.collection('tips').doc('EMPTYTIP_$matchId').set({
-      'userId': 'empty_user',
-      'matchId': matchId,
-      'joker': false,
-      'points': null,
-      'tipDate': Timestamp.now(),
-      'tipGuest': null,
-      'tipHome': null,
-    });
   }
 
-  print('✅ Teams & Matches überschrieben, Spieler nur ergänzt, Tipps neu gesetzt!');
+  print(
+      '✅ 20 User, ${_championPool.length} Teams, ${matchesData.length} Spiele und Tipps angelegt.');
 }
+
+// --- Pool an Teams (mindestens 8–10 für viele Matches) ---
+final _championPool = [
+  {
+    'id': 'ARG',
+    'champion': false,
+    'flag_code': 'AR',
+    'name': 'Argentinien',
+    'win_points': 10
+  },
+  {
+    'id': 'BRA',
+    'champion': false,
+    'flag_code': 'BR',
+    'name': 'Brasilien',
+    'win_points': 7
+  },
+  {
+    'id': 'GER',
+    'champion': true,
+    'flag_code': 'DE',
+    'name': 'Deutschland',
+    'win_points': 15
+  },
+  {
+    'id': 'ESP',
+    'champion': false,
+    'flag_code': 'ES',
+    'name': 'Spanien',
+    'win_points': 12
+  },
+  {
+    'id': 'FRA',
+    'champion': false,
+    'flag_code': 'FR',
+    'name': 'Frankreich',
+    'win_points': 8
+  },
+  {
+    'id': 'ITA',
+    'champion': false,
+    'flag_code': 'IT',
+    'name': 'Italien',
+    'win_points': 9
+  },
+  {
+    'id': 'NED',
+    'champion': false,
+    'flag_code': 'NL',
+    'name': 'Niederlande',
+    'win_points': 6
+  },
+  {
+    'id': 'ENG',
+    'champion': false,
+    'flag_code': 'GB',
+    'name': 'England',
+    'win_points': 11
+  },
+  {
+    'id': 'POR',
+    'champion': false,
+    'flag_code': 'PT',
+    'name': 'Portugal',
+    'win_points': 10
+  },
+  {
+    'id': 'BEL',
+    'champion': false,
+    'flag_code': 'BE',
+    'name': 'Belgien',
+    'win_points': 8
+  },
+];

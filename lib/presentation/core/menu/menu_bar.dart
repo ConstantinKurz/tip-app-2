@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web/core/utils/clear_data.dart';
+import 'package:flutter_web/core/utils/seed_data.dart';
 import 'package:flutter_web/core/utils/single_seed_data.dart';
 import 'package:flutter_web/core/utils/three_seed_data.dart';
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';

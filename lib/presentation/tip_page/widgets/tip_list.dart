@@ -15,14 +15,14 @@ class TipList extends StatefulWidget {
   final List<CustomMatch> matches;
   final bool showSearchBar;
 
-  const TipList({
-    Key? key,
-    required this.userId,
-    required this.tips,
-    required this.teams,
-    required this.matches,
-    required this.showSearchBar
-  }) : super(key: key);
+  const TipList(
+      {Key? key,
+      required this.userId,
+      required this.tips,
+      required this.teams,
+      required this.matches,
+      required this.showSearchBar})
+      : super(key: key);
 
   @override
   State<TipList> createState() => _TipListState();
@@ -64,7 +64,9 @@ class _TipListState extends State<TipList> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final displayedTips = widget.showSearchBar?_filteredTips(widget.matches, widget.teams, _searchText):widget.matches;
+    final displayedTips = widget.showSearchBar
+        ? _filteredTips(widget.matches, widget.teams, _searchText)
+        : widget.matches;
 
     return Center(
       child: Container(
@@ -78,25 +80,25 @@ class _TipListState extends State<TipList> {
               children: [
                 const Spacer(),
                 if (widget.showSearchBar)
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  width: screenWidth * .1,
-                  child: TextField(
-                    cursorColor: Colors.white,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      hintText: 'Suche',
-                      prefixIcon: Icon(Icons.search),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    onChanged: (text) {
-                      setState(() {
-                        _searchText = text;
-                      });
-                    },
+                    width: screenWidth * .1,
+                    child: TextField(
+                      cursorColor: Colors.white,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        hintText: 'Suche',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (text) {
+                        setState(() {
+                          _searchText = text;
+                        });
+                      },
+                    ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 16.0),
@@ -107,12 +109,20 @@ class _TipListState extends State<TipList> {
                     Tip.empty(widget.userId).copyWith(matchId: match.id),
               );
 
-              final homeTeam =
-                  widget.teams.firstWhere((t) => t.id == match.homeTeamId);
-              final guestTeam =
-                  widget.teams.firstWhere((t) => t.id == match.guestTeamId);
+              final homeTeam = widget.teams.firstWhere(
+                (t) => t.id == match.homeTeamId,
+                orElse: () => Team.empty(),
+              );
+              final guestTeam = widget.teams.firstWhere(
+                (t) => t.id == match.guestTeamId,
+                orElse: () => Team.empty(),
+              );
 
-              final bloc = _tipFormBlocs[match.id]!;
+              final bloc = _tipFormBlocs[match.id];
+              if (bloc == null) {
+                // Fallback: neuen Bloc erzeugen oder dieses Match überspringen
+                return const SizedBox.shrink();
+              }
 
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -136,38 +146,39 @@ class _TipListState extends State<TipList> {
   }
 }
 
-List<CustomMatch> _filteredTips(List<CustomMatch> matches, List<Team> teams, String searchText) {
-          List<CustomMatch> filteredTips = matches.where((match) {
-      final homeTeam = teams.firstWhere(
-        (team) => team.id == match.homeTeamId,
-        orElse: () => Team.empty(),
-      );
-      final guestTeam = teams.firstWhere(
-        (team) => team.id == match.guestTeamId,
-        orElse: () => Team.empty(),
-      );
+List<CustomMatch> _filteredTips(
+    List<CustomMatch> matches, List<Team> teams, String searchText) {
+  List<CustomMatch> filteredTips = matches.where((match) {
+    final homeTeam = teams.firstWhere(
+      (team) => team.id == match.homeTeamId,
+      orElse: () => Team.empty(),
+    );
+    final guestTeam = teams.firstWhere(
+      (team) => team.id == match.guestTeamId,
+      orElse: () => Team.empty(),
+    );
 
-      // Erstellen eines Strings, der alle relevanten Informationen des Matches enthält
-      final matchInfo =
-          '${homeTeam.name} ${guestTeam.name} Spieltag:${match.matchDay} '
-                  '${match.homeScore ?? '-'}:${match.guestScore ?? '-'} '
-                  '${DateFormat('dd.MM.yyyy HH:mm').format(match.matchDate)}'
-              .toLowerCase();
+    // Erstellen eines Strings, der alle relevanten Informationen des Matches enthält
+    final matchInfo =
+        '${homeTeam.name} ${guestTeam.name} Spieltag:${match.matchDay} '
+                '${match.homeScore ?? '-'}:${match.guestScore ?? '-'} '
+                '${DateFormat('dd.MM.yyyy HH:mm').format(match.matchDate)}'
+            .toLowerCase();
 
-      // Aufteilen des Suchtextes in einzelne Begriffe
-      final searchTerms = searchText.toLowerCase().split(' ');
+    // Aufteilen des Suchtextes in einzelne Begriffe
+    final searchTerms = searchText.toLowerCase().split(' ');
 
-      // Prüfen, ob alle Suchbegriffe in den Match-Informationen enthalten sind
-      bool allTermsMatch = true;
-      for (final term in searchTerms) {
-        if (!matchInfo.contains(term)) {
-          allTermsMatch = false;
-          break;
-        }
+    // Prüfen, ob alle Suchbegriffe in den Match-Informationen enthalten sind
+    bool allTermsMatch = true;
+    for (final term in searchTerms) {
+      if (!matchInfo.contains(term)) {
+        allTermsMatch = false;
+        break;
       }
-      // add match to list if true
-      return allTermsMatch;
-    }).toList();
+    }
+    // add match to list if true
+    return allTermsMatch;
+  }).toList();
 
-    return filteredTips;
+  return filteredTips;
 }

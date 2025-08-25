@@ -57,7 +57,7 @@ class TipDetailsPage extends StatelessWidget {
                       return PageTemplate(
                         isAuthenticated: isAuthenticated,
                         child: TipsSwipeView(
-                          userId: authState.signedInUser!.name,
+                          userId: authState.signedInUser!.id,
                           tips: tips,
                           teams: teamState.teams,
                           matches: matchState.matches,

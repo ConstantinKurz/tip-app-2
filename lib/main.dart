@@ -44,6 +44,7 @@ class AppRoutes {
   static const userDetailTips = '/tips-detail';
   static const dashboard = '/dashboard';
 }
+
 //TODO: remove guards
 Page authGuard({
   required bool isAuthenticated,
@@ -121,9 +122,7 @@ class MyApp extends StatelessWidget {
                 // 2) Eingeloggt → alle geschützten Seiten
                 if (isAuthenticated) {
                   return RouteMap(
-                    onUnknownRoute: (_) => const MaterialPage(
-                      child: HomePage(isAuthenticated: true),
-                    ),
+                    onUnknownRoute: (_) => const Redirect(AppRoutes.home),
                     routes: {
                       AppRoutes.home: (_) => authGuard(
                             isAuthenticated: true,
@@ -173,10 +172,7 @@ class MyApp extends StatelessWidget {
 
                 // 3) Nicht eingeloggt → Sign-In & Sign-Up
                 return RouteMap(
-                  onUnknownRoute: (_) => const MaterialPage(
-                    child: 
-                    SignInPage(isAuthenticated: false),
-                  ),
+                  onUnknownRoute: (_) => const Redirect(AppRoutes.signin),
                   routes: {
                     AppRoutes.signin: (_) => signedInGuard(
                           isAuthenticated: false,

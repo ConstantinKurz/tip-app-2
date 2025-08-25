@@ -40,14 +40,17 @@ class _TipsSwipeViewState extends State<TipsSwipeView> {
 
   void _initializeBlocs() {
     for (final match in widget.matches) {
-      final tip = widget.tips[widget.userId]?.firstWhere(
+      // Liste für diesen User oder leere Liste nehmen
+      final userTips = widget.tips[widget.userId] ?? const <Tip>[];
+
+      final tip = userTips.firstWhere(
         (t) => t.matchId == match.id,
         orElse: () => Tip.empty(widget.userId).copyWith(matchId: match.id),
       );
 
       if (!_tipFormBlocs.containsKey(match.id)) {
         final bloc = sl<TipFormBloc>();
-        bloc.add(TipFormInitializedEvent(tip: tip!));
+        bloc.add(TipFormInitializedEvent(tip: tip));
         _tipFormBlocs[match.id] = bloc;
       }
     }
@@ -63,23 +66,33 @@ class _TipsSwipeViewState extends State<TipsSwipeView> {
 
   @override
   Widget build(BuildContext context) {
-
     return PageView.builder(
       itemCount: widget.matches.length,
       controller: PageController(viewportFraction: 0.6),
       itemBuilder: (context, index) {
         final match = widget.matches[index];
-        final tip = widget.tips[widget.userId]?.firstWhere(
+
+        final userTips = widget.tips[widget.userId] ?? const <Tip>[];
+        final tip = userTips.firstWhere(
           (t) => t.matchId == match.id && t.userId == widget.userId,
           orElse: () => Tip.empty(widget.userId).copyWith(matchId: match.id),
         );
-    
-        final homeTeam =
-            widget.teams.firstWhere((t) => t.id == match.homeTeamId);
-        final guestTeam =
-            widget.teams.firstWhere((t) => t.id == match.guestTeamId);
-        final bloc = _tipFormBlocs[match.id]!;
-    
+
+        final homeTeam = widget.teams.firstWhere(
+          (t) => t.id == match.homeTeamId,
+          orElse: () => Team.empty(),
+        );
+        final guestTeam = widget.teams.firstWhere(
+          (t) => t.id == match.guestTeamId,
+          orElse: () => Team.empty(),
+        );
+
+        final bloc = _tipFormBlocs[match.id];
+        if (bloc == null) {
+          // Falls kein Bloc existiert → nichts anzeigen
+          return const SizedBox.shrink();
+        }
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: BlocProvider<TipFormBloc>.value(

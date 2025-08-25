@@ -32,16 +32,16 @@ class TipDetailsRankingUserList extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final user = sortedUsers[index];
-        final isCurrentUser = currentUser == user.name;
+        final isCurrentUser = currentUser == user.id;
 
         final champion = teams.firstWhere(
           (team) => team.id == user.championId,
           orElse: () => Team.empty(),
         );
 
-        final tip = tips[user.name]?.firstWhere(
+        final tip = tips[user.id]?.firstWhere(
           (t) => t.matchId == match.id,
-          orElse: () => Tip.empty(user.name),
+          orElse: () => Tip.empty(user.id),
         );
 
         return Container(

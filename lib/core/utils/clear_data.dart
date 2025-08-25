@@ -5,7 +5,7 @@ Future<void> clearDatabaseExceptUser() async {
   await Firebase.initializeApp();
   final firestore = FirebaseFirestore.instance;
 
-  const keepUserId = 'k74zYhXQSnVoTvrMDb9lKTl2g542';
+  const keepUserId = 'XelDzMXLNiR9CrNsTBEUdAF6csm2';
 
   // --- USERS: Alle außer keepUserId löschen ---
   final usersSnap = await firestore.collection('users').get();

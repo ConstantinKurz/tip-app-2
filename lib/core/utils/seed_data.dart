@@ -73,7 +73,7 @@ Future<void> seedTestDataTwentyUsers() async {
   for (int i = 0; i < _championPool.length; i++) {
     for (int j = i + 1; j < _championPool.length; j++) {
       matchesData.add({
-        'id': '${_championPool[i]['homeTeamId']}vs${_championPool[i]['guestTeamId']}_$matchCounter',
+        'id': '${_championPool[i]['id']}vs${_championPool[j]['id']}_$matchCounter',
         'homeTeamId': _championPool[i]['id'],
         'guestTeamId': _championPool[j]['id'],
         'matchDate': Timestamp.fromDate(

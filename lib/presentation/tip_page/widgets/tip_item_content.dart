@@ -63,10 +63,10 @@ class _TipItemContentState extends State<TipItemContent> {
     }
 
     return state.failureOrSuccessOption.fold(
-      () => SizedBox(width: size, height: size),
+      () => const SizedBox(width: size, height: size),
       (either) => either.fold(
-        (_) => Icon(Icons.close, color: Colors.red, size: size),
-        (_) => Icon(Icons.check, color: Colors.green, size: size),
+        (_) => const Icon(Icons.close, color: Colors.red, size: size),
+        (_) => const Icon(Icons.check, color: Colors.green, size: size),
       ),
     );
   }

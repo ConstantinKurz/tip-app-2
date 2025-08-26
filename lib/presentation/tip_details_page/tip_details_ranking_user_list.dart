@@ -76,7 +76,7 @@ class TipDetailsRankingUserList extends StatelessWidget {
                       children: [
                         const SizedBox(width: 32),
                         Text(
-                          "${tip.tipGuest}",
+                          "${tip.tipHome}",
                           style: textTheme.bodyMedium,
                         ),
                         const SizedBox(width: 16),
@@ -95,13 +95,18 @@ class TipDetailsRankingUserList extends StatelessWidget {
                           if (tip.joker) ...[
                             const Icon(Icons.star,
                                 size: 18, color: Colors.amber),
-                          ],
+                          ] else
+                            const SizedBox(
+                              width: 18,
+                            ),
                         ])
                       ],
                     ),
                   ),
                 // to align with tip input
-                const SizedBox(width: 20,),
+                const SizedBox(
+                  width: 20,
+                ),
                 Expanded(
                   flex: 1,
                   child: SizedBox(

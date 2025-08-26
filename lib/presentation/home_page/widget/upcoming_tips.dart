@@ -56,7 +56,7 @@ class UpcomingTipSection extends StatelessWidget {
                   );
                 }
 
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator(color: Colors.white,));
               },
             );
           },

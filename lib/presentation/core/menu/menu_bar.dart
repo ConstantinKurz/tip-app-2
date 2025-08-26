@@ -45,7 +45,7 @@ class MyMenuBar extends StatelessWidget {
               ),
               onPressed: () async {
                 try {
-                  await seedTestDataThreeUsers();
+                  await seedTestDataTwentyUsers();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("✅ Testdaten erfolgreich geladen")),
                   );

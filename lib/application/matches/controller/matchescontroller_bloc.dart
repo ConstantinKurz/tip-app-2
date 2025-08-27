@@ -17,40 +17,36 @@ class MatchesControllerBloc
 
   MatchesControllerBloc({required this.matchRepository})
       : super(MatchesControllerInitial()) {
-    on<MatchesAllEvent>((event, emit) async {
-      emit(MatchesControllerLoading());
-      print("no matches");
-      await _matchStreamSub?.cancel();
+    on<MatchesAllEvent>(_onMatchesAllEvent);
+    on<MatchUpdatedEvent>(_onMatchUpdatedEvent);
+  }
 
-      _matchStreamSub =
-          matchRepository.watchAllMatches().listen((failureOrMatches) {
-        print("Stream received value (matches)!");
-        add(MatchUpdatedEvent(failureOrMatches: failureOrMatches));
-      }, onError: (error) {
-        print(
-          //TODO: Add exceptions for blocs / failure state
-            '!!! Firestore stream error detected in MatchesControllerBloc: $error'); 
-      });
-      print("matches listen initiated");
-    });
+  Future<void> _onMatchesAllEvent(
+    MatchesAllEvent event,
+    Emitter<MatchesControllerState> emit,
+  ) async {
+    emit(MatchesControllerLoading());
 
-    on<MatchUpdatedEvent>((event, emit) {
-      print("MatchUpdatedEvent received!");
+    await _matchStreamSub?.cancel();
 
-      event.failureOrMatches.fold(
-        (failure) {
-          print("MatchUpdatedEvent contained Failure: $failure");
-          emit(MatchesControllerFailure(matchFailure: failure));
-        },
-        (matches) {
-          print(
-              "MatchUpdatedEvent contained Success with ${matches.length} matches");
-          print(matches);
-          // TODO: Add Ranking Update here
-          emit(MatchesControllerLoaded(matches: matches));
-        },
-      );
-    });
+    _matchStreamSub = matchRepository.watchAllMatches().listen(
+      (failureOrMatches) =>
+          add(MatchUpdatedEvent(failureOrMatches: failureOrMatches)),
+      onError: (_) {
+        // Sollte selten vorkommen, da das Repository schon mapFirebaseError nutzt
+        emit(MatchesControllerFailure(matchFailure: UnexpectedFailure()));
+      },
+    );
+  }
+
+  void _onMatchUpdatedEvent(
+    MatchUpdatedEvent event,
+    Emitter<MatchesControllerState> emit,
+  ) {
+    event.failureOrMatches.fold(
+      (failure) => emit(MatchesControllerFailure(matchFailure: failure)),
+      (matches) => emit(MatchesControllerLoaded(matches: matches)),
+    );
   }
 
   @override

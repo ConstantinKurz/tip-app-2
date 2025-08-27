@@ -17,7 +17,7 @@ class CustomMatch {
     required this.matchDay,
     required this.homeScore,
     required this.guestScore,
-  }) : assert(matchDay >= 0 && matchDay <= 6, 'Matchday must be between 0 and 6');
+  });
 
   CustomMatch copyWith({
     String? id,

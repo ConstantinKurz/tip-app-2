@@ -14,62 +14,53 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   final TipRepository tipRepository;
   StreamSubscription<Either<TipFailure, Map<String, List<Tip>>>>? _tipStreamSub;
 
-  TipControllerBloc({
-    required this.tipRepository,
-  }) : super(TipControllerInitial()) {
-    on<TipAllEvent>((event, emit) async {
-      // print(
-      //     "TipAllEvent received in TipControllerBloc. Emitting TipControllerLoading."); // <-- Debug-Ausgabe 1 für Tips
-      emit(TipControllerLoading());
-      // close old subs
-      await _tipStreamSub?.cancel();
-      // Abonnieren des Streams vom Repository
-      _tipStreamSub = tipRepository.watchAll().listen((failureOrTip) {
-        // print("Stream received value (tips)!"); // <-- Debug-Ausgabe 2 für Tips
-        // Wir fügen das UpdatedEvent hinzu, das dann den Zustand ändert
-        add(TipUpdatedEvent(failureOrTip: failureOrTip));
+  TipControllerBloc({required this.tipRepository})
+      : super(TipControllerInitial()) {
+    on<TipAllEvent>(_onTipAllEvent);
+    on<UserTipEvent>(_onUserTipEvent);
+    on<TipUpdatedEvent>(_onTipUpdatedEvent);
+  }
+
+  Future<void> _onTipAllEvent(
+    TipAllEvent event,
+    Emitter<TipControllerState> emit,
+  ) async {
+    emit(TipControllerLoading());
+
+    // Vorherigen Stream schließen
+    await _tipStreamSub?.cancel();
+
+    _tipStreamSub = tipRepository.watchAll().listen(
+      (failureOrTip) =>
+          add(TipUpdatedEvent(failureOrTip: failureOrTip)),
+      onError: (_) {
+        // Sollte selten passieren, da das Repository bereits mapFirebaseError nutzt
+        emit(TipControllerFailure(tipFailure: UnexpectedFailure()));
       },
-          // Füge einen onError-Callback hinzu, um Stream-Fehler zu fangen
-          onError: (error) {
-        print(
-            '!!! Firestore stream error detected in TipControllerBloc: $error'); // <-- Debug-Ausgabe 3 für Tips (Fehler)
-        // Optional: Füge auch hier ein Event hinzu, um den Fehler zu signalisieren
-        // add(TipUpdatedEvent(failureOrTip: left(UnexpectedFailure()))); // Beispiel
-      });
-      print("tips listen initiated"); // <-- Debug-Ausgabe 4 für Tips
-    });
+    );
+  }
 
-    // Dieser Event-Handler wird hier nicht verändert, da er keinen Stream abonniert
-    on<UserTipEvent>((event, emit) async {
-      print(
-          "UserTipEvent received (no stream subscription here). Emitting TipControllerLoading."); // <-- Debug-Ausgabe für UserTipEvent
-      emit(TipControllerLoading());
-    });
+  void _onUserTipEvent(
+    UserTipEvent event,
+    Emitter<TipControllerState> emit,
+  ) {
+    emit(TipControllerLoading());
+    // Falls später zusätzliche Logik für User-spezifische Streams kommt,
+    // kann sie hier ergänzt werden.
+  }
 
-    on<TipUpdatedEvent>((event, emit) {
-      // print("TipUpdatedEvent received!"); // <-- Debug-Ausgabe 5 für Tips
-      // Prüfe, was im Event enthalten ist
-      event.failureOrTip.fold((failures) {
-        print(
-            "TipUpdatedEvent contained Failure: $failures"); // <-- Debug-Ausgabe 6 für Tips (Fehler)
-        emit(TipControllerFailure(tipFailure: failures));
-      }, (tips) {
-        // Hier ist tips ein Map<String, List<Tip>>
-        final totalTipLists = tips.length; // Anzahl der Benutzer mit Tipps
-        int totalTipsCount = 0;
-        tips.values.forEach((tipList) =>
-            totalTipsCount += tipList.length); // Gesamtzahl der einzelnen Tipps
-        // print(
-            // "TipUpdatedEvent contained Success with $totalTipLists user tip lists and $totalTipsCount total tips."); // <-- Debug-Ausgabe 7 für Tips (Erfolg)
-        emit(TipControllerLoaded(tips: tips));
-      });
-    });
+  void _onTipUpdatedEvent(
+    TipUpdatedEvent event,
+    Emitter<TipControllerState> emit,
+  ) {
+    event.failureOrTip.fold(
+      (failure) => emit(TipControllerFailure(tipFailure: failure)),
+      (tips) => emit(TipControllerLoaded(tips: tips)),
+    );
   }
 
   @override
   Future<void> close() async {
-    print(
-        "TipControllerBloc close() called. Cancelling stream subscription."); // <-- Debug-Ausgabe beim Schließen
     await _tipStreamSub?.cancel();
     return super.close();
   }

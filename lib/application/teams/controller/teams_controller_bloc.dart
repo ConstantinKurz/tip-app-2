@@ -1,4 +1,4 @@
-import 'dart:async'; // Import hinzugefügt, falls noch nicht da
+import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
@@ -10,48 +10,45 @@ import 'package:meta/meta.dart';
 part 'teams_controller_event.dart';
 part 'teams_controller_state.dart';
 
-class TeamsControllerBloc extends Bloc<TeamsControllerEvent, TeamsControllerState> {
+class TeamsControllerBloc
+    extends Bloc<TeamsControllerEvent, TeamsControllerState> {
   final TeamRepository teamRepository;
   StreamSubscription<Either<TeamFailure, List<Team>>>? _teamStreamSubscription;
 
-  TeamsControllerBloc({required this.teamRepository}) : super(TeamsControllerInitial()) {
-    on<TeamsControllerAllEvent>((event, emit) async {
-      emit(TeamsControllerLoading());
-      print("TeamsAllEvent received in TeamsBloc. Emitting TeamsLoading."); // <-- Debug-Ausgabe 1 für Teams
-      await _teamStreamSubscription?.cancel();
+  TeamsControllerBloc({required this.teamRepository})
+      : super(TeamsControllerInitial()) {
+    on<TeamsControllerAllEvent>(_onTeamsControllerAllEvent);
+    on<TeamsControllerUpdatedEvent>(_onTeamsControllerUpdatedEvent);
+  }
 
-      // Hier abonnieren wir den Stream vom Repository
-      _teamStreamSubscription =
-          teamRepository.watchAllTeams().listen(
-        (failureOrTeams) {
-          // Dieser Callback wird aufgerufen, wenn der Stream einen Wert emittiert
-          print("Stream received value (teams)!"); // <-- Debug-Ausgabe 2 für Teams
-          // Wir fügen das UpdatedEvent hinzu, das dann den Zustand ändert
-          add(TeamsControllerUpdatedEvent(failureOrTeams: failureOrTeams));
-        },
-        // Füge einen onError-Callback hinzu, um Stream-Fehler zu fangen
-        onError: (error) {
-           print('!!! Firestore stream error detected in TeamsBloc: $error'); // <-- Debug-Ausgabe 3 für Teams (Fehler)
-           // Du könntest hier auch ein TeamUpdatedEvent mit left(UnexpectedFailure()) hinzufügen,
-           // um den Fehler über den normalen Event-Kanal zu verarbeiten.
-        }
-      );
-       print("teams listen initiated"); // <-- Debug-Ausgabe 4 für Teams
-    });
+  Future<void> _onTeamsControllerAllEvent(
+    TeamsControllerAllEvent event,
+    Emitter<TeamsControllerState> emit,
+  ) async {
+    emit(TeamsControllerLoading());
 
-    on<TeamsControllerUpdatedEvent>((event, emit) {
-      print("TeamsUpdatedEvent received!"); // <-- Debug-Ausgabe 5 für Teams
-      // Prüfe, was im Event enthalten ist
-      event.failureOrTeams.fold(
-          (failure) {
-            print("TeamsUpdatedEvent contained Failure: $failure"); // <-- Debug-Ausgabe 6 für Teams (Fehler)
-            emit(TeamsControllerFailureState(teamFailure: failure));
-          },
-          (teams) {
-            print("TeamsUpdatedEvent contained Success with ${teams.length} teams"); // <-- Debug-Ausgabe 7 für Teams (Erfolg)
-            emit(TeamsControllerLoaded(teams: teams));
-          });
-    });
+    // Falls schon ein Stream aktiv ist, beenden
+    await _teamStreamSubscription?.cancel();
+
+    // Repository-Stream starten
+    _teamStreamSubscription = teamRepository.watchAllTeams().listen(
+      (failureOrTeams) =>
+          add(TeamsControllerUpdatedEvent(failureOrTeams: failureOrTeams)),
+      onError: (_) {
+        // Sollte durch Fehler-Mapping im Repository selten passieren
+        emit(TeamsControllerFailureState(teamFailure: UnexpectedFailure()));
+      },
+    );
+  }
+
+  void _onTeamsControllerUpdatedEvent(
+    TeamsControllerUpdatedEvent event,
+    Emitter<TeamsControllerState> emit,
+  ) {
+    event.failureOrTeams.fold(
+      (failure) => emit(TeamsControllerFailureState(teamFailure: failure)),
+      (teams) => emit(TeamsControllerLoaded(teams: teams)),
+    );
   }
 
   @override

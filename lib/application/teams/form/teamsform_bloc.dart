@@ -13,58 +13,78 @@ class TeamsformBloc extends Bloc<TeamsformEvent, TeamsformState> {
 
   TeamsformBloc({required this.teamRepository})
       : super(TeamsformInitialState()) {
-    on<TeamFormCreateEvent>((event, emit) async {
-      if (event.team == null) {
-        emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
-      } else {
-        emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
-        final failureOrSuccess = await teamRepository.createTeam(event.team!);
-        emit(state.copyWith(
-          isSubmitting: false,
-          teamFailureOrSuccessOption: optionOf(failureOrSuccess),
-        ));
-      }
-    });
+    on<TeamFormCreateEvent>(_onCreateTeam);
+    on<TeamFormUpdateEvent>(_onUpdateTeam);
+    on<TeamFormFieldUpdatedEvent>(_onFieldUpdated);
+    on<TeamFormDeleteEvent>(_onDeleteTeam);
+  }
 
-    on<TeamFormUpdateEvent>((event, emit) async {
-      if (event.team != null) {
-        emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
-        final failureOrSuccess = await teamRepository.updateTeam(event.team!);
-        print('Update Failure or Success: $failureOrSuccess');
-        print("Formupdate event state ${state.copyWith(
-          isSubmitting: false,
-          teamFailureOrSuccessOption: optionOf(failureOrSuccess),
-        )}");
-        emit(state.copyWith(
-          isSubmitting: false,
-          teamFailureOrSuccessOption: optionOf(failureOrSuccess),
-        ));
-      } else {
-        emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
-      }
-    });
+  Future<void> _onCreateTeam(
+    TeamFormCreateEvent event,
+    Emitter<TeamsformState> emit,
+  ) async {
+    if (event.team == null) {
+      emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
+      return;
+    }
 
-    on<TeamFormFieldUpdatedEvent>((event, emit) async {
-      emit(state.copyWith(
-          id: event.id ?? state.id,
-          name: event.name ?? state.name,
-          flagCode: event.flagCode ?? state.flagCode,
-          winPoints: event.winPoints ?? state.winPoints,
-          champion: event.champion ?? state.champion));
-    });
+    emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
 
-    on<TeamFormDeleteEvent>((event, emit) async {
-      emit(state.copyWith(
-          isSubmitting: true,
-          showValidationMessages: false,
-          teamFailureOrSuccessOption: none()));
+    final failureOrSuccess = await teamRepository.createTeam(event.team!);
 
-      final failureOrSuccess = await teamRepository.deleteTeam(event.id);
+    emit(state.copyWith(
+      isSubmitting: false,
+      teamFailureOrSuccessOption: optionOf(failureOrSuccess),
+    ));
+  }
 
-      emit(state.copyWith(
-        isSubmitting: false,
-        teamFailureOrSuccessOption: optionOf(failureOrSuccess),
-      ));
-    });
+  Future<void> _onUpdateTeam(
+    TeamFormUpdateEvent event,
+    Emitter<TeamsformState> emit,
+  ) async {
+    if (event.team == null) {
+      emit(state.copyWith(isSubmitting: false, showValidationMessages: true));
+      return;
+    }
+
+    emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
+
+    final failureOrSuccess = await teamRepository.updateTeam(event.team!);
+
+    emit(state.copyWith(
+      isSubmitting: false,
+      teamFailureOrSuccessOption: optionOf(failureOrSuccess),
+    ));
+  }
+
+  void _onFieldUpdated(
+    TeamFormFieldUpdatedEvent event,
+    Emitter<TeamsformState> emit,
+  ) {
+    emit(state.copyWith(
+      id: event.id ?? state.id,
+      name: event.name ?? state.name,
+      flagCode: event.flagCode ?? state.flagCode,
+      winPoints: event.winPoints ?? state.winPoints,
+      champion: event.champion ?? state.champion,
+    ));
+  }
+
+  Future<void> _onDeleteTeam(
+    TeamFormDeleteEvent event,
+    Emitter<TeamsformState> emit,
+  ) async {
+    emit(state.copyWith(
+      isSubmitting: true,
+      showValidationMessages: false,
+      teamFailureOrSuccessOption: none(),
+    ));
+
+    final failureOrSuccess = await teamRepository.deleteTeamById(event.id);
+
+    emit(state.copyWith(
+      isSubmitting: false,
+      teamFailureOrSuccessOption: optionOf(failureOrSuccess),
+    ));
   }
 }

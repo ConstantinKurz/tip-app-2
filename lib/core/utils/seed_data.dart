@@ -78,7 +78,7 @@ Future<void> seedTestDataTwentyUsers() async {
         'guestTeamId': _championPool[j]['id'],
         'matchDate': Timestamp.fromDate(
             DateTime.now().add(Duration(days: matchCounter))),
-        'matchDay': matchCounter,
+        'matchDay': random.nextInt(6),
         'homeScore': null,
         'guestScore': null,
       });

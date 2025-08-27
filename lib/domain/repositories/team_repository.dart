@@ -10,9 +10,9 @@ abstract class TeamRepository {
 
   Future<Either<TeamFailure, Unit>> updateTeam(Team todo);
 
-  Future<Either<TeamFailure, Unit>> deleteTeam(String id);
+  Future<Either<TeamFailure, Unit>> deleteTeamById(String id);
 
-  Future<Either<TeamFailure, Team>> get(String teamId);
+  Future<Either<TeamFailure, Team>> getById(String teamId);
 
   Stream<Either<TeamFailure, List<Team>>> watchAllTeams();
 }

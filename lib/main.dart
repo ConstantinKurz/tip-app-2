@@ -45,23 +45,6 @@ class AppRoutes {
   static const dashboard = '/dashboard';
 }
 
-//TODO: remove guards
-Page authGuard({
-  required bool isAuthenticated,
-  required Widget page,
-  String redirectTo = AppRoutes.signin,
-}) {
-  return isAuthenticated ? MaterialPage(child: page) : Redirect(redirectTo);
-}
-
-Page signedInGuard({
-  required bool isAuthenticated,
-  required Widget page,
-  String redirectTo = AppRoutes.home,
-}) {
-  return isAuthenticated ? Redirect(redirectTo) : MaterialPage(child: page);
-}
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -124,31 +107,24 @@ class MyApp extends StatelessWidget {
                   return RouteMap(
                     onUnknownRoute: (_) => const Redirect(AppRoutes.home),
                     routes: {
-                      AppRoutes.home: (_) => authGuard(
-                            isAuthenticated: true,
-                            page: const HomePage(isAuthenticated: true),
+                      AppRoutes.home: (_) => const MaterialPage(
+                          child: HomePage(isAuthenticated: true)),
+                      AppRoutes.admin: (_) => MaterialPage(
+                            child: AdminPage(isAuthenticated: true),
                           ),
-                      AppRoutes.admin: (_) => authGuard(
-                            isAuthenticated: true,
-                            page: AdminPage(isAuthenticated: true),
+                      AppRoutes.dev: (_) => const MaterialPage(
+                            child: DevPage(isAuthenticated: true),
                           ),
-                      AppRoutes.dev: (_) => authGuard(
-                            isAuthenticated: true,
-                            page: const DevPage(isAuthenticated: true),
+                      AppRoutes.eco: (_) => const MaterialPage(
+                            child: EcoPage(isAuthenticated: true),
                           ),
-                      AppRoutes.eco: (_) => authGuard(
-                            isAuthenticated: true,
-                            page: const EcoPage(isAuthenticated: true),
-                          ),
-                      AppRoutes.userDetailTips: (_) => authGuard(
-                            isAuthenticated: true,
-                            page: const TipDetailsPage(isAuthenticated: true),
+                      AppRoutes.userDetailTips: (_) => const MaterialPage(
+                            child: TipDetailsPage(isAuthenticated: true),
                           ),
                       AppRoutes.userTips: (info) {
                         final id = info.pathParameters['id']!;
-                        return authGuard(
-                          isAuthenticated: true,
-                          page: TipPage(
+                        return MaterialPage(
+                          child: TipPage(
                             isAuthenticated: true,
                             userId: id,
                           ),
@@ -174,9 +150,8 @@ class MyApp extends StatelessWidget {
                 return RouteMap(
                   onUnknownRoute: (_) => const Redirect(AppRoutes.signin),
                   routes: {
-                    AppRoutes.signin: (_) => signedInGuard(
-                          isAuthenticated: false,
-                          page: const SignInPage(isAuthenticated: false),
+                    AppRoutes.signin: (_) => const MaterialPage(
+                          child: SignInPage(isAuthenticated: false),
                         ),
                     AppRoutes.signup: (_) => const MaterialPage(
                           child: SignUpPage(isAuthenticated: false),

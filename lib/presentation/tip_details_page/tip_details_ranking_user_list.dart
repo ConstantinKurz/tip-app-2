@@ -83,8 +83,7 @@ class TipDetailsRankingUserList extends StatelessWidget {
                     return Container(
                       decoration: isCurrentUser
                           ? BoxDecoration(
-                              border:
-                                  Border.all(color: Colors.white, width: 2),
+                              border: Border.all(color: Colors.white, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             )
                           : null,
@@ -92,7 +91,8 @@ class TipDetailsRankingUserList extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
-                            Flexible( // Gruppiert Rang und Name
+                            Flexible(
+                              // Gruppiert Rang und Name
                               flex: 1,
                               child: Row(
                                 children: [
@@ -114,7 +114,8 @@ class TipDetailsRankingUserList extends StatelessWidget {
                               ),
                             ),
                             if (tip != null)
-                              Expanded( // Nimmt den mittleren Platz ein
+                              Expanded(
+                                // Nimmt den mittleren Platz ein
                                 flex: 2,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -142,7 +143,7 @@ class TipDetailsRankingUserList extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                            SizedBox( // Feste Breite für den rechten Block
+                            SizedBox(
                               width: 180,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -151,14 +152,26 @@ class TipDetailsRankingUserList extends StatelessWidget {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       Tooltip(
-                                        message: champion.name,
-                                        child: ClipOval(
-                                          child: Flag.fromString(
-                                            champion.flagCode,
-                                            height: 20,
-                                            width: 20,
-                                            fit: BoxFit.cover,
-                                          ),
+                                        message: champion.id != "TBD"
+                                            ? champion.name
+                                            : 'None',
+                                        child: SizedBox(
+                                          width: 28,
+                                          height: 28,
+                                          child: champion.id != "TBD"
+                                              ? ClipOval(
+                                                  child: Flag.fromString(
+                                                    champion.flagCode,
+                                                    height: 28,
+                                                    width: 28,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                )
+                                              : const ClipOval(
+                                                  child: Icon(Icons.close,
+                                                      size: 20,
+                                                      color: Colors.grey),
+                                                ),
                                         ),
                                       ),
                                       const SizedBox(

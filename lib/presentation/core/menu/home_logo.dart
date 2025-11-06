@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web/presentation/dev_page/dev_page.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
 import 'package:routemaster/routemaster.dart';
 
@@ -12,7 +11,7 @@ class HomeLogo extends StatelessWidget {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          Routemaster.of(context).push(DevPage.devPagePath + '/plattform/ios');
+          Routemaster.of(context).push(HomePage.homePagePath);
         },
         child: Image.asset(
           "assets/images/flutter_logo_text.png",

@@ -10,8 +10,6 @@ import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
-import 'package:flutter_web/presentation/dev_page/dev_page.dart';
-import 'package:flutter_web/presentation/eco_page/eco_page.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
 import 'package:flutter_web/presentation/signin/signin_page.dart';
 import 'package:flutter_web/presentation/signup/signup_page.dart';
@@ -111,12 +109,6 @@ class MyApp extends StatelessWidget {
                           child: HomePage(isAuthenticated: true)),
                       AppRoutes.admin: (_) => MaterialPage(
                             child: AdminPage(isAuthenticated: true),
-                          ),
-                      AppRoutes.dev: (_) => const MaterialPage(
-                            child: DevPage(isAuthenticated: true),
-                          ),
-                      AppRoutes.eco: (_) => const MaterialPage(
-                            child: EcoPage(isAuthenticated: true),
                           ),
                       AppRoutes.userDetailTips: (_) => const MaterialPage(
                             child: TipDetailsPage(isAuthenticated: true),

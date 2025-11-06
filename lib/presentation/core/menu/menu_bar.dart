@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web/core/utils/clear_data.dart';
 import 'package:flutter_web/core/utils/seed_data.dart';
-import 'package:flutter_web/core/utils/single_seed_data.dart';
-import 'package:flutter_web/core/utils/three_seed_data.dart';
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
 import 'package:flutter_web/presentation/core/buttons/signin_button.dart';
 import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
-import 'package:flutter_web/presentation/core/buttons/signup_button.dart';
 import 'package:flutter_web/presentation/core/menu/home_logo.dart';
 import 'package:flutter_web/presentation/core/menu/menu_item.dart';
-import 'package:flutter_web/presentation/dev_page/dev_page.dart';
-import 'package:flutter_web/presentation/eco_page/eco_page.dart';
 
 class MyMenuBar extends StatelessWidget {
   final bool isAuthenticated;
@@ -30,8 +25,6 @@ class MyMenuBar extends StatelessWidget {
         children: [
           const HomeLogo(),
           MenuItem(text: "Admin", inDrawer: false, path: AdminPage.adminPagePath),
-          MenuItem(text: "Development", inDrawer: false, path: DevPage.devPagePath),
-          MenuItem(text: "Ecosystem", inDrawer: false, path: EcoPage.ecoPagePath),
           const Spacer(),
 
           // Seed Data Button (nur wenn eingeloggt)
@@ -112,7 +105,6 @@ class MyMenuBar extends StatelessWidget {
               ? const SignOutButton(inDrawer: false)
               : const SignInButton(inDrawer: false),
           const SizedBox(width: 10),
-          const SignUpButton(inDrawer: false),
         ],
       ),
     );

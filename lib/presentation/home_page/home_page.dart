@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
+import 'package:flutter_web/application/ranking/ranking_bloc.dart';
+import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/widget/ranking_section.dart';
 import 'package:flutter_web/presentation/home_page/widget/upcoming_tips.dart';
 import 'package:routemaster/routemaster.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   static const String homePagePath = "/home";
   final bool isAuthenticated;
 
@@ -14,6 +16,13 @@ class HomePage extends StatelessWidget {
     Key? key,
     required this.isAuthenticated,
   }) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final _rankingSectionKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +45,7 @@ class HomePage extends StatelessWidget {
 
         return Scaffold(
           body: PageTemplate(
-            isAuthenticated: isAuthenticated,
+            isAuthenticated: widget.isAuthenticated,
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(bottom: 100),
@@ -44,10 +53,25 @@ class HomePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(
+                      key: _rankingSectionKey,
                       width: contentWidth,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        child: RankingSection(userId: userId, users: users),
+                        child: BlocProvider<RankingBloc>(
+                          create: (_) => sl<RankingBloc>(),
+                          child: BlocListener<RankingBloc, RankingState>(
+                            listener: (context, state) {
+                              if (!state.expanded) {
+                                Scrollable.ensureVisible(
+                                  _rankingSectionKey.currentContext!,
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                            child: RankingSection(userId: userId, users: users),
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(
@@ -76,7 +100,7 @@ class HomePage extends StatelessWidget {
                 backgroundColor: themeData.colorScheme.onPrimary,
                 foregroundColor: themeData.colorScheme.primary,
                 textStyle: themeData.textTheme.bodyLarge,
-                minimumSize: Size(contentWidth*.2, contentWidth*.1/2),
+                minimumSize: Size(contentWidth * .2, contentWidth * .1 / 2),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 shape: RoundedRectangleBorder(

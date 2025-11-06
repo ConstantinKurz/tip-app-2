@@ -102,8 +102,8 @@ class MyMenuBar extends StatelessWidget {
           const SizedBox(width: 12),
 
           isAuthenticated
-              ? const SignOutButton(inDrawer: false)
-              : const SignInButton(inDrawer: false),
+              ? const SignOutButton()
+              : const SignInButton(),
           const SizedBox(width: 10),
         ],
       ),

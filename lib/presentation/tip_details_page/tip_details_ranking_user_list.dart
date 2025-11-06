@@ -7,7 +7,7 @@ import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/injections.dart';
-
+// TODO: nicht gleiche breite wie homepage. Homepage button hinzufügen
 class TipDetailsRankingUserList extends StatelessWidget {
   final List<AppUser> users;
   final List<Team> teams;

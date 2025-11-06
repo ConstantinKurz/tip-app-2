@@ -9,7 +9,6 @@ import 'package:flutter_web/presentation/tip_page/widgets/tip_score_field.dart';
 import 'package:intl/intl.dart';
 import 'package:flag/flag.dart';
 
-// Die optimierte Version von TipItemContent – ohne RenderFlex-Overflow
 class TipItemContent extends StatefulWidget {
   final String userId;
   final Tip? tip;
@@ -78,6 +77,10 @@ class _TipItemContentState extends State<TipItemContent> {
     return BlocConsumer<TipFormBloc, TipFormState>(
       listener: (_, __) {},
       builder: (context, state) {
+        final isHomeTipValid = int.tryParse(homeTipController.text) != null;
+        final isGuestTipValid = int.tryParse(guestTipController.text) != null;
+        final areTipsValid = isHomeTipValid && isGuestTipValid;
+
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(8),
@@ -119,7 +122,6 @@ class _TipItemContentState extends State<TipItemContent> {
               ),
               const SizedBox(height: 24),
 
-              // Match Prediction Row
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -148,16 +150,18 @@ class _TipItemContentState extends State<TipItemContent> {
                             const SizedBox(width: 16),
                             StarIconButton(
                               isStar: state.joker ?? false,
-                              onTap: () {
-                                context.read<TipFormBloc>().add(TipFormFieldUpdatedEvent(
-                                  matchId: widget.match.id,
-                                  userId: widget.userId,
-                                  tipHome: state.tipHome,
-                                  tipGuest: state.tipGuest,
-                                  joker: !(state.joker ?? false),
-                                ));
-                              },
-                              tooltipMessage: "Joker setzen",
+                              onTap: areTipsValid
+                                  ? () {
+                                      context.read<TipFormBloc>().add(TipFormFieldUpdatedEvent(
+                                            matchId: widget.match.id,
+                                            userId: widget.userId,
+                                            tipHome: state.tipHome,
+                                            tipGuest: state.tipGuest,
+                                            joker: !(state.joker ?? false),
+                                          ));
+                                    }
+                                  : () {},
+                              tooltipMessage: areTipsValid ? "Joker setzen" : "Bitte erst einen gültigen Tipp abgeben",
                             ),
                           ],
                         ),

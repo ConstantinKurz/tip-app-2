@@ -99,33 +99,35 @@ class _TipsSwipeViewState extends State<TipsSwipeView> {
             value: bloc,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TipItemContent(
-                    userId: widget.userId,
-                    tip: tip,
-                    homeTeam: homeTeam,
-                    guestTeam: guestTeam,
-                    match: match,
-                    bottomContent: Column(
-                      children: [
-                        const Divider(
-                          color: Colors.grey,
-                          thickness: 1,
-                        ),
-                        TipDetailsRankingUserList(
-                          users: widget.users,
-                          teams: widget.teams,
-                          currentUser: widget.userId,
-                          tips: widget.tips,
-                          match: match,
-                        ),
-                      ],
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TipItemContent(
+                      userId: widget.userId,
+                      tip: tip,
+                      homeTeam: homeTeam,
+                      guestTeam: guestTeam,
+                      match: match,
+                      bottomContent: Column(
+                        children: [
+                          const Divider(
+                            color: Colors.grey,
+                            thickness: 1,
+                          ),
+                          TipDetailsRankingUserList(
+                            users: widget.users,
+                            teams: widget.teams,
+                            currentUser: widget.userId,
+                            tips: widget.tips,
+                            match: match,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
           ),

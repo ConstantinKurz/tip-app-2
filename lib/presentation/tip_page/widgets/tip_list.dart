@@ -120,7 +120,6 @@ class _TipListState extends State<TipList> {
 
               final bloc = _tipFormBlocs[match.id];
               if (bloc == null) {
-                // Fallback: neuen Bloc erzeugen oder dieses Match überspringen
                 return const SizedBox.shrink();
               }
 
@@ -158,17 +157,14 @@ List<CustomMatch> _filteredTips(
       orElse: () => Team.empty(),
     );
 
-    // Erstellen eines Strings, der alle relevanten Informationen des Matches enthält
     final matchInfo =
         '${homeTeam.name} ${guestTeam.name} Spieltag:${match.matchDay} '
                 '${match.homeScore ?? '-'}:${match.guestScore ?? '-'} '
                 '${DateFormat('dd.MM.yyyy HH:mm').format(match.matchDate)}'
             .toLowerCase();
 
-    // Aufteilen des Suchtextes in einzelne Begriffe
     final searchTerms = searchText.toLowerCase().split(' ');
 
-    // Prüfen, ob alle Suchbegriffe in den Match-Informationen enthalten sind
     bool allTermsMatch = true;
     for (final term in searchTerms) {
       if (!matchInfo.contains(term)) {

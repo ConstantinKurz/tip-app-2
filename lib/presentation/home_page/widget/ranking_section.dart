@@ -41,50 +41,66 @@ class RankingSection extends StatelessWidget {
                 const SizedBox(height: 12),
                 BlocBuilder<RankingBloc, RankingState>(
                   builder: (context, rankingState) {
-                    return Column(
-                      children: [
-                        AnimatedCrossFade(
-                          duration: const Duration(milliseconds: 300),
-                          firstChild: RankingUserList(
-                            users: users.take(2).toList(),
-                            teams: teams,
-                            currentUser: userId,
-                          ),
-                          secondChild: RankingUserList(
-                            users: users,
-                            teams: teams,
-                            currentUser: userId,
-                          ),
-                          crossFadeState: rankingState.expanded
-                              ? CrossFadeState.showSecond
-                              : CrossFadeState.showFirst,
-                        ),
-                        if (users.length > 2)
-                          Center(
-                            child: IconButton(
-                              icon: Icon(
-                                rankingState.expanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: themeData.primaryIconTheme.color,
-                              ),
-                              onPressed: () {
-                                context
-                                    .read<RankingBloc>()
-                                    .add(ToggleRankingViewEvent());
-                              },
-                              tooltip: rankingState.expanded
-                                  ? 'Weniger anzeigen'
-                                  : 'Mehr anzeigen',
+                    final currentUserIndex =
+                        users.indexWhere((u) => u.id == userId);
+                    List<AppUser> visibleUsers;
+
+                    if (rankingState.expanded || users.length <= 5) {
+                      visibleUsers = users;
+                    } else {
+                      if (currentUserIndex != -1) {
+                        int start = (currentUserIndex - 2).clamp(0, users.length);
+                        int end = (currentUserIndex + 3).clamp(0, users.length);
+
+                        if (start == 0) {
+                          end = (start + 5).clamp(0, users.length);
+                        }
+                        if (end == users.length) {
+                          start = (end - 5).clamp(0, users.length);
+                        }
+                        visibleUsers = users.sublist(start, end);
+                      } else {
+                        visibleUsers = users.take(5).toList();
+                      }
+                    }
+
+                      return AnimatedSize(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                        child: Column(
+                          children: [
+                            RankingUserList(
+                              users: visibleUsers,
+                              teams: teams,
+                              currentUser: userId,
                             ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            );
-          }
+                            if (users.length > 5)
+                              Center(
+                                child: IconButton(
+                                  icon: Icon(
+                                    rankingState.expanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    color: themeData.primaryIconTheme.color,
+                                  ),
+                                  onPressed: () {
+                                    context
+                                        .read<RankingBloc>()
+                                        .add(ToggleRankingViewEvent());
+                                  },
+                                  tooltip: rankingState.expanded
+                                      ? 'Weniger anzeigen'
+                                      : 'Mehr anzeigen',
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            }
 
           if (teamState is TeamsControllerLoading) {
             return const Center(

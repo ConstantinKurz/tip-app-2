@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
-import 'package:flutter_web/injections.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_item_content.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_web/presentation/tip_page/widgets/modern_tip_card.dart';
 
 class TipList extends StatefulWidget {
   final String userId;
@@ -15,166 +11,151 @@ class TipList extends StatefulWidget {
   final List<CustomMatch> matches;
   final bool showSearchBar;
 
-  const TipList(
-      {Key? key,
-      required this.userId,
-      required this.tips,
-      required this.teams,
-      required this.matches,
-      required this.showSearchBar})
-      : super(key: key);
+  const TipList({
+    Key? key,
+    required this.userId,
+    required this.tips,
+    required this.teams,
+    required this.matches,
+    this.showSearchBar = false,
+  }) : super(key: key);
 
   @override
   State<TipList> createState() => _TipListState();
 }
 
 class _TipListState extends State<TipList> {
-  final Map<String, TipFormBloc> _tipFormBlocs = {};
-  String _searchText = '';
+  final TextEditingController _searchController = TextEditingController();
+  List<CustomMatch> _filteredMatches = [];
 
   @override
   void initState() {
     super.initState();
-    _initializeBlocs();
-  }
-
-  void _initializeBlocs() {
-    for (final match in widget.matches) {
-      final tip = widget.tips.firstWhere(
-        (t) => t.matchId == match.id,
-        orElse: () => Tip.empty(widget.userId).copyWith(matchId: match.id),
-      );
-
-      if (!_tipFormBlocs.containsKey(match.id)) {
-        final bloc = sl<TipFormBloc>();
-        bloc.add(TipFormInitializedEvent(tip: tip));
-        _tipFormBlocs[match.id] = bloc;
-      }
+    _filteredMatches = widget.matches;
+    if (widget.showSearchBar) {
+      _searchController.addListener(_filterMatches);
     }
   }
 
   @override
   void dispose() {
-    for (final bloc in _tipFormBlocs.values) {
-      bloc.close();
-    }
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _filterMatches() {
+    final query = _searchController.text.toLowerCase();
+    if (query.isEmpty) {
+      setState(() {
+        _filteredMatches = widget.matches;
+      });
+      return;
+    }
+
+    setState(() {
+      _filteredMatches = widget.matches.where((match) {
+        final homeTeam = widget.teams.firstWhere((team) => team.id == match.homeTeamId);
+        final guestTeam = widget.teams.firstWhere((team) => team.id == match.guestTeamId);
+        
+        return homeTeam.name.toLowerCase().contains(query) ||
+               guestTeam.name.toLowerCase().contains(query);
+      }).toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final displayedTips = widget.showSearchBar
-        ? _filteredTips(widget.matches, widget.teams, _searchText)
-        : widget.matches;
+    final double contentWidth = screenWidth > 600 ? screenWidth * 0.6 : screenWidth * 0.95;
 
     return Center(
-      child: Container(
-        width: screenWidth * 0.5,
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          shrinkWrap: true,
-          physics: const BouncingScrollPhysics(),
+      child: SizedBox(
+        width: contentWidth,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Spacer(),
-                if (widget.showSearchBar)
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    width: screenWidth * .1,
-                    child: TextField(
-                      cursorColor: Colors.white,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        hintText: 'Suche',
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                      onChanged: (text) {
-                        setState(() {
-                          _searchText = text;
-                        });
-                      },
-                    ),
-                  ),
-              ],
+            // Search Bar (wenn aktiviert)
+            if (widget.showSearchBar) ...[
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _buildSearchBar(),
+              ),
+            ],
+            
+            // Anzahl der Matches
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text(
+                '${_filteredMatches.length} Spiele',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
             ),
-            const SizedBox(height: 16.0),
-            ...displayedTips.map((match) {
+
+            // Match Liste
+            ..._filteredMatches.asMap().entries.map((entry) {
+              final index = entry.key;
+              final match = entry.value;
+              final homeTeam = widget.teams.firstWhere((team) => team.id == match.homeTeamId);
+              final guestTeam = widget.teams.firstWhere((team) => team.id == match.guestTeamId);
               final tip = widget.tips.firstWhere(
                 (t) => t.matchId == match.id,
-                orElse: () =>
-                    Tip.empty(widget.userId).copyWith(matchId: match.id),
+                orElse: () => Tip.empty(widget.userId),
               );
-
-              final homeTeam = widget.teams.firstWhere(
-                (t) => t.id == match.homeTeamId,
-                orElse: () => Team.empty(),
-              );
-              final guestTeam = widget.teams.firstWhere(
-                (t) => t.id == match.guestTeamId,
-                orElse: () => Team.empty(),
-              );
-
-              final bloc = _tipFormBlocs[match.id];
-              if (bloc == null) {
-                return const SizedBox.shrink();
-              }
 
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: BlocProvider<TipFormBloc>.value(
-                  value: bloc,
-                  child: TipItemContent(
-                    userId: widget.userId,
-                    tip: tip,
-                    homeTeam: homeTeam,
-                    guestTeam: guestTeam,
-                    match: match,
-                  ),
+                padding: EdgeInsets.fromLTRB(
+                  16.0, 
+                  index == 0 ? 8.0 : 4.0, 
+                  16.0, 
+                  index == _filteredMatches.length - 1 ? 24.0 : 4.0
+                ),
+                child:TipCard(
+                  userId: widget.userId,
+                  match: match,
+                  homeTeam: homeTeam,
+                  guestTeam: guestTeam,
+                  tip: tip,
                 ),
               );
             }).toList(),
-            const SizedBox(height: 16.0),
           ],
         ),
       ),
     );
   }
-}
 
-List<CustomMatch> _filteredTips(
-    List<CustomMatch> matches, List<Team> teams, String searchText) {
-  List<CustomMatch> filteredTips = matches.where((match) {
-    final homeTeam = teams.firstWhere(
-      (team) => team.id == match.homeTeamId,
-      orElse: () => Team.empty(),
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Teams suchen...',
+          hintStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            fontSize: 16,
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 16,
+        ),
+      ),
     );
-    final guestTeam = teams.firstWhere(
-      (team) => team.id == match.guestTeamId,
-      orElse: () => Team.empty(),
-    );
-
-    final matchInfo =
-        '${homeTeam.name} ${guestTeam.name} Spieltag:${match.matchDay} '
-                '${match.homeScore ?? '-'}:${match.guestScore ?? '-'} '
-                '${DateFormat('dd.MM.yyyy HH:mm').format(match.matchDate)}'
-            .toLowerCase();
-
-    final searchTerms = searchText.toLowerCase().split(' ');
-
-    bool allTermsMatch = true;
-    for (final term in searchTerms) {
-      if (!matchInfo.contains(term)) {
-        allTermsMatch = false;
-        break;
-      }
-    }
-    // add match to list if true
-    return allTermsMatch;
-  }).toList();
-
-  return filteredTips;
+  }
 }

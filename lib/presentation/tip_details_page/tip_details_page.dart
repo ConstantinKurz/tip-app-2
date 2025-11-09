@@ -5,7 +5,7 @@ import 'package:flutter_web/application/matches/controller/matchescontroller_blo
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
-import 'package:flutter_web/presentation/tip_details_page/tip_swipe_view.dart';
+import 'package:flutter_web/presentation/tip_details_page/widgets/tip_swipe_view.dart';
 
 
 class TipDetailsPage extends StatelessWidget {

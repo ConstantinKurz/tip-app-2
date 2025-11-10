@@ -4,7 +4,7 @@ import 'package:flutter_web/application/matches/controller/matchescontroller_blo
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/modern_tip_card.dart';
+import 'package:flutter_web/presentation/tip_card/modern_tip_card.dart';
 import 'package:routemaster/routemaster.dart';
 
 class UpcomingTipSection extends StatelessWidget {

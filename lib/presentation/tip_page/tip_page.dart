@@ -1,67 +1,116 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/domain/entities/team.dart';
+import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_list.dart';
+import 'package:flutter_web/presentation/tip_card/modern_tip_card.dart';
+import 'package:routemaster/routemaster.dart';
+
 
 class TipPage extends StatelessWidget {
-  final String userId;
   final bool isAuthenticated;
 
   const TipPage({
     Key? key,
-    required this.userId,
     required this.isAuthenticated,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<TipControllerBloc, TipControllerState>(
-        builder: (context, tipState) {
-          return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
-            builder: (context, matchState) {
-              return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
-                builder: (context, teamState) {
-                  if (tipState is TipControllerFailure) {
-                    return Center(
-                      child: Text("Tip Failure: ${tipState.tipFailure}"),
-                    );
-                  }
-                  if (matchState is MatchesControllerFailure) {
-                    return Center(
-                      child: Text("Match Failure: ${matchState.matchFailure}"),
-                    );
-                  }
-                  if (teamState is TeamsControllerFailureState) {
-                    return Center(
-                      child: Text("Team Failure: ${teamState.teamFailure}"),
-                    );
-                  }
+      body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
+        builder: (context, authState) {
+          return BlocBuilder<TipControllerBloc, TipControllerState>(
+            builder: (context, tipState) {
+              return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
+                builder: (context, matchState) {
+                  return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
+                    builder: (context, teamState) {
+                      if (tipState is TipControllerFailure) {
+                        return Center(
+                          child: Text("Tip Failure: ${tipState.tipFailure}"),
+                        );
+                      }
+                      if (matchState is MatchesControllerFailure) {
+                        return Center(
+                          child: Text("Match Failure: ${matchState.matchFailure}"),
+                        );
+                      }
+                      if (teamState is TeamsControllerFailureState) {
+                        return Center(
+                          child: Text("Team Failure: ${teamState.teamFailure}"),
+                        );
+                      }
+                      if (authState is AuthControllerFailure) {
+                        return Center(
+                          child: Text("Auth Failure: ${authState.authFailure}"),
+                        );
+                      }
 
-                  if (tipState is TipControllerLoaded &&
-                      matchState is MatchesControllerLoaded &&
-                      teamState is TeamsControllerLoaded) {
-                    final userTips = tipState.tips[userId] ?? [];
+                      if (tipState is TipControllerLoaded &&
+                          matchState is MatchesControllerLoaded &&
+                          teamState is TeamsControllerLoaded &&
+                          authState is AuthControllerLoaded) {
+                        final tips = tipState.tips;
+                        final userId = authState.signedInUser!.id;
+                        final userTips = tips[userId] ?? [];
+                        final matches = matchState.matches;
+                        final teams = teamState.teams;
 
-                    return PageTemplate(
-                      isAuthenticated: isAuthenticated,
-                      child: TipList(
-                        userId: userId,
-                        tips: userTips,
-                        teams: teamState.teams,
-                        matches: matchState.matches,
-                        showSearchBar: true,
-                      ),
-                    );
-                  }
+                        return PageTemplate(
+                          isAuthenticated: isAuthenticated,
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 700),
+                              child: ListView.separated(
+                                padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                                itemCount: matches.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 24),
+                                itemBuilder: (context, index) {
+                                  final match = matches[index];
+                                  final tip = userTips.firstWhere(
+                                    (t) => t.matchId == match.id,
+                                    orElse: () => Tip.empty(userId).copyWith(matchId: match.id),
+                                  );
+                                  final homeTeam = teams.firstWhere(
+                                    (t) => t.id == match.homeTeamId,
+                                    orElse: () => Team.empty(),
+                                  );
+                                  final guestTeam = teams.firstWhere(
+                                    (t) => t.id == match.guestTeamId,
+                                    orElse: () => Team.empty(),
+                                  );
+                                  final tipId = tip.id.isNotEmpty ? tip.id : "${userId}_${match.id}";
+                                  return InkWell(
+                                    borderRadius: BorderRadius.circular(16),
+                                    onTap: () {
+                                      Routemaster.of(context).push('/tips-detail/$tipId');
+                                    },
+                                    child: TipCard(
+                                      userId: userId,
+                                      tip: tip,
+                                      homeTeam: homeTeam,
+                                      guestTeam: guestTeam,
+                                      match: match,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      }
 
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                      return Center(
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      );
+                    },
                   );
                 },
               );

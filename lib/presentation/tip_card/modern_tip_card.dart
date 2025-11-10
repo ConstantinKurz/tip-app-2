@@ -5,9 +5,9 @@ import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_card_header.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_card_input.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_card_match_info.dart';
+import 'package:flutter_web/presentation/tip_card/widgets/tip_card_header.dart';
+import 'package:flutter_web/presentation/tip_card/widgets/tip_card_input.dart';
+import 'package:flutter_web/presentation/tip_card/widgets/tip_card_match_info.dart';
 
 class TipCard extends StatefulWidget {
   final String userId;

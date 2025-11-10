@@ -92,7 +92,7 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.only(right: horizontalMargin),
             child: ElevatedButton.icon(
               onPressed: () {
-                Routemaster.of(context).push('/tips-detail');
+                Routemaster.of(context).push('/tips');
               },
               icon: const Icon(Icons.list_alt),
               label: const Text('Tipps', overflow: TextOverflow.ellipsis),

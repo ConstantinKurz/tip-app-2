@@ -35,11 +35,8 @@ class AppRoutes {
   static const signup = '/signup';
   static const admin = '/admin';
   static const home = '/home';
-  static const dev = '/dev';
-  static const eco = '/eco';
-  static const platform = '/dev/plattform/:id';
-  static const userTips = '/tips/:id';
-  static const userDetailTips = '/tips-detail';
+  static const userTips = '/tips';
+  static const userTipsDetail = '/tips-detail/:id';
   static const dashboard = '/dashboard';
 }
 
@@ -103,39 +100,26 @@ class MyApp extends StatelessWidget {
                 // 2) Eingeloggt → alle geschützten Seiten
                 if (isAuthenticated) {
                   return RouteMap(
-                    onUnknownRoute: (_) => const Redirect(AppRoutes.home),
-                    routes: {
-                      AppRoutes.home: (_) => const MaterialPage(
-                          child: HomePage(isAuthenticated: true)),
-                      AppRoutes.admin: (_) => MaterialPage(
-                            child: AdminPage(isAuthenticated: true),
-                          ),
-                      AppRoutes.userDetailTips: (_) => const MaterialPage(
-                            child: TipDetailsPage(isAuthenticated: true),
-                          ),
-                      AppRoutes.userTips: (info) {
-                        final id = info.pathParameters['id']!;
-                        return MaterialPage(
-                          child: TipPage(
-                            isAuthenticated: true,
-                            userId: id,
-                          ),
-                        );
-                      },
-                      AppRoutes.platform: (info) {
-                        final id = info.pathParameters['id']!;
-                        if (id == 'android') {
-                          return const MaterialPage(
-                              child: Placeholder(color: Colors.pink));
-                        }
-                        if (id == 'ios') {
-                          return const MaterialPage(
-                              child: Placeholder(color: Colors.teal));
-                        }
-                        return const Redirect(AppRoutes.dev);
-                      },
-                    },
-                  );
+                      onUnknownRoute: (_) => const Redirect(AppRoutes.home),
+                      routes: {
+                        AppRoutes.home: (_) => const MaterialPage(
+                            child: HomePage(isAuthenticated: true)),
+                        AppRoutes.admin: (_) => MaterialPage(
+                              child: AdminPage(isAuthenticated: true),
+                            ),
+                        AppRoutes.userTips: (_) => const MaterialPage(
+                              child: TipPage(isAuthenticated: true),
+                            ),
+                        AppRoutes.userTipsDetail: (info) {
+                          final tipId = info.pathParameters['id']!;
+                          return MaterialPage(
+                            child: TipDetailsPage(
+                              isAuthenticated: true,
+                              tipId: tipId,
+                            ),
+                          );
+                        },
+                      });
                 }
 
                 // 3) Nicht eingeloggt → Sign-In & Sign-Up

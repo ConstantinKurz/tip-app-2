@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/presentation/core/buttons/star_icon_button.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_score_field.dart';
+import 'package:flutter_web/presentation/tip_card/widgets/tip_score_field.dart';
 
 class TipCardTippingInput extends StatelessWidget {
   final TipFormState state;

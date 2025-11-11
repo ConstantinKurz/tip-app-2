@@ -27,7 +27,12 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+    // FÜGE DIESE BERECHNUNGEN WIEDER HINZU
     final screenWidth = MediaQuery.of(context).size.width;
+    const contentMaxWidth = 700.0;
+    final horizontalMargin = (screenWidth > contentMaxWidth)
+        ? (screenWidth - contentMaxWidth) / 2
+        : 16.0; // Ein Fallback-Padding für kleinere Bildschirme
 
     return BlocBuilder<AuthControllerBloc, AuthControllerState>(
       builder: (context, authState) {
@@ -39,24 +44,21 @@ class _HomePageState extends State<HomePage> {
         final userId = authState.signedInUser!.id;
         final users = authState.users;
 
-        final double contentWidth =
-            screenWidth > 600 ? screenWidth * 0.5 : screenWidth * 0.9;
-        final double horizontalMargin = (screenWidth - contentWidth) / 2;
-
         return Scaffold(
           body: PageTemplate(
             isAuthenticated: widget.isAuthenticated,
             child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      key: _rankingSectionKey,
-                      width: contentWidth,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: contentMaxWidth),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        key: _rankingSectionKey,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 16.0, horizontal: 16.0),
                         child: BlocProvider<RankingBloc>(
                           create: (_) => sl<RankingBloc>(),
                           child: BlocListener<RankingBloc, RankingState>(
@@ -73,23 +75,21 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      width: contentWidth,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 16.0, horizontal: 16.0),
                         child: UpcomingTipSection(
                           userId: userId,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
           floatingActionButton: Padding(
-            padding: EdgeInsets.only(right: horizontalMargin),
+            padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
             child: ElevatedButton.icon(
               onPressed: () {
                 Routemaster.of(context).push('/tips');
@@ -100,7 +100,7 @@ class _HomePageState extends State<HomePage> {
                 backgroundColor: themeData.colorScheme.onPrimary,
                 foregroundColor: themeData.colorScheme.primary,
                 textStyle: themeData.textTheme.bodyLarge,
-                minimumSize: Size(contentWidth * .2, contentWidth * .1 / 2),
+                minimumSize: const Size(140, 48),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 shape: RoundedRectangleBorder(

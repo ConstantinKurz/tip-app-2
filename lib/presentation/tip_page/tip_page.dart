@@ -10,7 +10,6 @@ import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/tip_card/modern_tip_card.dart';
 import 'package:routemaster/routemaster.dart';
 
-
 class TipPage extends StatelessWidget {
   final bool isAuthenticated;
 
@@ -21,6 +20,14 @@ class TipPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeData = Theme.of(context);
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    const contentMaxWidth = 700.0;
+    final horizontalMargin = (screenWidth > contentMaxWidth)
+        ? (screenWidth - contentMaxWidth) / 2
+        : 16.0;
+
     return Scaffold(
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         builder: (context, authState) {
@@ -37,7 +44,8 @@ class TipPage extends StatelessWidget {
                       }
                       if (matchState is MatchesControllerFailure) {
                         return Center(
-                          child: Text("Match Failure: ${matchState.matchFailure}"),
+                          child:
+                              Text("Match Failure: ${matchState.matchFailure}"),
                         );
                       }
                       if (teamState is TeamsControllerFailureState) {
@@ -67,14 +75,17 @@ class TipPage extends StatelessWidget {
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 700),
                               child: ListView.separated(
-                                padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 24.0, horizontal: 16.0),
                                 itemCount: matches.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 24),
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 24),
                                 itemBuilder: (context, index) {
                                   final match = matches[index];
                                   final tip = userTips.firstWhere(
                                     (t) => t.matchId == match.id,
-                                    orElse: () => Tip.empty(userId).copyWith(matchId: match.id),
+                                    orElse: () => Tip.empty(userId)
+                                        .copyWith(matchId: match.id),
                                   );
                                   final homeTeam = teams.firstWhere(
                                     (t) => t.id == match.homeTeamId,
@@ -84,11 +95,14 @@ class TipPage extends StatelessWidget {
                                     (t) => t.id == match.guestTeamId,
                                     orElse: () => Team.empty(),
                                   );
-                                  final tipId = tip.id.isNotEmpty ? tip.id : "${userId}_${match.id}";
+                                  final tipId = tip.id.isNotEmpty
+                                      ? tip.id
+                                      : "${userId}_${match.id}";
                                   return InkWell(
                                     borderRadius: BorderRadius.circular(16),
                                     onTap: () {
-                                      Routemaster.of(context).push('/tips-detail/$tipId');
+                                      Routemaster.of(context)
+                                          .push('/tips-detail/$tipId');
                                     },
                                     child: TipCard(
                                       userId: userId,
@@ -107,7 +121,8 @@ class TipPage extends StatelessWidget {
 
                       return Center(
                         child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       );
                     },
@@ -118,6 +133,28 @@ class TipPage extends StatelessWidget {
           );
         },
       ),
+      // PASSE DEN FLOATINGACTIONBUTTON AN
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
+        child: ElevatedButton.icon(
+          onPressed: () {
+            Routemaster.of(context).replace('/home');
+          },
+          icon: const Icon(Icons.home),
+          label: const Text('Home', overflow: TextOverflow.ellipsis),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: themeData.colorScheme.onPrimary,
+            foregroundColor: themeData.colorScheme.primary,
+            textStyle: themeData.textTheme.bodyLarge,
+            minimumSize: const Size(140, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

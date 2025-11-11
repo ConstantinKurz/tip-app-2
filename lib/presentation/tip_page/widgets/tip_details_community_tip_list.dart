@@ -10,7 +10,7 @@ class CommunityTipList extends StatelessWidget {
   final Map<String, List<Tip>> allTips;
   final CustomMatch match;
   final String currentUserId;
-  final List<Team> teams; // <-- neu als Parameter
+  final List<Team> teams;
 
   const CommunityTipList({
     Key? key,
@@ -18,7 +18,7 @@ class CommunityTipList extends StatelessWidget {
     required this.allTips,
     required this.match,
     required this.currentUserId,
-    required this.teams, // <-- neu
+    required this.teams,
   }) : super(key: key);
 
   @override
@@ -30,14 +30,6 @@ class CommunityTipList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 24, bottom: 8, left: 4),
-          child: Text(
-            'Tipps der Community',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ),
         Expanded(
           child: ListView.separated(
             itemCount: sortedUsers.length,
@@ -72,69 +64,38 @@ class CommunityTipList extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Rang
                       SizedBox(
                         width: 36,
                         child: Text('#${user.rank}',
                             style: theme.textTheme.bodyMedium),
                       ),
-                      // Name, Tipp und Zusatzinfos in einer Spalte
                       Expanded(
-                        flex: 3,
+                        flex: 1,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Name und Tipp in einer Zeile
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    user.name,
-                                    style: theme.textTheme.bodyMedium
-                                        ?.copyWith(fontWeight: FontWeight.w600),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  (tip!.tipHome != null && tip.tipGuest != null)
-                                      ? '${tip.tipHome} : ${tip.tipGuest}'
-                                      : '–',
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    fontFamily: 'monospace',
-                                    fontWeight: FontWeight.w600,
-                                    color: (tip!.tipHome != null &&
-                                            tip.tipGuest != null)
-                                        ? theme.colorScheme.onSurface
-                                        : theme.colorScheme.onSurface
-                                            .withOpacity(0.4),
-                                  ),
-                                ),
-                                if (tip!.joker)
-                                  const Padding(
-                                    padding: EdgeInsets.only(left: 4.0),
-                                    child: Icon(Icons.star,
-                                        color: Colors.amber, size: 16),
-                                  ),
-                              ],
+                            Text(
+                              user.name,
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
-                            // Champion, JokerSum, 6er in einer Zeile
                             Row(
                               children: [
-                                // Champion
                                 Tooltip(
-                                  message:
-                                      championTeam != null ? championTeam.name : 'None',
+                                  message: championTeam != null
+                                      ? championTeam.name
+                                      : 'None',
                                   child: SizedBox(
-                                    width: 28,
-                                    height: 28,
+                                    width: 20,
+                                    height: 20,
                                     child: championTeam != null
                                         ? ClipOval(
                                             child: Flag.fromString(
                                               championTeam.flagCode,
-                                              height: 28,
-                                              width: 28,
+                                              height: 20,
+                                              width: 20,
                                               fit: BoxFit.cover,
                                             ),
                                           )
@@ -145,7 +106,6 @@ class CommunityTipList extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                // JokerSum
                                 Row(
                                   children: [
                                     Text('${user.jokerSum}',
@@ -176,24 +136,63 @@ class CommunityTipList extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Punkte aus dem Tipp (rechts)
-                      SizedBox(
-                        width: 60,
-                        child: RichText(
-                          textAlign: TextAlign.end,
-                          text: TextSpan(
-                            style: theme.textTheme.displaySmall?.copyWith(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      Expanded(
+                        flex: 1,
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              TextSpan(text: '${user.score}'),
-                              TextSpan(
-                                text: ' pkt',
-                                style: theme.textTheme.bodySmall
-                                    ?.copyWith(fontSize: 12),
+                              if (tip!.joker)
+                                const Padding(
+                                  padding: EdgeInsets.only(right: 4.0),
+                                  child: Icon(Icons.star,
+                                      color: Colors.amber, size: 16),
+                                ),
+                              if (!tip.joker)
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                              Text(
+                                (tip.tipHome != null && tip.tipGuest != null)
+                                    ? '${tip.tipHome} : ${tip.tipGuest}'
+                                    : '–',
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.w600,
+                                  color: (tip.tipHome != null &&
+                                          tip.tipGuest != null)
+                                      ? theme.colorScheme.onSurface
+                                      : theme.colorScheme.onSurface
+                                          .withOpacity(0.4),
+                                ),
                               ),
+                              const SizedBox(
+                                width: 48,
+                              )
                             ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          width: 60,
+                          child: RichText(
+                            textAlign: TextAlign.end,
+                            text: TextSpan(
+                              style: theme.textTheme.displaySmall?.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              children: [
+                                TextSpan(text: '${tip.points ?? 0}'),
+                                TextSpan(
+                                  text: ' pkt',
+                                  style: theme.textTheme.bodySmall
+                                      ?.copyWith(fontSize: 12),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

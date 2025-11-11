@@ -82,39 +82,47 @@ class TipDetailsPage extends StatelessWidget {
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 700),
                               child: Stack(
-                                alignment: Alignment.topRight,
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 32.0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        TipCard(
-                                          userId: userId,
-                                          tip: tip,
-                                          homeTeam: homeTeam,
-                                          guestTeam: guestTeam,
-                                          match: match,
-                                        ),
-                                        const SizedBox(height: 32),
-                                        Expanded(
-                                          child: CommunityTipList(
-                                            users: authState.users,
-                                            allTips: tipState.tips,
+                                  SingleChildScrollView(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16.0, horizontal: 16.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const SizedBox(height: 48),
+                                          TipCard(
+                                            userId: userId,
+                                            tip: tip,
+                                            homeTeam: homeTeam,
+                                            guestTeam: guestTeam,
                                             match: match,
-                                            currentUserId: userId,
-                                            teams: teams,
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(height: 24),
+                                          SizedBox(
+                                            height: 400,
+                                            child: CommunityTipList(
+                                              users: authState.users,
+                                              allTips: tipState.tips,
+                                              match: match,
+                                              currentUserId: userId,
+                                              teams: teams,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.close),
-                                    tooltip: 'Schließen',
-                                    onPressed: () {
-                                      Routemaster.of(context).replace('/tips');
-                                    },
+                                  // ERSETZE Align DURCH Positioned
+                                  Positioned(
+                                    top: 16,
+                                    right:
+                                        16, // Fester Abstand zum Rand des Inhalts
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close),
+                                      onPressed: () => Routemaster.of(context)
+                                          .replace('/tips'),
+                                    ),
                                   ),
                                 ],
                               ),

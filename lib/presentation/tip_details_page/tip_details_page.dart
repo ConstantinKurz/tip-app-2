@@ -8,7 +8,7 @@ import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
-import 'package:flutter_web/presentation/tip_card/modern_tip_card.dart';
+import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:flutter_web/presentation/tip_page/widgets/tip_details_community_tip_list.dart';
 import 'package:routemaster/routemaster.dart';
 
@@ -113,11 +113,9 @@ class TipDetailsPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  // ERSETZE Align DURCH Positioned
                                   Positioned(
                                     top: 16,
-                                    right:
-                                        16, // Fester Abstand zum Rand des Inhalts
+                                    right: 16,
                                     child: IconButton(
                                       icon: const Icon(Icons.close),
                                       onPressed: () => Routemaster.of(context)

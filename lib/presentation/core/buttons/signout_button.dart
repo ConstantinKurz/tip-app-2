@@ -18,7 +18,7 @@ class SignOutButton extends StatelessWidget {
         callback: () {
           context.read<AuthBloc>().add(SignOutPressedEvent());
         },
-        backgroundColor: theme.colorScheme.primaryContainer,
+        backgroundColor: theme.colorScheme.primary,
         hoverColor: Colors.red,
         borderColor: Colors.red,
       ),

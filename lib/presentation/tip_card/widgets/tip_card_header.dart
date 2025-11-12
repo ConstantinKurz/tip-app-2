@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:intl/intl.dart';
 
 class TipCardHeader extends StatelessWidget {
   final CustomMatch match;
   final TipFormState state;
-  final bool isMatchFinished;
+  final Tip tip;
+
 
   const TipCardHeader({
     Key? key,
     required this.match,
     required this.state,
-    required this.isMatchFinished,
+    required this.tip,
   }) : super(key: key);
 
   @override
@@ -41,31 +43,25 @@ class TipCardHeader extends StatelessWidget {
         ),
         _buildProminentStatus(context, state, theme),
         Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                height: 24,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isMatchFinished
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
+          child: SizedBox(
+            width: 100,
+            child: RichText(
+              textAlign: TextAlign.end,
+              text: TextSpan(
+                style: theme.textTheme.displayMedium?.copyWith(
+                  fontSize: 24,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.bold,
                 ),
-                child: Center(
-                  child: Text(
-                    isMatchFinished ? 'Beendet' : 'Ausstehend',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: isMatchFinished ? Colors.green : Colors.orange,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
+                children: [
+                  TextSpan(text: '${tip.points ?? 0}'),
+                  TextSpan(
+                    text: ' pkt',
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ],

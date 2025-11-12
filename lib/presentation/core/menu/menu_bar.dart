@@ -14,11 +14,12 @@ class MyMenuBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+
     return Container(
       height: 66,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: themeData.colorScheme.primaryContainer,
+        color: themeData.colorScheme.primary,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -26,79 +27,63 @@ class MyMenuBar extends StatelessWidget {
           const HomeLogo(),
           MenuItem(text: "Admin", inDrawer: false, path: AdminPage.adminPagePath),
           const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.spa_outlined),
+            tooltip: "Seed Data",
+            onPressed: () async {
+              try {
+                await seedTestDataTwentyUsers();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("✅ Testdaten erfolgreich geladen")),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("❌ Fehler beim Laden: $e")),
+                );
+              }
+            },
+          ),
 
-          // Seed Data Button (nur wenn eingeloggt)
-          if (isAuthenticated) 
-            ElevatedButton.icon(
-              icon: const Icon(Icons.cloud_upload),
-              label: const Text("Seed Data"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: "Clear Data",
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text("⚠️ Achtung"),
+                  content: const Text(
+                      "Bist du sicher, dass du alle Daten außer deinem eigenen User löschen willst?"),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text("Abbrechen"),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text("Ja, löschen"),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
                 try {
-                  await seedTestDataTwentyUsers();
+                  await clearDatabaseExceptUser();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("✅ Testdaten erfolgreich geladen")),
+                    const SnackBar(content: Text("✅ Datenbank erfolgreich geleert")),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("❌ Fehler beim Laden: $e")),
+                    SnackBar(content: Text("❌ Fehler beim Löschen: $e")),
                   );
                 }
-              },
-            ),
-
-            const SizedBox(width: 8),
-          if (isAuthenticated)
-            // Clear Data Button (immer sichtbar)
-            ElevatedButton.icon(
-              icon: const Icon(Icons.delete_forever),
-              label: const Text("Clear Data"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    title: const Text("⚠️ Achtung"),
-                    content: const Text(
-                        "Bist du sicher, dass du alle Daten außer deinem eigenen User löschen willst?"),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text("Abbrechen"),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text("Ja, löschen"),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirm == true) {
-                  try {
-                    await clearDatabaseExceptUser();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("✅ Datenbank erfolgreich geleert")),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("❌ Fehler beim Löschen: $e")),
-                    );
-                  }
-                }
-              },
-            ),
-          
-
+              }
+            },
+          ),
           const SizedBox(width: 12),
 
           isAuthenticated

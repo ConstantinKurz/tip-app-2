@@ -7,7 +7,7 @@ import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
-import 'package:flutter_web/presentation/tip_card/modern_tip_card.dart';
+import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:routemaster/routemaster.dart';
 
 class TipPage extends StatelessWidget {

@@ -12,8 +12,7 @@ class MatchRepositoryImpl implements MatchRepository {
 
   @override
   Stream<Either<MatchFailure, List<CustomMatch>>> watchAllMatches() async* {
-    yield* matchesCollection.snapshots()
-        .map<Either<MatchFailure, List<CustomMatch>>>((snapshot) {
+    yield* matchesCollection.orderBy('matchDate').snapshots().map<Either<MatchFailure, List<CustomMatch>>>((snapshot) {
       try {
         final matches = snapshot.docs
             .map((doc) => MatchModel.fromFirestore(doc).toDomain())

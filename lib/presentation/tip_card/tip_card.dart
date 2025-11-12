@@ -51,12 +51,6 @@ class _TipCardState extends State<TipCard> {
     super.dispose();
   }
 
-  bool get _isMatchFinished {
-    final matchEndTime =
-        widget.match.matchDate.add(const Duration(minutes: 150));
-    return DateTime.now().isAfter(matchEndTime);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -118,7 +112,7 @@ class _TipCardState extends State<TipCard> {
                   TipCardHeader(
                     match: widget.match,
                     state: state,
-                    isMatchFinished: _isMatchFinished,
+                    tip: widget.tip,
                   ),
                   const SizedBox(height: 16),
                   TipCardMatchInfo(

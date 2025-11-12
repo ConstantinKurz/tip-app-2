@@ -17,7 +17,7 @@ class SignInButton extends StatelessWidget {
         callback: () {
           Routemaster.of(context).push('/sign-in');
         },
-        backgroundColor: theme.colorScheme.primaryContainer,
+        backgroundColor: theme.colorScheme.primary,
         hoverColor: theme.colorScheme.primary,
         borderColor: theme.colorScheme.primary,
       ),

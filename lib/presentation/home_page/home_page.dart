@@ -27,12 +27,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-    // FÜGE DIESE BERECHNUNGEN WIEDER HINZU
     final screenWidth = MediaQuery.of(context).size.width;
     const contentMaxWidth = 700.0;
     final horizontalMargin = (screenWidth > contentMaxWidth)
         ? (screenWidth - contentMaxWidth) / 2
-        : 16.0; // Ein Fallback-Padding für kleinere Bildschirme
+        : 16.0; 
 
     return BlocBuilder<AuthControllerBloc, AuthControllerState>(
       builder: (context, authState) {

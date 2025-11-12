@@ -4,19 +4,62 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:routemaster/routemaster.dart';
 
-class TipPage extends StatelessWidget {
+class TipPage extends StatefulWidget {
   final bool isAuthenticated;
 
   const TipPage({
     Key? key,
     required this.isAuthenticated,
   }) : super(key: key);
+
+  @override
+  State<TipPage> createState() => _TipPageState();
+}
+
+class _TipPageState extends State<TipPage> {
+  final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _matchKeys = {};
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToCurrentMatch(List<CustomMatch> matches) {
+    final now = DateTime.now();
+    int currentMatchIndex = -1;
+
+    for (int i = 0; i < matches.length; i++) {
+      final match = matches[i];
+      final matchEndTime = match.matchDate.add(const Duration(minutes: 150));
+
+      if (now.isBefore(matchEndTime)) {
+        currentMatchIndex = i;
+        break;
+      }
+    }
+
+    if (currentMatchIndex != -1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final context = _matchKeys[matches[currentMatchIndex].id]?.currentContext;
+        if (context != null) {
+          Scrollable.ensureVisible(
+            context,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,18 +106,20 @@ class TipPage extends StatelessWidget {
                           matchState is MatchesControllerLoaded &&
                           teamState is TeamsControllerLoaded &&
                           authState is AuthControllerLoaded) {
+                        final matches = matchState.matches;
                         final tips = tipState.tips;
                         final userId = authState.signedInUser!.id;
                         final userTips = tips[userId] ?? [];
-                        final matches = matchState.matches;
                         final teams = teamState.teams;
+                        _scrollToCurrentMatch(matches);
 
                         return PageTemplate(
-                          isAuthenticated: isAuthenticated,
+                          isAuthenticated: widget.isAuthenticated,
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 700),
                               child: ListView.separated(
+                                controller: _scrollController,
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 24.0, horizontal: 16.0),
                                 itemCount: matches.length,
@@ -82,6 +127,7 @@ class TipPage extends StatelessWidget {
                                     const SizedBox(height: 24),
                                 itemBuilder: (context, index) {
                                   final match = matches[index];
+                                  _matchKeys[match.id] = GlobalKey();
                                   final tip = userTips.firstWhere(
                                     (t) => t.matchId == match.id,
                                     orElse: () => Tip.empty(userId)
@@ -95,21 +141,25 @@ class TipPage extends StatelessWidget {
                                     (t) => t.id == match.guestTeamId,
                                     orElse: () => Team.empty(),
                                   );
-                                  final tipId = tip.id.isNotEmpty
-                                      ? tip.id
-                                      : "${userId}_${match.id}";
-                                  return InkWell(
-                                    borderRadius: BorderRadius.circular(16),
-                                    onTap: () {
-                                      Routemaster.of(context)
-                                          .push('/tips-detail/$tipId');
-                                    },
-                                    child: TipCard(
-                                      userId: userId,
-                                      tip: tip,
-                                      homeTeam: homeTeam,
-                                      guestTeam: guestTeam,
-                                      match: match,
+
+                                  return Container(
+                                    key: _matchKeys[match.id],
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(16),
+                                      onTap: () {
+                                        final tipId = tip.id.isNotEmpty
+                                            ? tip.id
+                                            : "${userId}_${match.id}";
+                                        Routemaster.of(context)
+                                            .push('/tips-detail/$tipId');
+                                      },
+                                      child: TipCard(
+                                        userId: userId,
+                                        tip: tip,
+                                        homeTeam: homeTeam,
+                                        guestTeam: guestTeam,
+                                        match: match,
+                                      ),
                                     ),
                                   );
                                 },
@@ -133,7 +183,6 @@ class TipPage extends StatelessWidget {
           );
         },
       ),
-      // PASSE DEN FLOATINGACTIONBUTTON AN
       floatingActionButton: Padding(
         padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
         child: ElevatedButton.icon(

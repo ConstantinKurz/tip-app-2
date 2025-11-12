@@ -76,25 +76,25 @@ class RankingUserList extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 24),
-                      Row(textBaseline: TextBaseline.alphabetic, children: [
-                        Text('${user.jokerSum}',
-                            style: textTheme.displayLarge?.copyWith(
-                              fontStyle: FontStyle.italic,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            )),
-                        const SizedBox(width: 4),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 4.0),
-                          child: Tooltip(
-                              message: 'Joker',
-                              child: Icon(Icons.star,
-                                  size: 20, color: Colors.amber)),
+                      SizedBox(
+                        width: 56,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              '${user.jokerSum}',
+                              style: textTheme.displayLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.star, size: 16, color: Colors.amber),
+                          ],
                         ),
-                      ]),
+                      ),
                       const SizedBox(width: 24),
                       SizedBox(
-                        width: 100,
+                        width: 56,
                         child: RichText(
                           textAlign: TextAlign.end,
                           text: TextSpan(
@@ -116,7 +116,7 @@ class RankingUserList extends StatelessWidget {
                       ),
                       const SizedBox(width: 24),
                       SizedBox(
-                        width: 100,
+                        width: 56,
                         child: RichText(
                           textAlign: TextAlign.end,
                           text: TextSpan(

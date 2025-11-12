@@ -56,9 +56,9 @@ Future<void> seedTestDataTwentyUsers() async {
       'email': u['email'],
       'name': u['name'],
       'rank': i + 1,
-      'score': 0,
-      'jokerSum': 0,
-      'mixer': 0,
+      'score': random.nextInt(50) + 10, // Zufällige Punkte zwischen 10-60
+      'jokerSum': random.nextInt(20),
+      'mixer': random.nextInt(10),
     });
   }
 
@@ -67,23 +67,76 @@ Future<void> seedTestDataTwentyUsers() async {
     await firestore.collection('teams').doc(team['id']! as String?).set(team);
   }
 
-  // --- 5. Matches generieren (jede Team-Kombi einmal) ---
+  // --- 5. Mix aus vergangenen, aktuellen und zukünftigen Matches ---
+  final now = DateTime.now();
   final matchesData = <Map<String, dynamic>>[];
   int matchCounter = 1;
-  for (int i = 0; i < _championPool.length; i++) {
-    for (int j = i + 1; j < _championPool.length; j++) {
+  
+  // Erste 15 Matches in der Vergangenheit (mit Ergebnissen)
+  for (int i = 0; i < _championPool.length && matchCounter <= 15; i++) {
+    for (int j = i + 1; j < _championPool.length && matchCounter <= 15; j++) {
       matchesData.add({
         'id': '${_championPool[i]['id']}vs${_championPool[j]['id']}_$matchCounter',
         'homeTeamId': _championPool[i]['id'],
         'guestTeamId': _championPool[j]['id'],
-        'matchDate': Timestamp.fromDate(
-            DateTime.now().add(Duration(days: matchCounter))),
-        'matchDay': random.nextInt(6),
-        'homeScore': null,
-        'guestScore': null,
+        'kickOff': Timestamp.fromDate(
+            now.subtract(Duration(days: 20 - matchCounter))),
+        'matchDay': (matchCounter - 1) ~/ 3 + 1,
+        'homeScore': random.nextInt(4),
+        'guestScore': random.nextInt(4),
       });
       matchCounter++;
     }
+  }
+  
+  // Ein aktuelles Spiel (vor 30 Min gestartet, noch kein Ergebnis)
+  if (matchCounter <= _championPool.length * (_championPool.length - 1) ~/ 2) {
+    final homeIndex = random.nextInt(_championPool.length);
+    var guestIndex = random.nextInt(_championPool.length);
+    while (guestIndex == homeIndex) {
+      guestIndex = random.nextInt(_championPool.length);
+    }
+    
+    matchesData.add({
+      'id': '${_championPool[homeIndex]['id']}vs${_championPool[guestIndex]['id']}_CURRENT',
+      'homeTeamId': _championPool[homeIndex]['id'],
+      'guestTeamId': _championPool[guestIndex]['id'],
+      'kickOff': Timestamp.fromDate(now.subtract(const Duration(minutes: 30))),
+      'matchDay': 6,
+      'homeScore': null,
+      'guestScore': null,
+    });
+    matchCounter++;
+  }
+  
+  // Restliche Matches in der Zukunft
+  final remainingPairs = <List<int>>[];
+  for (int i = 0; i < _championPool.length; i++) {
+    for (int j = i + 1; j < _championPool.length; j++) {
+      final existingMatch = matchesData.any((m) => 
+        (m['homeTeamId'] == _championPool[i]['id'] && m['guestTeamId'] == _championPool[j]['id']) ||
+        (m['homeTeamId'] == _championPool[j]['id'] && m['guestTeamId'] == _championPool[i]['id'])
+      );
+      if (!existingMatch) {
+        remainingPairs.add([i, j]);
+      }
+    }
+  }
+  
+  remainingPairs.shuffle();
+  for (int k = 0; k < remainingPairs.length; k++) {
+    final pair = remainingPairs[k];
+    matchesData.add({
+      'id': '${_championPool[pair[0]]['id']}vs${_championPool[pair[1]]['id']}_$matchCounter',
+      'homeTeamId': _championPool[pair[0]]['id'],
+      'guestTeamId': _championPool[pair[1]]['id'],
+      'matchDate': Timestamp.fromDate(
+          now.add(Duration(hours: 2 + k * 6))),
+      'matchDay': 7 + (k ~/ 5),
+      'homeScore': null,
+      'guestScore': null,
+    });
+    matchCounter++;
   }
 
   for (var match in matchesData) {
@@ -93,23 +146,30 @@ Future<void> seedTestDataTwentyUsers() async {
   // --- 6. Tipps für jeden User & jedes Match ---
   for (var match in matchesData) {
     final matchId = match['id']!;
+    final hasResult = match['homeScore'] != null;
+    
     for (var uid in userIds) {
       final tipId = '${uid}_$matchId';
-      await firestore.collection('tips').doc(tipId).set({
+      final tipData = {
         'id': tipId,
         'userId': uid,
         'matchId': matchId,
-        'joker': random.nextBool(),
-        'points': null,
-        'tipDate': Timestamp.now(),
-        'tipGuest': random.nextInt(5),
-        'tipHome': random.nextInt(5),
-      });
+        'joker': random.nextBool() && random.nextDouble() < 0.1, // 10% Chance auf Joker
+        'points': hasResult ? random.nextInt(6) + 1 : null, // Punkte nur für vergangene Spiele
+        'tipDate': hasResult 
+            ? Timestamp.fromDate((match['kickOff'] as Timestamp).toDate().subtract(Duration(hours: 1)))
+            : Timestamp.now(),
+        'tipGuest': random.nextInt(4),
+        'tipHome': random.nextInt(4),
+      };
+      await firestore.collection('tips').doc(tipId).set(tipData);
     }
   }
 
-  print(
-      '✅ 20 User, ${_championPool.length} Teams, ${matchesData.length} Spiele und Tipps angelegt.');
+  print('✅ 20 User, ${_championPool.length} Teams, ${matchesData.length} Spiele und Tipps angelegt.');
+  print('📊 Vergangene Spiele: ${matchesData.where((m) => m['homeScore'] != null).length}');
+  print('🎯 Aktuelles Spiel: 1 (vor 30 Min gestartet)');
+  print('🔮 Zukünftige Spiele: ${matchesData.where((m) => m['homeScore'] == null && m['id'] != matchesData.firstWhere((m) => m['id'].toString().contains('CURRENT'))['id']).length}');
 }
 
 // --- Pool an Teams (mindestens 8–10 für viele Matches) ---

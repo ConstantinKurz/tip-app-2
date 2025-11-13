@@ -7,9 +7,11 @@ import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
+
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:routemaster/routemaster.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class TipPage extends StatefulWidget {
   final bool isAuthenticated;
@@ -24,40 +26,58 @@ class TipPage extends StatefulWidget {
 }
 
 class _TipPageState extends State<TipPage> {
-  final ScrollController _scrollController = ScrollController();
-  final Map<String, GlobalKey> _matchKeys = {};
+  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
+  bool _scrolled = false;
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
   }
 
   void _scrollToCurrentMatch(List<CustomMatch> matches) {
+    if (_scrolled) {
+      return;
+    }
+
     final now = DateTime.now();
     int currentMatchIndex = -1;
+
+    print("Aktuelle Zeit (now): $now");
+    print("Durchsuche ${matches.length} Spiele...");
 
     for (int i = 0; i < matches.length; i++) {
       final match = matches[i];
       final matchEndTime = match.matchDate.add(const Duration(minutes: 150));
+      final isFutureMatch = now.isBefore(matchEndTime);
 
-      if (now.isBefore(matchEndTime)) {
+      if (i < 5) {
+        print(
+            "  - Spiel $i (${match.id}): Endzeit: $matchEndTime. Ist zukünftig? $isFutureMatch");
+      }
+
+      if (isFutureMatch) {
         currentMatchIndex = i;
         break;
       }
     }
-
     if (currentMatchIndex != -1) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final context = _matchKeys[matches[currentMatchIndex].id]?.currentContext;
-        if (context != null) {
-          Scrollable.ensureVisible(
-            context,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        }
-      });
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          if (_itemScrollController.isAttached) {
+            _itemScrollController.scrollTo(
+              index: currentMatchIndex,
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeInOutCubic,
+              alignment: 0.3,
+            );
+            setState(() {
+              _scrolled = true;
+            });
+          }
+        },
+      );
     }
   }
 
@@ -107,10 +127,11 @@ class _TipPageState extends State<TipPage> {
                           teamState is TeamsControllerLoaded &&
                           authState is AuthControllerLoaded) {
                         final matches = matchState.matches;
+                        final teams = teamState.teams;
                         final tips = tipState.tips;
                         final userId = authState.signedInUser!.id;
                         final userTips = tips[userId] ?? [];
-                        final teams = teamState.teams;
+
                         _scrollToCurrentMatch(matches);
 
                         return PageTemplate(
@@ -118,8 +139,9 @@ class _TipPageState extends State<TipPage> {
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 700),
-                              child: ListView.separated(
-                                controller: _scrollController,
+                              child: ScrollablePositionedList.separated(
+                                itemScrollController: _itemScrollController,
+                                itemPositionsListener: _itemPositionsListener,
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 24.0, horizontal: 16.0),
                                 itemCount: matches.length,
@@ -127,7 +149,6 @@ class _TipPageState extends State<TipPage> {
                                     const SizedBox(height: 24),
                                 itemBuilder: (context, index) {
                                   final match = matches[index];
-                                  _matchKeys[match.id] = GlobalKey();
                                   final tip = userTips.firstWhere(
                                     (t) => t.matchId == match.id,
                                     orElse: () => Tip.empty(userId)
@@ -141,25 +162,21 @@ class _TipPageState extends State<TipPage> {
                                     (t) => t.id == match.guestTeamId,
                                     orElse: () => Team.empty(),
                                   );
-
-                                  return Container(
-                                    key: _matchKeys[match.id],
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(16),
-                                      onTap: () {
-                                        final tipId = tip.id.isNotEmpty
-                                            ? tip.id
-                                            : "${userId}_${match.id}";
-                                        Routemaster.of(context)
-                                            .push('/tips-detail/$tipId');
-                                      },
-                                      child: TipCard(
-                                        userId: userId,
-                                        tip: tip,
-                                        homeTeam: homeTeam,
-                                        guestTeam: guestTeam,
-                                        match: match,
-                                      ),
+                                  return InkWell(
+                                    borderRadius: BorderRadius.circular(16),
+                                    onTap: () {
+                                      final tipId = tip.id.isNotEmpty
+                                          ? tip.id
+                                          : "${userId}_${match.id}";
+                                      Routemaster.of(context)
+                                          .push('/tips-detail/$tipId');
+                                    },
+                                    child: TipCard(
+                                      userId: userId,
+                                      tip: tip,
+                                      homeTeam: homeTeam,
+                                      guestTeam: guestTeam,
+                                      match: match,
                                     ),
                                   );
                                 },

@@ -4,6 +4,7 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
@@ -49,7 +50,7 @@ class _TipPageState extends State<TipPage> {
 
     for (int i = 0; i < matches.length; i++) {
       final match = matches[i];
-      final matchEndTime = match.matchDate.add(const Duration(minutes: 150));
+      final matchEndTime = match.matchDate.add(const Duration(minutes: matchDuration));
       final isFutureMatch = now.isBefore(matchEndTime);
 
       if (i < 5) {

@@ -9,3 +9,5 @@ const Color textPrimaryDark = Colors.white;
 const Color background = Colors.white;
 
 const String fontFamily = "Google Sans";
+
+const int matchDuration = 150;

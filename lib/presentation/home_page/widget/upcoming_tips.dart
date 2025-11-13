@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:routemaster/routemaster.dart';
@@ -33,16 +34,15 @@ class UpcomingTipSection extends StatelessWidget {
                   final teams = teamState.teams;
                   final tips = tipState.tips;
 
-                  // Die 3 Spiele, die zeitlich am nächsten zu "jetzt" sind
+                  // Die 3 nächsten anstehenden Spiele finden
                   final now = DateTime.now();
-                  final sortedMatches = matches.toList()
-                    ..sort((a, b) {
-                      final diffA = (a.matchDate.difference(now)).abs();
-                      final diffB = (b.matchDate.difference(now)).abs();
-                      return diffA.compareTo(diffB);
-                    });
+                  final upcomingMatches = matches.where((match) {
+                    final matchEndTime = match.matchDate.add(const Duration(minutes: matchDuration));
+                    return matchEndTime.isAfter(now);
+                  }).toList();
                   
-                  final closestMatches = sortedMatches.take(3).toList();
+                  upcomingMatches.sort((a, b) => a.matchDate.compareTo(b.matchDate));
+                  final closestMatches = upcomingMatches.take(3).toList();
 
                   if (closestMatches.isEmpty) {
                     return _buildEmptyState(context, themeData);

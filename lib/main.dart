@@ -16,6 +16,7 @@ import 'package:flutter_web/presentation/signup/signup_page.dart';
 import 'package:flutter_web/presentation/tip_details_page/tip_details_page.dart';
 import 'package:flutter_web/presentation/tip_page/tip_page.dart';
 import 'package:flutter_web/theme.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:routemaster/routemaster.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -25,6 +26,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await initializeDateFormatting('de_DE', null);
+
   setPathUrlStrategy();
   await di.init();
   runApp(const MyApp());

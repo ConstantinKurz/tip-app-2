@@ -66,28 +66,24 @@ class TipCardTippingInput extends StatelessWidget {
                       height: 56,
                       child: StarIconButton(
                         isStar: state.joker ?? false,
-                        onTap:
-                            (state.tipHome != null && state.tipGuest != null) ||
-                                    (state.joker ?? false)
-                                ? () {
-                                    context.read<TipFormBloc>().add(
-                                          TipFormFieldUpdatedEvent(
-                                            matchId: matchId,
-                                            userId: userId,
-                                            tipHome: state.tipHome,
-                                            tipGuest: state.tipGuest,
-                                            joker: !(state.joker ?? false),
-                                          ),
-                                        );
-                                  }
-                                : () {},
-                        tooltipMessage:
-                            (state.tipHome != null && state.tipGuest != null) ||
-                                    (state.joker ?? false)
-                                ? ((state.joker ?? false)
-                                    ? "Joker entfernen"
-                                    : "Joker setzen")
-                                : "Bitte erst einen gültigen Tipp abgeben",
+                        onTap: (state.tipHome != null && state.tipGuest != null) ||
+                                (state.joker ?? false)
+                            ? () {
+                                context.read<TipFormBloc>().add(
+                                  TipFormFieldUpdatedEvent(
+                                    matchId: matchId,
+                                    userId: userId,
+                                    tipHome: state.tipHome,
+                                    tipGuest: state.tipGuest,
+                                    joker: !(state.joker ?? false),
+                                  ),
+                                );
+                              }
+                            : () {},
+                        tooltipMessage: (state.tipHome != null && state.tipGuest != null) ||
+                                (state.joker ?? false)
+                            ? ((state.joker ?? false) ? "Joker entfernen" : "Joker setzen")
+                            : "Bitte erst einen gültigen Tipp abgeben",
                       ),
                     ),
                   ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
@@ -77,7 +78,18 @@ class _TipCardState extends State<TipCard> {
                 _homeController.text = state.tipHome?.toString() ?? '';
                 _guestController.text = state.tipGuest?.toString() ?? '';
               },
-              (_) {},
+              (_) {
+                // Nach erfolgreichem Update: TipFormBloc neu initialisieren
+                final tipControllerState = context.read<TipControllerBloc>().state;
+                if (tipControllerState is TipControllerLoaded) {
+                  final userTips = tipControllerState.tips[widget.userId] ?? [];
+                  final updatedTip = userTips.firstWhere(
+                    (t) => t.matchId == widget.match.id,
+                    orElse: () => Tip.empty(widget.userId).copyWith(matchId: widget.match.id),
+                  );
+                  context.read<TipFormBloc>().add(TipFormInitializedEvent(tip: updatedTip));
+                }
+              },
             ),
           );
         },

@@ -132,6 +132,7 @@ class TipCardHeader extends StatelessWidget {
               color: theme.colorScheme.onSurface.withOpacity(0.6),
             ),
             const SizedBox(width: 6),
+            //TODO hier lieber info ob tip valide ist oder nicht
             Text(
               'Bearbeiten',
               style: theme.textTheme.bodySmall?.copyWith(

@@ -21,11 +21,8 @@ class AuthControllerBloc
       emit(AuthControllerLoading());
       await _usersStreamSub?.cancel();
       _usersStreamSub = authRepository.watchAllUsers().listen((failureOrUsers) {
-        print("Stream received value (user)!");
         add(AuthUpdatedEvent(failureOrUsers: failureOrUsers));
       }, onError: (error) {
-        print(
-            '!!! Firestore stream error detected in AuthControllerBloc: $error');
       });
     });
 

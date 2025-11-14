@@ -4,7 +4,6 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
-import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
@@ -30,56 +29,20 @@ class _TipPageState extends State<TipPage> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
-  bool _scrolled = false;
+  
+  int? _initialScrollIndex;
+
+  int _getCurrentMatchIndex(List<CustomMatch> matches) {
+    final now = DateTime.now();
+    return matches.indexWhere((match) {
+      final matchEndTime = match.matchDate.add(const Duration(minutes: 150));
+      return now.isBefore(matchEndTime);
+    });
+  }
 
   @override
   void dispose() {
     super.dispose();
-  }
-
-  void _scrollToCurrentMatch(List<CustomMatch> matches) {
-    if (_scrolled) {
-      return;
-    }
-
-    final now = DateTime.now();
-    int currentMatchIndex = -1;
-
-    print("Aktuelle Zeit (now): $now");
-    print("Durchsuche ${matches.length} Spiele...");
-
-    for (int i = 0; i < matches.length; i++) {
-      final match = matches[i];
-      final matchEndTime = match.matchDate.add(const Duration(minutes: matchDuration));
-      final isFutureMatch = now.isBefore(matchEndTime);
-
-      if (i < 5) {
-        print(
-            "  - Spiel $i (${match.id}): Endzeit: $matchEndTime. Ist zukünftig? $isFutureMatch");
-      }
-
-      if (isFutureMatch) {
-        currentMatchIndex = i;
-        break;
-      }
-    }
-    if (currentMatchIndex != -1) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) {
-          if (_itemScrollController.isAttached) {
-            _itemScrollController.scrollTo(
-              index: currentMatchIndex,
-              duration: const Duration(milliseconds: 800),
-              curve: Curves.easeInOutCubic,
-              alignment: 0.3,
-            );
-            setState(() {
-              _scrolled = true;
-            });
-          }
-        },
-      );
-    }
   }
 
   @override
@@ -133,7 +96,11 @@ class _TipPageState extends State<TipPage> {
                         final userId = authState.signedInUser!.id;
                         final userTips = tips[userId] ?? [];
 
-                        _scrollToCurrentMatch(matches);
+                        // Berechne die initiale Position nur einmal
+                        if (_initialScrollIndex == null) {
+                          _initialScrollIndex = _getCurrentMatchIndex(matches);
+                          if (_initialScrollIndex == -1) _initialScrollIndex = 0;
+                        }
 
                         return PageTemplate(
                           isAuthenticated: widget.isAuthenticated,
@@ -143,6 +110,7 @@ class _TipPageState extends State<TipPage> {
                               child: ScrollablePositionedList.separated(
                                 itemScrollController: _itemScrollController,
                                 itemPositionsListener: _itemPositionsListener,
+                                initialScrollIndex: _initialScrollIndex!,
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 24.0, horizontal: 16.0),
                                 itemCount: matches.length,

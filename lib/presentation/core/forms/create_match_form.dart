@@ -53,9 +53,6 @@ class CreateMatchForm extends StatelessWidget {
         );
       },
       builder: (context, state) {
-        print("CreateMatchForm - Teams: ${teams}");
-        print("CreateMatchForm - state.homeTeamId: ${state.homeTeamId}");
-        print("CreateMatchForm - state.guestTeamId: ${state.guestTeamId}");
         return Form(
           autovalidateMode: state.showValidationMessages
               ? AutovalidateMode.always

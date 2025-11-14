@@ -63,8 +63,11 @@ class TipDetailsPage extends StatelessWidget {
                           (t) => t.id == tipId,
                           orElse: () => Tip.empty(userId),
                         );
+                        //If tip does not exist matchId within tip is still empty. Get it from tipId.
+                        final splitIndex = tipId.indexOf('_');
+                        final matchId = tipId.substring(splitIndex + 1);
                         final match = matchState.matches.firstWhere(
-                          (m) => m.id == tip.matchId,
+                          (m) => m.id == matchId,
                           orElse: () => CustomMatch.empty(),
                         );
                         final homeTeam = teamState.teams.firstWhere(

@@ -55,6 +55,7 @@ class TipDetailsPage extends StatelessWidget {
                           matchState is MatchesControllerLoaded &&
                           teamState is TeamsControllerLoaded &&
                           authState is AuthControllerLoaded) {
+                        final from = RouteData.of(context).queryParameters['from'];
                         final teams = teamState.teams;
                         final tips = tipState.tips;
                         final userId = authState.signedInUser!.id;
@@ -87,33 +88,29 @@ class TipDetailsPage extends StatelessWidget {
                               child: Stack(
                                 children: [
                                   SingleChildScrollView(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16.0, horizontal: 16.0),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const SizedBox(height: 48),
-                                          TipCard(
-                                            userId: userId,
-                                            tip: tip,
-                                            homeTeam: homeTeam,
-                                            guestTeam: guestTeam,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const SizedBox(height: 48),
+                                        TipCard(
+                                          userId: userId,
+                                          tip: tip,
+                                          homeTeam: homeTeam,
+                                          guestTeam: guestTeam,
+                                          match: match,
+                                        ),
+                                        const SizedBox(height: 24),
+                                        SizedBox(
+                                          height: 400,
+                                          child: CommunityTipList(
+                                            users: authState.users,
+                                            allTips: tipState.tips,
                                             match: match,
+                                            currentUserId: userId,
+                                            teams: teams,
                                           ),
-                                          const SizedBox(height: 24),
-                                          SizedBox(
-                                            height: 400,
-                                            child: CommunityTipList(
-                                              users: authState.users,
-                                              allTips: tipState.tips,
-                                              match: match,
-                                              currentUserId: userId,
-                                              teams: teams,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   Positioned(
@@ -121,8 +118,13 @@ class TipDetailsPage extends StatelessWidget {
                                     right: 16,
                                     child: IconButton(
                                       icon: const Icon(Icons.close),
-                                      onPressed: () => Routemaster.of(context)
-                                          .replace('/tips'),
+                                      onPressed: () {
+                                        if (from == 'tip') {
+                                          Routemaster.of(context).replace('/tips');
+                                        } else {
+                                          Routemaster.of(context).replace('/home');
+                                        }
+                                      },
                                     ),
                                   ),
                                 ],

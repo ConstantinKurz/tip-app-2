@@ -92,12 +92,21 @@ class UpcomingTipSection extends StatelessWidget {
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16.0),
-                          child: TipCard(
-                            userId: userId,
-                            match: match,
-                            homeTeam: homeTeam,
-                            guestTeam: guestTeam,
-                            tip: tip,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () {
+                              final tipId = tip.id.isNotEmpty
+                                  ? tip.id
+                                  : "${userId}_${match.id}";
+                              Routemaster.of(context).push('/tips-detail/$tipId?from=home');
+                            },
+                            child: TipCard(
+                              userId: userId,
+                              tip: tip,
+                              homeTeam: homeTeam,
+                              guestTeam: guestTeam,
+                              match: match,
+                            ),
                           ),
                         );
                       }).toList(),

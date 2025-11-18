@@ -2,30 +2,37 @@ import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class RankingUserList extends StatelessWidget {
   final List<AppUser> users;
   final List<Team> teams;
   final String currentUser;
-  const RankingUserList(
-      {required this.users,
-      required this.teams,
-      required this.currentUser,
-      Key? key})
-      : super(key: key);
+
+  const RankingUserList({
+    required this.users,
+    required this.teams,
+    required this.currentUser,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    // Index des aktuellen Users finden
+    final currentUserIndex = users.indexWhere((user) => user.id == currentUser);
+    final initialScrollIndex = currentUserIndex != -1 ? currentUserIndex : 0;
+
+    return ScrollablePositionedList.builder(
+      initialScrollIndex: initialScrollIndex,
       itemCount: users.length,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final user = users[index];
         final isCurrentUser = currentUser == user.id;
-        final champion =
-            teams.where((element) => element.id == user.championId).firstOrNull;
+        final champion = teams.where((element) => element.id == user.championId).firstOrNull;
         final textTheme = Theme.of(context).textTheme;
+
         return Container(
           decoration: isCurrentUser
               ? BoxDecoration(
@@ -46,8 +53,7 @@ class RankingUserList extends StatelessWidget {
                   flex: 2,
                   child: Text(
                     user.name,
-                    style: textTheme.bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
                 Expanded(
@@ -69,73 +75,54 @@ class RankingUserList extends StatelessWidget {
                                     fit: BoxFit.cover,
                                   ),
                                 )
-                              : const ClipOval(
-                                  child: Icon(Icons.close,
-                                      size: 20, color: Colors.grey),
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.grey[300],
+                                  ),
+                                  child: const Icon(
+                                    Icons.help_outline,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                         ),
                       ),
-                      const SizedBox(width: 24),
+                      const SizedBox(width: 8),
                       SizedBox(
-                        width: 56,
+                        width: 48,
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Text(
-                              '${user.jokerSum}',
-                              style: textTheme.displayLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.star, size: 16, color: Colors.amber),
+                            Text('${user.jokerSum}',
+                                style: textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                )),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.star, size: 14, color: Colors.amber),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 24),
+                      const SizedBox(width: 8),
+                      Row(
+                        children: [
+                          Text('${user.sixer}',
+                              style: textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              )),
+                          Text(' 6er', style: textTheme.bodySmall),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
                       SizedBox(
-                        width: 56,
-                        child: RichText(
-                          textAlign: TextAlign.end,
-                          text: TextSpan(
-                            style: textTheme.displayMedium?.copyWith(
-                              fontSize: 24,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            children: [
-                              TextSpan(text: '${user.sixer}'),
-                              TextSpan(
-                                text: ' 6er',
-                                style:
-                                    textTheme.bodySmall?.copyWith(fontSize: 14),
-                              ),
-                            ],
+                        width: 60,
+                        child: Text(
+                          '${user.score}',
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
+                          textAlign: TextAlign.end,
                         ),
                       ),
-                      const SizedBox(width: 24),
-                      SizedBox(
-                        width: 56,
-                        child: RichText(
-                          textAlign: TextAlign.end,
-                          text: TextSpan(
-                            style: textTheme.displayMedium?.copyWith(
-                              fontSize: 24,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            children: [
-                              TextSpan(text: '${user.score}'),
-                              TextSpan(
-                                text: ' pkt',
-                                style:
-                                    textTheme.bodySmall?.copyWith(fontSize: 14),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
                     ],
                   ),
                 ),

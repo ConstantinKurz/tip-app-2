@@ -113,7 +113,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers() async* {
-    yield* usersCollection.snapshots()
+    yield* usersCollection.orderBy('rank').snapshots()
         .map<Either<AuthFailure, List<AppUser>>>((snapshot) {
       try {
         final users = snapshot.docs

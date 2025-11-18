@@ -4,6 +4,7 @@ import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/entities/user.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class CommunityTipList extends StatelessWidget {
   final List<AppUser> users;
@@ -24,21 +25,22 @@ class CommunityTipList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final sortedUsers = users.toList()
-      ..sort((a, b) => a.rank.compareTo(b.rank));
+
+    final currentUserIndex = users.indexWhere((u) => u.id == currentUserId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: ListView.separated(
-            itemCount: sortedUsers.length,
+          child: ScrollablePositionedList.separated(
+            initialScrollIndex: currentUserIndex >= 0 ? currentUserIndex : 0,
+            itemCount: users.length,
             separatorBuilder: (_, __) => Divider(
               color: theme.dividerColor.withOpacity(0.05),
               height: 1,
             ),
             itemBuilder: (context, index) {
-              final user = sortedUsers[index];
+              final user = users[index];
               final tip = allTips[user.id]?.firstWhere(
                 (t) => t.matchId == match.id,
                 orElse: () => Tip.empty(user.id),
@@ -99,26 +101,35 @@ class CommunityTipList extends StatelessWidget {
                                               fit: BoxFit.cover,
                                             ),
                                           )
-                                        : const ClipOval(
-                                            child: Icon(Icons.close,
-                                                size: 20, color: Colors.grey),
+                                        : Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.grey[300],
+                                            ),
+                                            child: const Icon(
+                                              Icons.help_outline,
+                                              size: 16,
+                                              color: Colors.grey,
+                                            ),
                                           ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Row(
-                                  children: [
-                                    Text('${user.jokerSum}',
-                                        style:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        )),
-                                    const SizedBox(width: 2),
-                                    const Icon(Icons.star,
-                                        size: 14, color: Colors.amber),
-                                  ],
+                                SizedBox(
+                                  width: 32,
+                                  child: Row(
+                                    children: [
+                                      Text('${user.jokerSum}',
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          )),
+                                      const SizedBox(width: 2),
+                                      const Icon(Icons.star,
+                                          size: 14, color: Colors.amber),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
                                 // 6er
                                 Row(
                                   children: [
@@ -130,6 +141,25 @@ class CommunityTipList extends StatelessWidget {
                                     Text(' 6er',
                                         style: theme.textTheme.bodySmall),
                                   ],
+                                ),
+                                const SizedBox(width: 8),
+                                Tooltip(
+                                  message: "Gesamtpunkte",
+                                  child: SizedBox(
+                                    width: 96,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text('${user.score}',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            )),
+                                        Text(' Pkt',
+                                            style: theme.textTheme.bodySmall),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),

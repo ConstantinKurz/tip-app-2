@@ -118,6 +118,7 @@ class _TipPageState extends State<TipPage> {
                                     const SizedBox(height: 24),
                                 itemBuilder: (context, index) {
                                   final match = matches[index];
+                                  //TODO: Auslagern der Schleifen unten.
                                   final tip = userTips.firstWhere(
                                     (t) => t.matchId == match.id,
                                     orElse: () => Tip.empty(userId)
@@ -138,7 +139,7 @@ class _TipPageState extends State<TipPage> {
                                           ? tip.id
                                           : "${userId}_${match.id}";
                                       Routemaster.of(context)
-                                          .push('/tips-detail/$tipId');
+                                          .push('/tips-detail/$tipId?from=tip');
                                     },
                                     child: TipCard(
                                       userId: userId,

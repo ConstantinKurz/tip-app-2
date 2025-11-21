@@ -81,7 +81,7 @@ Future<void> seedTestDataTwentyUsers() async {
         'guestTeamId': _championPool[j]['id'],
         'kickOff': Timestamp.fromDate(
             now.subtract(Duration(days: 20 - matchCounter))),
-        'matchDay': (matchCounter - 1) ~/ 3 + 1,
+        'matchDay': random.nextInt(7),
         'homeScore': random.nextInt(4),
         'guestScore': random.nextInt(4),
       });
@@ -154,7 +154,7 @@ Future<void> seedTestDataTwentyUsers() async {
         'id': tipId,
         'userId': uid,
         'matchId': matchId,
-        'joker': random.nextBool() && random.nextDouble() < 0.1, // 10% Chance auf Joker
+        'joker': random.nextBool() && random.nextDouble() < 0.05, // 5% Chance auf Joker
         'points': hasResult ? random.nextInt(6) + 1 : null, // Punkte nur für vergangene Spiele
         'tipDate': hasResult 
             ? Timestamp.fromDate((match['kickOff'] as Timestamp).toDate().subtract(Duration(hours: 1)))

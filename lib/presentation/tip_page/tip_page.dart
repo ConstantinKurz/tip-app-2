@@ -7,7 +7,6 @@ import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
-
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:routemaster/routemaster.dart';
@@ -15,10 +14,12 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class TipPage extends StatefulWidget {
   final bool isAuthenticated;
+  final int? initialScrollIndex;
 
   const TipPage({
     Key? key,
     required this.isAuthenticated,
+    this.initialScrollIndex,
   }) : super(key: key);
 
   @override
@@ -29,8 +30,8 @@ class _TipPageState extends State<TipPage> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
-  
-  int? _initialScrollIndex;
+
+  int? _calculatedScrollIndex;
 
   int _getCurrentMatchIndex(List<CustomMatch> matches) {
     final now = DateTime.now();
@@ -38,11 +39,6 @@ class _TipPageState extends State<TipPage> {
       final matchEndTime = match.matchDate.add(const Duration(minutes: 150));
       return now.isBefore(matchEndTime);
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -96,11 +92,22 @@ class _TipPageState extends State<TipPage> {
                         final userId = authState.signedInUser!.id;
                         final userTips = tips[userId] ?? [];
 
-                        // Berechne die initiale Position nur einmal
-                        if (_initialScrollIndex == null) {
-                          _initialScrollIndex = _getCurrentMatchIndex(matches);
-                          if (_initialScrollIndex == -1) _initialScrollIndex = 0;
+                        // Bestimme den Scroll-Index:
+                        // 1. Aus URL-Parameter (höchste Priorität)
+                        // 2. Aus berechnetem aktuellem Spiel
+                        if (_calculatedScrollIndex == null) {
+                          _calculatedScrollIndex = widget.initialScrollIndex ?? 
+                              _getCurrentMatchIndex(matches);
+                          
+                          // Bereinige URL nach dem ersten Laden
+                          if (widget.initialScrollIndex != null) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              Routemaster.of(context).replace('/tips');
+                            });
+                          }
                         }
+
+                        final scrollIndex = _calculatedScrollIndex!.clamp(0, matches.length - 1);
 
                         return PageTemplate(
                           isAuthenticated: widget.isAuthenticated,
@@ -110,7 +117,7 @@ class _TipPageState extends State<TipPage> {
                               child: ScrollablePositionedList.separated(
                                 itemScrollController: _itemScrollController,
                                 itemPositionsListener: _itemPositionsListener,
-                                initialScrollIndex: _initialScrollIndex!,
+                                initialScrollIndex: scrollIndex,
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 24.0, horizontal: 16.0),
                                 itemCount: matches.length,
@@ -118,7 +125,6 @@ class _TipPageState extends State<TipPage> {
                                     const SizedBox(height: 24),
                                 itemBuilder: (context, index) {
                                   final match = matches[index];
-                                  //TODO: Auslagern der Schleifen unten.
                                   final tip = userTips.firstWhere(
                                     (t) => t.matchId == match.id,
                                     orElse: () => Tip.empty(userId)
@@ -138,8 +144,10 @@ class _TipPageState extends State<TipPage> {
                                       final tipId = tip.id.isNotEmpty
                                           ? tip.id
                                           : "${userId}_${match.id}";
-                                      Routemaster.of(context)
-                                          .push('/tips-detail/$tipId?from=tip');
+                                      
+                                      // Navigiere mit dem returnIndex-Parameter
+                                      Routemaster.of(context).push(
+                                          '/tips-detail/$tipId?from=tip&returnIndex=$index');
                                     },
                                     child: TipCard(
                                       userId: userId,
@@ -158,8 +166,7 @@ class _TipPageState extends State<TipPage> {
 
                       return Center(
                         child: CircularProgressIndicator(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       );
                     },

@@ -110,15 +110,34 @@ class MyApp extends StatelessWidget {
                         AppRoutes.admin: (_) => MaterialPage(
                               child: AdminPage(isAuthenticated: true),
                             ),
-                        AppRoutes.userTips: (_) => const MaterialPage(
-                              child: TipPage(isAuthenticated: true),
+                        AppRoutes.userTips: (info) {
+                          final scrollToIndex = info.queryParameters['scrollTo'];
+                          
+                          return MaterialPage(
+                            child: TipPage(
+                              isAuthenticated: true,
+                              initialScrollIndex: scrollToIndex != null
+                                  ? int.tryParse(scrollToIndex)
+                                  : null,
                             ),
+                          );
+                        },
                         AppRoutes.userTipsDetail: (info) {
                           final tipId = info.pathParameters['id']!;
+                          // Lese alle Query-Parameter
+                          final returnIndexString = info.queryParameters['returnIndex'];
+                          final from = info.queryParameters['from'];
+                          
+                          final returnIndex = returnIndexString != null 
+                              ? int.tryParse(returnIndexString) 
+                              : null;
+                          
                           return MaterialPage(
                             child: TipDetailsPage(
                               isAuthenticated: true,
                               tipId: tipId,
+                              returnIndex: returnIndex,
+                              from: from, // Neuer Parameter
                             ),
                           );
                         },

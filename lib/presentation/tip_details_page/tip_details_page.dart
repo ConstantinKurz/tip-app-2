@@ -13,15 +13,26 @@ import 'package:flutter_web/presentation/tip_page/widgets/tip_details_community_
 import 'package:routemaster/routemaster.dart';
 
 class TipDetailsPage extends StatelessWidget {
-  const TipDetailsPage(
-      {Key? key, required this.tipId, required this.isAuthenticated})
-      : super(key: key);
-
-  final String tipId;
   final bool isAuthenticated;
+  final String tipId;
+  final int? returnIndex;
+  final String? from; // Neuer Parameter
+
+  const TipDetailsPage({
+    Key? key,
+    required this.isAuthenticated,
+    required this.tipId,
+    this.returnIndex,
+    this.from,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Lese die URL-Parameter
+    final routeData = RouteData.of(context);
+    final from = routeData.queryParameters['from'];
+    final returnIndexString = routeData.queryParameters['returnIndex'];
+
     return Scaffold(
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         builder: (context, authState) {
@@ -55,7 +66,6 @@ class TipDetailsPage extends StatelessWidget {
                           matchState is MatchesControllerLoaded &&
                           teamState is TeamsControllerLoaded &&
                           authState is AuthControllerLoaded) {
-                        final from = RouteData.of(context).queryParameters['from'];
                         final teams = teamState.teams;
                         final tips = tipState.tips;
                         final userId = authState.signedInUser!.id;
@@ -119,8 +129,9 @@ class TipDetailsPage extends StatelessWidget {
                                     child: IconButton(
                                       icon: const Icon(Icons.close),
                                       onPressed: () {
-                                        if (from == 'tip') {
-                                          Routemaster.of(context).replace('/tips');
+                                        if (from == 'tip' && returnIndexString != null) {
+                                          // Navigiere zurück zur TipPage mit dem scrollTo-Parameter
+                                          Routemaster.of(context).replace('/tips?scrollTo=$returnIndexString');
                                         } else {
                                           Routemaster.of(context).replace('/home');
                                         }

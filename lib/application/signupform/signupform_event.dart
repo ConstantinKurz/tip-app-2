@@ -18,3 +18,9 @@ class SignInWithEmailAndPasswordPressed extends SignupformEvent{
   SignInWithEmailAndPasswordPressed({required this.email, required this.password});
 }
 
+class SendPasswordResetEvent extends SignupformEvent {
+  final String email;
+  
+  SendPasswordResetEvent({required this.email});
+}
+

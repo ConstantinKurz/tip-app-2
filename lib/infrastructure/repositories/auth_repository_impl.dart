@@ -44,7 +44,7 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: ServerFailure(),
-        notFound: UserNotFoundFailure(),
+        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }
@@ -70,7 +70,7 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: ServerFailure(),
-        notFound: UserNotFoundFailure(),
+        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }
@@ -106,7 +106,7 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: UnexpectedAuthFailure(),
-        notFound: UserNotFoundFailure(),
+        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }
@@ -126,7 +126,7 @@ class AuthRepositoryImpl implements AuthRepository {
             e,
             insufficientPermissions: InsufficientPermisssons(),
             unexpected: UnexpectedAuthFailure(),
-            notFound: UserNotFoundFailure(),
+            notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
           ),
         );
       }
@@ -136,7 +136,7 @@ class AuthRepositoryImpl implements AuthRepository {
           e,
           insufficientPermissions: InsufficientPermisssons(),
           unexpected: UnexpectedAuthFailure(),
-          notFound: UserNotFoundFailure(),
+          notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
         ),
       );
     });
@@ -150,7 +150,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = firebaseAuth.currentUser;
       if (user == null) {
-        return left(UserNotFoundFailure());
+        return left(UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"));
       }
 
       // Re-authentifizierung mit dem aktuellen Passwort
@@ -181,7 +181,31 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: UnexpectedAuthFailure(),
-        notFound: UserNotFoundFailure(),
+        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+      ));
+    }
+  }
+
+  @override
+  Future<Either<AuthFailure, Unit>> sendPasswordResetEmail({
+    required String email,
+  }) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+      return right(unit);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == "user-not-found") {
+        return left(UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"));
+      } else if (e.code == "invalid-email") {
+        return left(InvalidEmailFailure(message: "Die angegebene E-Mail ist ungültig"));
+      }
+      return left(ServerFailure());
+    } catch (e) {
+      return left(mapFirebaseError<AuthFailure>(
+        e,
+        insufficientPermissions: InsufficientPermisssons(),
+        unexpected: UnexpectedAuthFailure(),
+        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }

@@ -5,6 +5,7 @@ import 'package:flutter_web/application/signupform/signupform_bloc.dart';
 import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
+import 'package:flutter_web/presentation/core/dialogs/password_reset_dialog.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 
 class SignInForm extends StatefulWidget {
@@ -58,19 +59,27 @@ class _SignInFormState extends State<SignInForm> {
     }
   }
 
+  void _showPasswordResetDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => BlocProvider.value(
+        value: context.read<SignupformBloc>(),
+        child: const PasswordResetDialog(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = ResponsiveWrapper.of(context).isLargerThan(TABLET);
     final hDesktopPadding = isDesktop ? screenWidth * 0.3 : 20.0;
 
     return BlocConsumer<SignupformBloc, SignupformState>(
-      listenWhen: (p, c) =>
-          p.authFailureOrSuccessOption != c.authFailureOrSuccessOption,
+      listenWhen: (p, c) => p.authFailureOrSuccessOption != c.authFailureOrSuccessOption,
       listener: (context, state) {
-        state.authFailureOrSuccessOption?.fold(
+        state.authFailureOrSuccessOption.fold(
           () {},
           (eitherFailureOrSuccess) => eitherFailureOrSuccess.fold(
             (failure) {
@@ -79,8 +88,7 @@ class _SignInFormState extends State<SignInForm> {
                   backgroundColor: Colors.red,
                   content: Text(
                     mapFailureMessage(failure),
-                    style: themeData.textTheme.bodyLarge
-                        ?.copyWith(color: Colors.white),
+                    style: themeData.textTheme.bodyLarge?.copyWith(color: Colors.white),
                   ),
                 ),
               );
@@ -110,20 +118,21 @@ class _SignInFormState extends State<SignInForm> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text("Bitte melde Dich dich an",
-                  style: themeData.textTheme.bodySmall),
+              Text("Bitte melde Dich sich an", style: themeData.textTheme.bodySmall),
               const SizedBox(height: 80),
+
               TextFormField(
                 controller: emailController,
                 cursorColor: Theme.of(context).colorScheme.onPrimary,
                 style: Theme.of(context).textTheme.bodyLarge,
                 decoration: const InputDecoration(
                   labelText: "Email",
-                  prefixIcon: const Icon(Icons.email),
+                  prefixIcon: Icon(Icons.email),
                 ),
                 validator: validateEmail,
               ),
               const SizedBox(height: 20),
+
               TextFormField(
                 controller: passwordController,
                 cursorColor: Theme.of(context).colorScheme.onPrimary,
@@ -152,17 +161,28 @@ class _SignInFormState extends State<SignInForm> {
                         password: passwordController.text,
                       ),
                     );
-                  } else {
-                    context.read<SignupformBloc>().add(
-                      SignInWithEmailAndPasswordPressed(
-                        email: null,
-                        password: null,
-                      ),
-                    );
                   }
                 },
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 8),
+
+              // Passwort vergessen Link - rechts unter dem Passwort-Feld
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _showPasswordResetDialog,
+                  child: Text(
+                    "Passwort vergessen?",
+                    style: themeData.textTheme.bodySmall?.copyWith(
+                      color: primaryDark,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
               Align(
                 alignment: Alignment.center,
                 child: CustomButton(
@@ -170,30 +190,30 @@ class _SignInFormState extends State<SignInForm> {
                   hoverColor: primaryDark,
                   borderColor: primaryDark,
                   backgroundColor: themeData.scaffoldBackgroundColor,
-                  buttonText:
-                      state.isSubmitting ? "Wird angemeldet..." : "Anmelden",
+                  buttonText: state.isSubmitting ? "Wird angemeldet..." : "Anmelden",
                   callback: state.isSubmitting
                       ? () {}
                       : () {
                           if (formKey.currentState!.validate()) {
                             context.read<SignupformBloc>().add(
-                                  SignInWithEmailAndPasswordPressed(
-                                    email: emailController.text.trim(),
-                                    password: passwordController.text,
-                                  ),
-                                );
+                              SignInWithEmailAndPasswordPressed(
+                                email: emailController.text.trim(),
+                                password: passwordController.text,
+                              ),
+                            );
                           } else {
                             context.read<SignupformBloc>().add(
-                                  SignInWithEmailAndPasswordPressed(
-                                    email: null,
-                                    password: null,
-                                  ),
-                                );
+                              SignInWithEmailAndPasswordPressed(
+                                email: null,
+                                password: null,
+                              ),
+                            );
                           }
                         },
                 ),
               ),
               const SizedBox(height: 20),
+
               if (state.isSubmitting)
                 Center(
                   child: CircularProgressIndicator(

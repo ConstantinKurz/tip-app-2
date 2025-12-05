@@ -46,12 +46,16 @@ class DeleteUserEvent extends AuthFormEvent {
   });
 }
 
-class UpdatePasswordEvent extends AuthFormEvent {
-  final String currentPassword;
-  final String newPassword;
+class UpdateUserWithPasswordEvent extends AuthFormEvent {
+  final AppUser user;
+  final AppUser currentUser;
+  final String? currentPassword;
+  final String? newPassword;
   
-  UpdatePasswordEvent({
-    required this.currentPassword,
-    required this.newPassword,
+  UpdateUserWithPasswordEvent({
+    required this.user,
+    required this.currentUser,
+    this.currentPassword,
+    this.newPassword,
   });
 }

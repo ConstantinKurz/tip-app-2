@@ -155,7 +155,7 @@ class CommunityTipList extends StatelessWidget {
                                                 ?.copyWith(
                                               fontWeight: FontWeight.bold,
                                             )),
-                                        Text(' Pkt',
+                                        Text(' pkt',
                                             style: theme.textTheme.bodySmall),
                                       ],
                                     ),

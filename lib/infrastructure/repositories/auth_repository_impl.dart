@@ -172,6 +172,8 @@ class AuthRepositoryImpl implements AuthRepository {
         return left(ServerFailure());
       } else if (e.code == "requires-recent-login") {
         return left(InsufficientPermisssons());
+      } else if (e.code == "invalid-credential") {
+        return left(InvalidCredential(message: "Ungültiges aktuelles Passwort"));
       }
       return left(ServerFailure());
     } catch (e) {

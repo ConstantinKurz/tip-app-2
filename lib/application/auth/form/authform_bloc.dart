@@ -16,7 +16,7 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     on<CreateUserEvent>(_onCreateUser);
     on<UserFormFieldUpdatedEvent>(_onUserFormFieldUpdated);
     on<UpdateUserEvent>(_onUpdateUser);
-    on<UpdatePasswordEvent>(_onUpdatePassword);
+    on<UpdateUserWithPasswordEvent>(_onUpdateUserWithPassword);
   }
 
   Future<void> _onCreateUser(
@@ -75,20 +75,35 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     ));
   }
 
-  Future<void> _onUpdatePassword(
-    UpdatePasswordEvent event,
+  Future<void> _onUpdateUserWithPassword(
+    UpdateUserWithPasswordEvent event,
     Emitter<AuthformState> emit,
   ) async {
     emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
 
-    final failureOrSuccess = await authRepository.updatePassword(
-      currentPassword: event.currentPassword,
-      newPassword: event.newPassword,
-    );
+    // Zuerst das Passwort aktualisieren, falls angegeben
+    if (event.currentPassword != null && event.newPassword != null) {
+      final passwordResult = await authRepository.updatePassword(
+        currentPassword: event.currentPassword!,
+        newPassword: event.newPassword!,
+      );
+      
+      // Bei Passwort-Fehler sofort abbrechen
+      if (passwordResult.isLeft()) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessOption: optionOf(passwordResult),
+        ));
+        return;
+      }
+    }
+
+    // Dann User-Daten aktualisieren
+    final userResult = await authRepository.updateUser(user: event.user);
 
     emit(state.copyWith(
       isSubmitting: false,
-      authFailureOrSuccessOption: optionOf(failureOrSuccess),
+      authFailureOrSuccessOption: optionOf(userResult),
     ));
   }
 }

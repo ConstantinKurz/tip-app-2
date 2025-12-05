@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/form/authform_bloc.dart';
 import 'package:flutter_web/constants.dart';
+import 'package:flutter_web/core/failures/auth_failures.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/injections.dart';
@@ -84,10 +85,6 @@ class _UserProfileFormState extends State<UserProfileForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currentChampion = widget.teams.firstWhere(
-      (team) => team.id == widget.user.championId,
-      orElse: () => Team.empty(),
-    );
 
     return BlocProvider<AuthformBloc>(
       create: (context) => sl<AuthformBloc>(),
@@ -102,28 +99,35 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     SnackBar(
                       backgroundColor: Colors.red,
                       content: Text(
-                        "Fehler beim Aktualisieren des Profils",
+                        _getFailureMessage(failure),
                         style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
                       ),
                     ),
                   );
                 },
                 (_) {
+                  final message = _showPasswordFields 
+                      ? "Profil und Passwort erfolgreich aktualisiert!"
+                      : "Profil erfolgreich aktualisiert!";
+                      
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       backgroundColor: Colors.green,
                       content: Text(
-                        "Profil erfolgreich aktualisiert!",
+                        message,
                         style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
                       ),
                     ),
                   );
-                  setState(() {
-                    _showPasswordFields = false;
-                    currentPasswordController.clear();
-                    newPasswordController.clear();
-                    confirmPasswordController.clear();
-                  });
+                  
+                  if (_showPasswordFields) {
+                    setState(() {
+                      _showPasswordFields = false;
+                      currentPasswordController.clear();
+                      newPasswordController.clear();
+                      confirmPasswordController.clear();
+                    });
+                  }
                 },
               ),
             );
@@ -172,11 +176,11 @@ class _UserProfileFormState extends State<UserProfileForm> {
                       .read<AuthformBloc>()
                       .add(UserFormFieldUpdatedEvent(username: value)),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 
                 // Champion Selection
                 Text(
-                  'Champion Team',
+                  'Champion',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -188,7 +192,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                       ? (state.championId ?? widget.user.championId)
                       : null,
                   decoration: InputDecoration(
-                    hintText: "Champion Team wählen",
+                    hintText: "Champion wählen",
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                     
                     border: OutlineInputBorder(
@@ -287,7 +291,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     obscureText: !_showCurrentPassword,
                     validator: _validatePassword,
                     decoration: InputDecoration(
-                      hintText: "Aktuelles Passwort",
+                      labelText: "Aktuelles Passwort",
                       hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                       prefixIcon: const Icon(Icons.lock_outline, color: Colors.white),
                       suffixIcon: IconButton(
@@ -323,7 +327,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     obscureText: !_showNewPassword,
                     validator: _validatePassword,
                     decoration: InputDecoration(
-                      hintText: "Neues Passwort",
+                      labelText: "Neues Passwort",
                       hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                       prefixIcon: const Icon(Icons.lock, color: Colors.white),
                       suffixIcon: IconButton(
@@ -359,7 +363,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     obscureText: !_showConfirmPassword,
                     validator: _validateConfirmPassword,
                     decoration: InputDecoration(
-                      hintText: "Passwort wiederholen",
+                      labelText: "Passwort bestätigen",
                       hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                       prefixIcon: const Icon(Icons.lock, color: Colors.white),
                       suffixIcon: IconButton(
@@ -404,30 +408,23 @@ class _UserProfileFormState extends State<UserProfileForm> {
                           ? () {}
                           : () {
                               if (formKey.currentState!.validate()) {
-                                // Zuerst User-Daten aktualisieren
                                 final updatedUser = widget.user.copyWith(
                                   name: state.name ?? nameController.text,
                                   championId: state.championId ?? widget.user.championId,
                                 );
                                 
                                 context.read<AuthformBloc>().add(
-                                  UpdateUserEvent(
+                                  UpdateUserWithPasswordEvent(
                                     user: updatedUser,
                                     currentUser: widget.user,
+                                    currentPassword: _showPasswordFields && currentPasswordController.text.isNotEmpty 
+                                        ? currentPasswordController.text 
+                                        : null,
+                                    newPassword: _showPasswordFields && newPasswordController.text.isNotEmpty 
+                                        ? newPasswordController.text 
+                                        : null,
                                   ),
                                 );
-
-                                // Dann Passwort ändern, falls gewünscht
-                                if (_showPasswordFields && 
-                                    currentPasswordController.text.isNotEmpty && 
-                                    newPasswordController.text.isNotEmpty) {
-                                  context.read<AuthformBloc>().add(
-                                    UpdatePasswordEvent(
-                                      currentPassword: currentPasswordController.text,
-                                      newPassword: newPasswordController.text,
-                                    ),
-                                  );
-                                }
                               }
                             },
                     ),
@@ -439,5 +436,16 @@ class _UserProfileFormState extends State<UserProfileForm> {
         },
       ),
     );
+  }
+
+  // Hilfsmethode für bessere Fehlermeldungen
+  String _getFailureMessage(AuthFailure failure) {
+    if (failure is InvalidCredential) {
+      return failure.message;
+    } else if (failure is InvalidEmailAndPasswordCombinationFailure) {
+      return "Das aktuelle Passwort ist falsch";
+    } else {
+      return "Fehler beim Aktualisieren des Profils";
+    }
   }
 }

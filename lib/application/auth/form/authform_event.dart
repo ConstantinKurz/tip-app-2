@@ -45,3 +45,13 @@ class DeleteUserEvent extends AuthFormEvent {
     required this.id,
   });
 }
+
+class UpdatePasswordEvent extends AuthFormEvent {
+  final String currentPassword;
+  final String newPassword;
+  
+  UpdatePasswordEvent({
+    required this.currentPassword,
+    required this.newPassword,
+  });
+}

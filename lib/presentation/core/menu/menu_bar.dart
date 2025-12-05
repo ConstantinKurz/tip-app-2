@@ -6,6 +6,7 @@ import 'package:flutter_web/presentation/core/buttons/signin_button.dart';
 import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
 import 'package:flutter_web/presentation/core/menu/home_logo.dart';
 import 'package:flutter_web/presentation/core/menu/menu_item.dart';
+import 'package:flutter_web/presentation/core/buttons/user_button.dart';
 
 class MyMenuBar extends StatelessWidget {
   final bool isAuthenticated;
@@ -86,9 +87,12 @@ class MyMenuBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          isAuthenticated
-              ? const SignOutButton()
-              : const SignInButton(),
+          if (isAuthenticated) ...[
+            const UserButton(),
+            const SizedBox(width: 8),
+            const SignOutButton(),
+          ] else
+            const SignInButton(),
           const SizedBox(width: 10),
         ],
       ),

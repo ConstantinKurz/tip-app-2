@@ -141,4 +141,46 @@ class AuthRepositoryImpl implements AuthRepository {
       );
     });
   }
+
+  @override
+  Future<Either<AuthFailure, Unit>> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final user = firebaseAuth.currentUser;
+      if (user == null) {
+        return left(UserNotFoundFailure());
+      }
+
+      // Re-authentifizierung mit dem aktuellen Passwort
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+      
+      // Neues Passwort setzen
+      await user.updatePassword(newPassword);
+      
+      return right(unit);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == "wrong-password") {
+        return left(InvalidEmailAndPasswordCombinationFailure());
+      } else if (e.code == "weak-password") {
+        return left(ServerFailure());
+      } else if (e.code == "requires-recent-login") {
+        return left(InsufficientPermisssons());
+      }
+      return left(ServerFailure());
+    } catch (e) {
+      return left(mapFirebaseError<AuthFailure>(
+        e,
+        insufficientPermissions: InsufficientPermisssons(),
+        unexpected: UnexpectedAuthFailure(),
+        notFound: UserNotFoundFailure(),
+      ));
+    }
+  }
 }

@@ -5,7 +5,7 @@ import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/dialogs/custom_dialog.dart';
-import 'package:flutter_web/presentation/core/forms/create_user_form.dart';
+import 'package:flutter_web/presentation/core/forms/admin_create_user_form.dart';
 import 'package:flutter_web/presentation/core/forms/update_user_form.dart';
 
 enum UserAction { create, update, delete }

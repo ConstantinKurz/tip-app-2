@@ -15,6 +15,7 @@ import 'package:flutter_web/presentation/signin/signin_page.dart';
 import 'package:flutter_web/presentation/signup/signup_page.dart';
 import 'package:flutter_web/presentation/tip_details_page/tip_details_page.dart';
 import 'package:flutter_web/presentation/tip_page/tip_page.dart';
+import 'package:flutter_web/presentation/user_page/user_profile_page.dart';
 import 'package:flutter_web/theme.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -40,6 +41,7 @@ class AppRoutes {
   static const home = '/home';
   static const userTips = '/tips';
   static const userTipsDetail = '/tips-detail/:id';
+  static const userProfile = '/profile';  // Neue Route
   static const dashboard = '/dashboard';
 }
 
@@ -109,6 +111,9 @@ class MyApp extends StatelessWidget {
                             child: HomePage(isAuthenticated: true)),
                         AppRoutes.admin: (_) => MaterialPage(
                               child: AdminPage(isAuthenticated: true),
+                            ),
+                        AppRoutes.userProfile: (_) => MaterialPage(  // Neue Route
+                              child: UserProfilePage(isAuthenticated: true),
                             ),
                         AppRoutes.userTips: (info) {
                           final scrollToIndex = info.queryParameters['scrollTo'];

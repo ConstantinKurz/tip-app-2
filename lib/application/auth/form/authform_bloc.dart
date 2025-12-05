@@ -16,6 +16,7 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     on<CreateUserEvent>(_onCreateUser);
     on<UserFormFieldUpdatedEvent>(_onUserFormFieldUpdated);
     on<UpdateUserEvent>(_onUpdateUser);
+    on<UpdatePasswordEvent>(_onUpdatePassword);
   }
 
   Future<void> _onCreateUser(
@@ -67,6 +68,23 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
 
     final failureOrSuccess = await authRepository.updateUser(user: event.user!);
+
+    emit(state.copyWith(
+      isSubmitting: false,
+      authFailureOrSuccessOption: optionOf(failureOrSuccess),
+    ));
+  }
+
+  Future<void> _onUpdatePassword(
+    UpdatePasswordEvent event,
+    Emitter<AuthformState> emit,
+  ) async {
+    emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
+
+    final failureOrSuccess = await authRepository.updatePassword(
+      currentPassword: event.currentPassword,
+      newPassword: event.newPassword,
+    );
 
     emit(state.copyWith(
       isSubmitting: false,

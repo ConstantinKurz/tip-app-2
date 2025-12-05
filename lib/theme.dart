@@ -69,6 +69,12 @@ class AppTheme {
   static final InputDecorationTheme _inputDecorationTheme =
       InputDecorationTheme(
           floatingLabelStyle: const TextStyle(color: Colors.white),
+          errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Colors.red)),
+          focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Colors.white)),
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Colors.white)),

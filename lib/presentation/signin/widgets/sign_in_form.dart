@@ -7,76 +7,89 @@ import 'package:flutter_web/core/failures/auth_failures.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 
-class SignInForm extends StatelessWidget {
+class SignInForm extends StatefulWidget {
   const SignInForm({super.key});
 
   @override
+  State<SignInForm> createState() => _SignInFormState();
+}
+
+class _SignInFormState extends State<SignInForm> {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  bool _passwordVisible = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  String? validateEmail(String? input) {
+    const emailRegex =
+        r"""^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+""";
+
+    if (input == null || input.isEmpty) {
+      return "Bitte gebe eine E-Mail ein";
+    } else if (!RegExp(emailRegex).hasMatch(input)) {
+      return "Keine gültige E-Mail";
+    }
+    return null;
+  }
+
+  String? validatePassword(String? input) {
+    if (input == null || input.isEmpty) {
+      return "Bitte gebe ein Passwort ein";
+    } else if (input.length < 6) {
+      return "Passwort muss mindestens 6 Zeichen lang sein";
+    }
+    return null;
+  }
+
+  String mapFailureMessage(AuthFailure failure) {
+    switch (failure.runtimeType) {
+      case InvalidEmailAndPasswordCombinationFailure:
+        return "Falsche E-Mail oder Passwort";
+      default:
+        return "Ein unerwarteter Fehler ist aufgetreten";
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
-    late String _email;
-    late String _password;
-
-    String? validateEmail(String? input) {
-      const emailRegex =
-          r"""^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+""";
-
-      if (input == null || input.isEmpty) {
-        return "please enter email";
-      } else if (RegExp(emailRegex).hasMatch(input)) {
-        _email = input;
-        return null;
-      } else {
-        return "invalid email format";
-      }
-    }
-
-    String mapFailureMessage(AuthFailure failure) {
-      print("AuthFailure: ${failure.runtimeType}");
-      switch (failure.runtimeType) {
-        case ServerFailure:
-          return "Something went wrong";
-        case EmailAlreadyInUseFailure:
-          return "Email already in use";
-        case InvalidEmailAndPasswordCombinationFailure:
-          return "Invalid email and password combination";
-        default:
-          return "Something went wrong";
-      }
-    }
-
-    String? validatePassword(String? input) {
-      if (input == null || input.isEmpty) {
-        return "please enter password";
-      } else if (input.length >= 6) {
-        _password = input;
-        return null;
-      } else {
-        return "short password";
-      }
-    }
-
     final themeData = Theme.of(context);
-    final isDesktop = ResponsiveWrapper.of(context).isLargerThan(TABLET);
+    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = ResponsiveWrapper.of(context).isLargerThan(TABLET);
     final hDesktopPadding = isDesktop ? screenWidth * 0.3 : 20.0;
 
     return BlocConsumer<SignupformBloc, SignupformState>(
       listenWhen: (p, c) =>
           p.authFailureOrSuccessOption != c.authFailureOrSuccessOption,
       listener: (context, state) {
-        state.authFailureOrSuccessOption!.fold(
-            () {},
-            (eitherFailureOrSuccess) => eitherFailureOrSuccess.fold((failure) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      backgroundColor: Colors.redAccent,
-                      content: Text(
-                        mapFailureMessage(failure),
-                        style: themeData.textTheme.bodyLarge,
-                      )));
-                }, (_) {
-                  context.read<AuthBloc>().add(AuthCheckRequestedEvent());
-                }));
+        state.authFailureOrSuccessOption?.fold(
+          () {},
+          (eitherFailureOrSuccess) => eitherFailureOrSuccess.fold(
+            (failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.red,
+                  content: Text(
+                    mapFailureMessage(failure),
+                    style: themeData.textTheme.bodyLarge
+                        ?.copyWith(color: Colors.white),
+                  ),
+                ),
+              );
+            },
+            (_) {
+              context.read<AuthBloc>().add(AuthCheckRequestedEvent());
+            },
+          ),
+        );
       },
       builder: (context, state) {
         return Form(
@@ -87,79 +100,107 @@ class SignInForm extends StatelessWidget {
           child: ListView(
             padding: EdgeInsets.symmetric(horizontal: hDesktopPadding),
             children: [
-              const SizedBox(
-                height: 80,
-              ),
+              const SizedBox(height: 80),
               Text(
-                "Welcome",
+                "Willkommen",
                 style: themeData.textTheme.headlineLarge!.copyWith(
-                    fontSize: 50,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 4),
+                  fontSize: 50,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 4,
+                ),
               ),
-              const SizedBox(
-                height: 20,
-              ),
-              Text("Please sign in", style: themeData.textTheme.bodySmall),
-              const SizedBox(
-                height: 80,
-              ),
+              const SizedBox(height: 20),
+              Text("Bitte melde Dich dich an",
+                  style: themeData.textTheme.bodySmall),
+              const SizedBox(height: 80),
               TextFormField(
-                cursorColor: Colors.white,
-                decoration: const InputDecoration(labelText: "Email"),
+                controller: emailController,
+                cursorColor: Theme.of(context).colorScheme.onPrimary,
+                style: Theme.of(context).textTheme.bodyLarge,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  prefixIcon: const Icon(Icons.email),
+                ),
                 validator: validateEmail,
-                style: const TextStyle(color: Colors.white),
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               TextFormField(
-                cursorColor: Colors.white,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: "Password"),
+                controller: passwordController,
+                cursorColor: Theme.of(context).colorScheme.onPrimary,
+                style: Theme.of(context).textTheme.bodyLarge,
+                obscureText: !_passwordVisible,
+                decoration: InputDecoration(
+                  labelText: "Passwort",
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _passwordVisible = !_passwordVisible;
+                      });
+                    },
+                  ),
+                ),
                 validator: validatePassword,
-                style: const TextStyle(color: Colors.white),
+                onFieldSubmitted: (_) {
+                  if (formKey.currentState!.validate()) {
+                    context.read<SignupformBloc>().add(
+                      SignInWithEmailAndPasswordPressed(
+                        email: emailController.text.trim(),
+                        password: passwordController.text,
+                      ),
+                    );
+                  } else {
+                    context.read<SignupformBloc>().add(
+                      SignInWithEmailAndPasswordPressed(
+                        email: null,
+                        password: null,
+                      ),
+                    );
+                  }
+                },
               ),
-              const SizedBox(
-                height: 40,
-              ),
-// Positions its child within itself according to the alignment property.
-// Width blocked by listview otherwise.
+              const SizedBox(height: 40),
               Align(
                 alignment: Alignment.center,
                 child: CustomButton(
-                    borderColor: primaryDark,
-                    hoverColor: primaryDark,
-                    backgroundColor: themeData.scaffoldBackgroundColor,
-                    width: 125,
-                    buttonText: "Sign In",
-                    callback: () {
-                      if (formKey.currentState!.validate()) {
-                        BlocProvider.of<SignupformBloc>(context).add(
-                            SignInWithEmailAndPasswordPressed(
-                                email: _email, password: _password));
-                      } else {
-                        BlocProvider.of<SignupformBloc>(context).add(
-                            SignInWithEmailAndPasswordPressed(
-                                email: null, password: null));
-
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            backgroundColor: Colors.redAccent,
-                            content: Text(
-                              "invalid input",
-                              style: themeData.textTheme.bodyLarge,
-                            )));
-                      }
-                    }),
-              ),
-              if (state.isSubmitting) ...[
-                const SizedBox(
-                  height: 10,
+                  width: screenWidth * 0.1,
+                  hoverColor: primaryDark,
+                  borderColor: primaryDark,
+                  backgroundColor: themeData.scaffoldBackgroundColor,
+                  buttonText:
+                      state.isSubmitting ? "Wird angemeldet..." : "Anmelden",
+                  callback: state.isSubmitting
+                      ? () {}
+                      : () {
+                          if (formKey.currentState!.validate()) {
+                            context.read<SignupformBloc>().add(
+                                  SignInWithEmailAndPasswordPressed(
+                                    email: emailController.text.trim(),
+                                    password: passwordController.text,
+                                  ),
+                                );
+                          } else {
+                            context.read<SignupformBloc>().add(
+                                  SignInWithEmailAndPasswordPressed(
+                                    email: null,
+                                    password: null,
+                                  ),
+                                );
+                          }
+                        },
                 ),
-                LinearProgressIndicator(
-                  color: themeData.colorScheme.onPrimary,
-                )
-              ]
+              ),
+              const SizedBox(height: 20),
+              if (state.isSubmitting)
+                Center(
+                  child: CircularProgressIndicator(
+                    color: themeData.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              const SizedBox(height: 40),
             ],
           ),
         );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/matches/form/matchesform_bloc.dart';
 import 'package:flutter_web/constants.dart';
+import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 import 'package:flutter_web/presentation/core/date_picker/custom_date_picker.dart';
@@ -128,9 +129,11 @@ class CreateMatchForm extends StatelessWidget {
                 validator: validateMatchDay,
                 value: state.matchDay,
                 decoration: const InputDecoration(labelText: 'Match Tag'),
-                items: List.generate(7, (i) => i)
-                    .map((day) =>
-                        DropdownMenuItem(value: day, child: Text('Tag $day')))
+                items: List.generate(8, (i) => i + 1) // 1 bis 8, je nach Turnierstruktur
+                    .map((day) => DropdownMenuItem(
+                          value: day,
+                          child: Text(CustomMatch.empty().getStageName(day)),
+                        ))
                     .toList(),
                 onChanged: (day) {
                   context

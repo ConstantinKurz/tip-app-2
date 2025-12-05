@@ -189,15 +189,19 @@ class UpdateUserForm extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: user.championId,
+                  value: teams.any((t) => t.id == state.championId)
+                      ? state.championId
+                      : null,
                   decoration: const InputDecoration(labelText: 'Champion'),
                   items: teams
                       .map((team) => DropdownMenuItem<String>(
-                          value: team.id, child: Text(team.name)))
+                            value: team.id,
+                            child: Text(team.name),
+                          ))
                       .toList(),
                   onChanged: (String? selectedChampionId) {
-                    context.read<AuthformBloc>().add(UserFormFieldUpdatedEvent(
-                        championId: selectedChampionId));
+                    context.read<AuthformBloc>().add(
+                        UserFormFieldUpdatedEvent(championId: selectedChampionId));
                   },
                 ),
                 const SizedBox(height: 16),

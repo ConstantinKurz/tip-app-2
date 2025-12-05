@@ -77,6 +77,13 @@ class UpdateMatchForm extends StatelessWidget {
         );
       },
       builder: (context, state) {
+        final allMatchDays = <int>{
+          match.matchDay,
+          if (state.matchDay != null) state.matchDay!,
+          ...List.generate(8, (i) => i),
+        }.toList()
+          ..sort();
+
         return Form(
           autovalidateMode: state.showValidationMessages
               ? AutovalidateMode.always
@@ -91,7 +98,7 @@ class UpdateMatchForm extends StatelessWidget {
                     child: DropdownButtonFormField<Team>(
                       decoration: const InputDecoration(labelText: 'Home Team'),
                       value: teams.firstWhere((t) => t.id == match.homeTeamId,
-                              orElse: () => Team.empty()),
+                          orElse: () => Team.empty()),
                       items: teams.map((team) {
                         return DropdownMenuItem<Team>(
                           value: team,
@@ -109,7 +116,7 @@ class UpdateMatchForm extends StatelessWidget {
                     child: DropdownButtonFormField<Team>(
                       decoration: const InputDecoration(labelText: 'Gast Team'),
                       value: teams.firstWhere((t) => t.id == match.guestTeamId,
-                              orElse: () => Team.empty()),
+                          orElse: () => Team.empty()),
                       items: teams.map((team) {
                         return DropdownMenuItem<Team>(
                           value: team,
@@ -140,7 +147,9 @@ class UpdateMatchForm extends StatelessWidget {
                       minLines: 1,
                       decoration: InputDecoration(
                         labelText: "Heimtore",
-                        hintText: state.homeScore == null? "" : state.homeScore.toString(),
+                        hintText: state.homeScore == null
+                            ? ""
+                            : state.homeScore.toString(),
                         counterText: "",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -152,7 +161,10 @@ class UpdateMatchForm extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text(":", style: TextStyle(color: Colors.white),),
+                  const Text(
+                    ":",
+                    style: TextStyle(color: Colors.white),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextFormField(
@@ -166,7 +178,9 @@ class UpdateMatchForm extends StatelessWidget {
                       minLines: 1,
                       decoration: InputDecoration(
                         labelText: "Gasttore",
-                        hintText: state.guestScore == null? "" : state.guestScore.toString(),
+                        hintText: state.guestScore == null
+                            ? ""
+                            : state.guestScore.toString(),
                         counterText: "",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -209,10 +223,10 @@ class UpdateMatchForm extends StatelessWidget {
               DropdownButtonFormField<int>(
                 decoration: const InputDecoration(labelText: 'Match Tag'),
                 value: match.matchDay,
-                items: List.generate(7, (index) => index).map((value) {
+                items: List.generate(8, (index) => index +1).map((value) {
                   return DropdownMenuItem<int>(
                     value: value,
-                    child: Text('Tag $value'),
+                    child: Text(CustomMatch.empty().getStageName(value)),
                   );
                 }).toList(),
                 onChanged: (value) {

@@ -58,4 +58,24 @@ class CustomMatch {
       guestScore: guestScore,
     );
   }
+
+    String getStageName(int matchDay) {
+    if (matchDay <= 3) {
+      return 'Gruppenphase, Tag $matchDay';
+    }
+    switch (matchDay) {
+      case 4:
+        return 'Sechszehntelfinale';
+      case 5:
+        return 'Achtelfinale';
+      case 6:
+        return 'Viertelfinale';
+      case 7:
+        return 'Halbfinale';
+      case 8:
+        return 'Finale';
+      default:
+        return 'Spieltag $matchDay';
+    }
+  }
 }

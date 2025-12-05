@@ -18,29 +18,11 @@ class TipCardHeader extends StatelessWidget {
     required this.tip,
   }) : super(key: key);
 
-  String _getStageName(int matchDay) {
-    if (matchDay <= 3) {
-      return 'Gruppenphase, Tag $matchDay';
-    }
-    switch (matchDay) {
-      case 4:
-        return 'Achtelfinale';
-      case 5:
-        return 'Viertelfinale';
-      case 6:
-        return 'Halbfinale';
-      case 7:
-        return 'Finale';
-      default:
-        return 'Spieltag $matchDay';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('E, dd.MM. HH:mm', 'de_DE');
-    final stageName = _getStageName(match.matchDay);
+    final stageName = match.getStageName(match.matchDay);
     final dateString = dateFormat.format(match.matchDate);
 
     return Row(

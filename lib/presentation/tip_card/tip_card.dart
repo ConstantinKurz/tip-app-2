@@ -83,8 +83,7 @@ class _TipCardState extends State<TipCard> {
                 final tipControllerState =
                     context.read<TipControllerBloc>().state;
                 if (tipControllerState is TipControllerLoaded) {
-                  final userTips =
-                      tipControllerState.tips[widget.userId] ?? [];
+                  final userTips = tipControllerState.tips[widget.userId] ?? [];
                   final updatedTip = userTips.firstWhere(
                     (t) => t.matchId == widget.match.id,
                     orElse: () => Tip.empty(widget.userId)
@@ -99,15 +98,24 @@ class _TipCardState extends State<TipCard> {
           );
         },
         builder: (context, state) {
+          final bool isJokerSet = state.joker ?? false;
           return Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: theme.colorScheme.primaryContainer,
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isJokerSet
+                    ? Colors.amber.withOpacity(0.8)
+                    : theme.colorScheme.outline.withOpacity(0.1),
+                width: isJokerSet ? 2 : 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
+                  color: isJokerSet
+                      ? Colors.amber.withOpacity(0.15)
+                      : Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],

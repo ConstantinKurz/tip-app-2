@@ -63,15 +63,13 @@ class TipCardMatchInfo extends StatelessWidget {
                     '${match.homeScore} : ${match.guestScore}',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimary,
                       fontSize: 18,
                     ),
                   )
                 : Text(
                     'vs',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
           ),

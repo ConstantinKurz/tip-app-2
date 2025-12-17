@@ -100,32 +100,31 @@ class _UserProfileFormState extends State<UserProfileForm> {
                       backgroundColor: Colors.red,
                       content: Text(
                         _getFailureMessage(failure),
-                        style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
+                        style: theme.textTheme.bodyLarge
+                            ?.copyWith(color: theme.colorScheme.onError),
                       ),
                     ),
                   );
                 },
                 (_) {
-                  final message = _showPasswordFields 
+                  final message = _showPasswordFields
                       ? "Profil und Passwort erfolgreich aktualisiert!"
                       : "Profil erfolgreich aktualisiert!";
-                      
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       backgroundColor: Colors.green,
                       content: Text(
                         message,
-                        style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
+                        style: theme.textTheme.bodyLarge
+                            ?.copyWith(color: theme.colorScheme.onError),
                       ),
                     ),
                   );
-                  
+
                   if (_showPasswordFields) {
                     setState(() {
                       _showPasswordFields = false;
-                      currentPasswordController.clear();
-                      newPasswordController.clear();
-                      confirmPasswordController.clear();
                     });
                   }
                 },

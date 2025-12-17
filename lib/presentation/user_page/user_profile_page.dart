@@ -17,65 +17,48 @@ class UserProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    return PageTemplate(
+      isAuthenticated: isAuthenticated,
+      child: BlocBuilder<AuthControllerBloc, AuthControllerState>(
+        builder: (context, authState) {
+          return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
+            builder: (context, teamState) {
+              if (authState is! AuthControllerLoaded ||
+                  authState.signedInUser == null ||
+                  teamState is! TeamsControllerLoaded) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-    return Scaffold(
-      body: PageTemplate(
-        isAuthenticated: isAuthenticated,
-        child: BlocBuilder<AuthControllerBloc, AuthControllerState>(
-          builder: (context, authState) {
-            if (authState is! AuthControllerLoaded ||
-                authState.signedInUser == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
-              builder: (context, teamState) {
-                if (teamState is! TeamsControllerLoaded) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                return Stack(
-                  children: [
-                    Center(
-                      child: Container(
-                        width: screenWidth > 700 ? 700 : screenWidth * 0.9,
-                        constraints: BoxConstraints(
-                          maxHeight: screenHeight * 0.85,
-                          minHeight: 650,
-                        ),
-                        padding: const EdgeInsets.all(40.0),
-                        child: SingleChildScrollView(
-                          child: UserProfileForm(
-                            user: authState.signedInUser!,
-                            teams: teamState.teams,
-                          ),
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 700),
+                  child: Stack(
+                    children: [
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 48.0, horizontal: 16.0),
+                        child: UserProfileForm(
+                          user: authState.signedInUser!,
+                          teams: teamState.teams,
                         ),
                       ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).padding.top + 16,
-                      right: screenWidth > 700 ? (screenWidth - 700) / 2 + 16 : screenWidth * 0.05 + 16,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                      Positioned(
+                        top: 16,
+                        right: 16,
                         child: IconButton(
-                          icon: const Icon(Icons.close, size: 28, color: Colors.white),
+                          icon: const Icon(Icons.close),
                           onPressed: () {
                             Routemaster.of(context).replace('/home');
                           },
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -210,16 +210,14 @@ class CommunityTipList extends StatelessWidget {
                           child: RichText(
                             textAlign: TextAlign.end,
                             text: TextSpan(
-                              style: theme.textTheme.displaySmall?.copyWith(
-                                fontSize: 20,
+                              style: theme.textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                               children: [
                                 TextSpan(text: '${tip.points ?? 0}'),
                                 TextSpan(
                                   text: ' pkt',
-                                  style: theme.textTheme.bodySmall
-                                      ?.copyWith(fontSize: 12),
+                                  style: theme.textTheme.bodySmall,
                                 ),
                               ],
                             ),

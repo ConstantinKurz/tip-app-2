@@ -7,7 +7,7 @@ import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/tip_card/widgets/tip_card_header.dart';
-import 'package:flutter_web/presentation/tip_card/widgets/tip_card_input.dart';
+import 'widgets/tip_card_input.dart';
 import 'package:flutter_web/presentation/tip_card/widgets/tip_card_match_info.dart';
 
 class TipCard extends StatefulWidget {
@@ -80,71 +80,70 @@ class _TipCardState extends State<TipCard> {
               },
               (_) {
                 // Nach erfolgreichem Update: TipFormBloc neu initialisieren
-                final tipControllerState = context.read<TipControllerBloc>().state;
+                final tipControllerState =
+                    context.read<TipControllerBloc>().state;
                 if (tipControllerState is TipControllerLoaded) {
-                  final userTips = tipControllerState.tips[widget.userId] ?? [];
+                  final userTips =
+                      tipControllerState.tips[widget.userId] ?? [];
                   final updatedTip = userTips.firstWhere(
                     (t) => t.matchId == widget.match.id,
-                    orElse: () => Tip.empty(widget.userId).copyWith(matchId: widget.match.id),
+                    orElse: () => Tip.empty(widget.userId)
+                        .copyWith(matchId: widget.match.id),
                   );
-                  context.read<TipFormBloc>().add(TipFormInitializedEvent(tip: updatedTip));
+                  context
+                      .read<TipFormBloc>()
+                      .add(TipFormInitializedEvent(tip: updatedTip));
                 }
               },
             ),
           );
         },
         builder: (context, state) {
-          final bool isJokerSet = state.joker ?? false;
-
           return Container(
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isJokerSet
-                    ? Colors.amber.withOpacity(0.8)
-                    : theme.colorScheme.outline.withOpacity(0.1),
-                width: isJokerSet ? 2 : 1,
-              ),
+              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.primaryContainer,
               boxShadow: [
                 BoxShadow(
-                  color: isJokerSet
-                      ? Colors.amber.withOpacity(0.15)
-                      : Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
+                  color: Colors.black.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TipCardHeader(
-                    match: widget.match,
-                    state: state,
-                    tip: widget.tip,
+            child: Column(
+              children: [
+                TipCardHeader(
+                  match: widget.match,
+                  tip: widget.tip,
+                  state: state,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      TipCardMatchInfo(
+                        match: widget.match,
+                        homeTeam: widget.homeTeam,
+                        guestTeam: widget.guestTeam,
+                        hasResult: hasResult,
+                      ),
+                      const SizedBox(height: 16),
+                      if (!hasResult)
+                        TipCardTippingInput(
+                          homeController: _homeController,
+                          guestController: _guestController,
+                          state: state,
+                          userId: widget.userId,
+                          matchId: widget.match.id,
+                          tip: widget.tip,
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  TipCardMatchInfo(
-                    match: widget.match,
-                    homeTeam: widget.homeTeam,
-                    guestTeam: widget.guestTeam,
-                    hasResult: hasResult,
-                  ),
-                  const SizedBox(height: 16),
-                  TipCardTippingInput(
-                    state: state,
-                    userId: widget.userId,
-                    matchId: widget.match.id,
-                    homeController: _homeController,
-                    guestController: _guestController,
-                    tip: widget.tip,
-                  ),
-                  if (widget.footer != null) widget.footer!,
-                ],
-              ),
+                ),
+                if (widget.footer != null) widget.footer!,
+              ],
             ),
           );
         },

@@ -8,6 +8,7 @@ import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
+import 'package:flutter_web/presentation/core/widgets/match_search_field.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:routemaster/routemaster.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -30,6 +31,7 @@ class _TipPageState extends State<TipPage> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
+  List<CustomMatch> _filteredMatches = [];
 
   int? _calculatedScrollIndex;
 
@@ -92,12 +94,16 @@ class _TipPageState extends State<TipPage> {
                         final userId = authState.signedInUser!.id;
                         final userTips = tips[userId] ?? [];
 
+                        final filteredMatches = _filteredMatches.isNotEmpty || matches.isEmpty 
+                            ? _filteredMatches 
+                            : matches;
+
                         // Bestimme den Scroll-Index:
                         // 1. Aus URL-Parameter (höchste Priorität)
                         // 2. Aus berechnetem aktuellem Spiel
                         if (_calculatedScrollIndex == null) {
                           _calculatedScrollIndex = widget.initialScrollIndex ?? 
-                              _getCurrentMatchIndex(matches);
+                              _getCurrentMatchIndex(filteredMatches);
                           
                           // Bereinige URL nach dem ersten Laden
                           if (widget.initialScrollIndex != null) {
@@ -107,58 +113,87 @@ class _TipPageState extends State<TipPage> {
                           }
                         }
 
-                        final scrollIndex = _calculatedScrollIndex!.clamp(0, matches.length - 1);
+                        final scrollIndex = filteredMatches.isEmpty 
+                            ? 0 
+                            : _calculatedScrollIndex!.clamp(0, filteredMatches.length - 1);
 
                         return PageTemplate(
                           isAuthenticated: widget.isAuthenticated,
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 700),
-                              child: ScrollablePositionedList.separated(
-                                itemScrollController: _itemScrollController,
-                                itemPositionsListener: _itemPositionsListener,
-                                initialScrollIndex: scrollIndex,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 24.0, horizontal: 16.0),
-                                itemCount: matches.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 24),
-                                itemBuilder: (context, index) {
-                                  final match = matches[index];
-                                  final tip = userTips.firstWhere(
-                                    (t) => t.matchId == match.id,
-                                    orElse: () => Tip.empty(userId)
-                                        .copyWith(matchId: match.id),
-                                  );
-                                  final homeTeam = teams.firstWhere(
-                                    (t) => t.id == match.homeTeamId,
-                                    orElse: () => Team.empty(),
-                                  );
-                                  final guestTeam = teams.firstWhere(
-                                    (t) => t.id == match.guestTeamId,
-                                    orElse: () => Team.empty(),
-                                  );
-                                  return InkWell(
-                                    borderRadius: BorderRadius.circular(16),
-                                    onTap: () {
-                                      final tipId = tip.id.isNotEmpty
-                                          ? tip.id
-                                          : "${userId}_${match.id}";
-                                      
-                                      // Navigiere mit dem returnIndex-Parameter
-                                      Routemaster.of(context).push(
-                                          '/tips-detail/$tipId?from=tip&returnIndex=$index');
+                              child: Column(
+                                children: [
+                                  // Suchfeld
+                                  MatchSearchField(
+                                    matches: matches,
+                                    teams: teams,
+                                    onFilteredMatchesChanged: (filtered) {
+                                      setState(() {
+                                        _filteredMatches = filtered;
+                                      });
                                     },
-                                    child: TipCard(
-                                      userId: userId,
-                                      tip: tip,
-                                      homeTeam: homeTeam,
-                                      guestTeam: guestTeam,
-                                      match: match,
+                                  ),
+                                  
+                                  // Matches Liste
+                                  Expanded(
+                                    child: filteredMatches.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            filteredMatches.length < matches.length
+                                              ? "Keine Matches gefunden"
+                                              : "Noch keine Spiele verfügbar",
+                                            style: const TextStyle(color: Colors.white),
+                                            
+                                          ),
+                                        )
+                                      : ScrollablePositionedList.separated(
+                                          itemScrollController: _itemScrollController,
+                                          itemPositionsListener: _itemPositionsListener,
+                                          initialScrollIndex: scrollIndex,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8.0, horizontal: 16.0),
+                                          itemCount: filteredMatches.length,
+                                          separatorBuilder: (_, __) =>
+                                              const SizedBox(height: 24),
+                                      itemBuilder: (context, index) {
+                                        final match = filteredMatches[index];
+                                        final tip = userTips.firstWhere(
+                                          (t) => t.matchId == match.id,
+                                          orElse: () => Tip.empty(userId)
+                                              .copyWith(matchId: match.id),
+                                        );
+                                        final homeTeam = teams.firstWhere(
+                                          (t) => t.id == match.homeTeamId,
+                                          orElse: () => Team.empty(),
+                                        );
+                                        final guestTeam = teams.firstWhere(
+                                          (t) => t.id == match.guestTeamId,
+                                          orElse: () => Team.empty(),
+                                        );
+                                        return InkWell(
+                                          borderRadius: BorderRadius.circular(16),
+                                          onTap: () {
+                                            final tipId = tip.id.isNotEmpty
+                                                ? tip.id
+                                                : "${userId}_${match.id}";
+                                            
+                                            // Navigiere mit dem returnIndex-Parameter
+                                            Routemaster.of(context).push(
+                                                '/tips-detail/$tipId?from=tip&returnIndex=$index');
+                                          },
+                                          child: TipCard(
+                                            userId: userId,
+                                            tip: tip,
+                                            homeTeam: homeTeam,
+                                            guestTeam: guestTeam,
+                                            match: match,
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                ]),
                             ),
                           ),
                         );

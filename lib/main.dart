@@ -9,6 +9,7 @@ import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
+import 'package:flutter_web/presentation/admin_page/widget/admin_user_tip_details_page.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
 import 'package:flutter_web/presentation/signin/signin_page.dart';
@@ -41,7 +42,7 @@ class AppRoutes {
   static const home = '/home';
   static const userTips = '/tips';
   static const userTipsDetail = '/tips-detail/:id';
-  static const userProfile = '/profile';  // Neue Route
+  static const userProfile = '/profile';
   static const dashboard = '/dashboard';
 }
 
@@ -112,7 +113,16 @@ class MyApp extends StatelessWidget {
                         AppRoutes.admin: (_) => MaterialPage(
                               child: AdminPage(isAuthenticated: true),
                             ),
-                        AppRoutes.userProfile: (_) => MaterialPage(  // Neue Route
+                        '/admin/user-tips/:userId': (info) {
+                          final userId = info.pathParameters['userId']!;
+                          return MaterialPage(
+                            child: AdminUserTipDetailsPage(
+                              isAuthenticated: true,
+                              selectedUserId: userId,
+                            ),
+                          );
+                        },
+                        AppRoutes.userProfile: (_) => const MaterialPage(
                               child: UserProfilePage(isAuthenticated: true),
                             ),
                         AppRoutes.userTips: (info) {

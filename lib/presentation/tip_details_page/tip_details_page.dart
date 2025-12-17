@@ -12,11 +12,11 @@ import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:flutter_web/presentation/tip_page/widgets/tip_details_community_tip_list.dart';
 import 'package:routemaster/routemaster.dart';
 
-class TipDetailsPage extends StatelessWidget {
+class TipDetailsPage extends StatefulWidget {
   final bool isAuthenticated;
   final String tipId;
   final int? returnIndex;
-  final String? from; // Neuer Parameter
+  final String? from;
 
   const TipDetailsPage({
     Key? key,
@@ -27,8 +27,12 @@ class TipDetailsPage extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<TipDetailsPage> createState() => _TipDetailsPageState();
+}
+
+class _TipDetailsPageState extends State<TipDetailsPage> {
+  @override
   Widget build(BuildContext context) {
-    // Lese die URL-Parameter
     final routeData = RouteData.of(context);
     final from = routeData.queryParameters['from'];
     final returnIndexString = routeData.queryParameters['returnIndex'];
@@ -71,12 +75,12 @@ class TipDetailsPage extends StatelessWidget {
                         final userId = authState.signedInUser!.id;
                         final userTips = tips[userId] ?? [];
                         final tip = userTips.firstWhere(
-                          (t) => t.id == tipId,
+                          (t) => t.id == widget.tipId,
                           orElse: () => Tip.empty(userId),
                         );
                         //If tip does not exist matchId within tip is still empty. Get it from tipId.
-                        final splitIndex = tipId.indexOf('_');
-                        final matchId = tipId.substring(splitIndex + 1);
+                        final splitIndex = widget.tipId.indexOf('_');
+                        final matchId = widget.tipId.substring(splitIndex + 1);
                         final match = matchState.matches.firstWhere(
                           (m) => m.id == matchId,
                           orElse: () => CustomMatch.empty(),
@@ -91,7 +95,7 @@ class TipDetailsPage extends StatelessWidget {
                         );
 
                         return PageTemplate(
-                          isAuthenticated: true,
+                          isAuthenticated: widget.isAuthenticated,
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 700),

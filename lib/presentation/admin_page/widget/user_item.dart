@@ -3,7 +3,6 @@ import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/buttons/more_button.dart';
 import 'package:flutter_web/presentation/core/dialogs/user_dialog.dart';
 import 'package:routemaster/routemaster.dart';
 
@@ -43,12 +42,21 @@ class UserItem extends StatelessWidget {
                 user.name,
                 style: themeData.textTheme.displayLarge,
               ),
-              HoverLinkButton(
-                label: 'Tipps',
-                color: primaryDark,
-                onTap: () {
-                  Routemaster.of(context).push('/tips/${user.name}');
+              TextButton.icon(
+                onPressed: () {
+                  Routemaster.of(context).push('/admin/user-tips/${user.id}');
                 },
+                icon: const Icon(Icons.edit, size: 16),
+                label: const Text('Tipps bearbeiten'),
+                style: TextButton.styleFrom(
+                  foregroundColor: primaryDark,
+                  backgroundColor:themeData.colorScheme.primaryContainer,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(color: primaryDark),
+                  ),
+                ),
               ),
             ],
           ),
@@ -115,7 +123,7 @@ class UserItem extends StatelessWidget {
       ),
     );
   }
-//todo: add new page instead of dialog
+  
   void _showUpdateUserDialog(
       BuildContext context, List<Team> teams, AppUser user) {
     showDialog(

@@ -125,9 +125,22 @@ class _PasswordResetDialogState extends State<PasswordResetDialog> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Text(
-                                "Gebe deine E-Mail-Adresse ein. Du erhältst eine E-Mail zum Zurücksetzen deines Passworts. Schaue in deinen <br> Spamordner </br>.",
-                                style: themeData.textTheme.bodyMedium,
+                              Text.rich(
+                                TextSpan(
+                                  style: themeData.textTheme.bodyMedium,
+                                  children: [
+                                    const TextSpan(
+                                      text: "Gebe deine E-Mail-Adresse ein. Du erhältst eine E-Mail zum Zurücksetzen deines Passworts. Schaue in deinen ",
+                                    ),
+                                    TextSpan(
+                                      text: "Spamordner",
+                                      style: themeData.textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const TextSpan(text: "."),
+                                  ],
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 20),

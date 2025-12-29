@@ -94,60 +94,63 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                           orElse: () => Team.empty(),
                         );
 
-                        return PageTemplate(
-                          isAuthenticated: widget.isAuthenticated,
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 700),
-                              child: Stack(
-                                children: [
-                                  SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const SizedBox(height: 48),
-                                        TipCard(
-                                          userId: userId,
-                                          tip: tip,
-                                          homeTeam: homeTeam,
-                                          guestTeam: guestTeam,
-                                          match: match,
-                                        ),
-                                        const SizedBox(height: 24),
-                                        SizedBox(
-                                          height: 400,
-                                          child: CommunityTipList(
-                                            users: authState.users,
-                                            allTips: tipState.tips,
-                                            match: match,
-                                            currentUserId: userId,
-                                            teams: teams,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 16,
-                                    right: 16,
-                                    child: IconButton(
-                                      icon: const Icon(Icons.close),
-                                      onPressed: () {
-                                        if (from == 'tip' && returnIndexString != null) {
-                                          // Navigiere zurück zur TipPage mit dem scrollTo-Parameter
-                                          Routemaster.of(context).replace('/tips?scrollTo=$returnIndexString');
-                                        } else {
-                                          Routemaster.of(context).replace('/home');
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }
+    return PageTemplate(
+      isAuthenticated: widget.isAuthenticated,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 700),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            if (from == 'tip' && returnIndexString != null) {
+                              Routemaster.of(context).replace('/tips?scrollTo=$returnIndexString');
+                            } else {
+                              Routemaster.of(context).replace('/home');
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    TipCard(
+                      userId: userId,
+                      tip: tip,
+                      homeTeam: homeTeam,
+                      guestTeam: guestTeam,
+                      match: match,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 500,
+                      child: CommunityTipList(
+                        users: authState.users,
+                        allTips: tipState.tips,
+                        match: match,
+                        currentUserId: userId,
+                        teams: teams,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+                      );
+                    }
 
                       return Center(
                         child: CircularProgressIndicator(

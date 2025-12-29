@@ -44,7 +44,7 @@ Future<void> init() async {
   // Register Blocs
   sl.registerFactory(() => SignupformBloc(authRepository: sl()));
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
-  sl.registerFactory(() => AuthControllerBloc(authRepository: sl()));
+  sl.registerFactory(() => AuthControllerBloc(authRepository: sl(), authBloc: sl()));
   sl.registerFactory(() => MatchesformBloc(matchesRepository: sl()));
   sl.registerFactory(() => MatchesControllerBloc(matchRepository: sl()));
   sl.registerFactory(() => TipControllerBloc(tipRepository: sl()));

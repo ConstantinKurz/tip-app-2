@@ -9,6 +9,7 @@ import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
 import 'package:flutter_web/presentation/core/menu/home_logo.dart';
 import 'package:flutter_web/presentation/core/menu/menu_item.dart';
 import 'package:flutter_web/presentation/core/buttons/user_button.dart';
+import 'package:flutter_web/theme.dart';
 
 class MyMenuBar extends StatelessWidget {
   final bool isAuthenticated;
@@ -21,8 +22,10 @@ class MyMenuBar extends StatelessWidget {
     return BlocBuilder<AuthControllerBloc, AuthControllerState>(
       builder: (context, authState) {
         bool isAdmin = false;
-        if (authState is AuthControllerLoaded && authState.signedInUser != null) {
+        if (authState is AuthControllerLoaded &&
+            authState.signedInUser != null) {
           isAdmin = authState.signedInUser?.admin ?? false;
+
         }
         return Container(
           height: 66,
@@ -49,7 +52,8 @@ class MyMenuBar extends StatelessWidget {
                   try {
                     await seedTestDataTwentyUsers();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("✅ Testdaten erfolgreich geladen")),
+                      const SnackBar(
+                          content: Text("✅ Testdaten erfolgreich geladen")),
                     );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -58,7 +62,6 @@ class MyMenuBar extends StatelessWidget {
                   }
                 },
               ),
-
               IconButton(
                 icon: const Icon(Icons.delete_outline),
                 tooltip: "Clear Data",
@@ -89,7 +92,8 @@ class MyMenuBar extends StatelessWidget {
                     try {
                       await clearDatabaseExceptUser();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("✅ Datenbank erfolgreich geleert")),
+                        const SnackBar(
+                            content: Text("✅ Datenbank erfolgreich geleert")),
                       );
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,14 +104,13 @@ class MyMenuBar extends StatelessWidget {
                 },
               ),
               const SizedBox(width: 12),
-
-              if (isAuthenticated) ...[
-                const UserButton(),
-                const SizedBox(width: 8),
-                const SignOutButton(),
-              ] else
-                const SignInButton(),
-              const SizedBox(width: 10),
+                if (isAuthenticated) ...[
+                  const UserButton(),
+                  const SizedBox(width: 8),
+                  const SignOutButton(),
+                ] else
+                  const SignInButton(),
+                  const SizedBox(width: 10),
             ],
           ),
         );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
+import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/signupform/signupform_bloc.dart';
 import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';

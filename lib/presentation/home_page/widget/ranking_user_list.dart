@@ -7,19 +7,19 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 class RankingUserList extends StatelessWidget {
   final List<AppUser> users;
   final List<Team> teams;
-  final String currentUser;
+  final String currentUserId;
 
   const RankingUserList({
     required this.users,
     required this.teams,
-    required this.currentUser,
+    required this.currentUserId,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // Index des aktuellen Users finden
-    final currentUserIndex = users.indexWhere((user) => user.id == currentUser);
+    final currentUserIndex = users.indexWhere((user) => user.id == currentUserId);
     final initialScrollIndex = currentUserIndex != -1 ? currentUserIndex : 0;
 
     return ScrollablePositionedList.builder(
@@ -29,7 +29,7 @@ class RankingUserList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final user = users[index];
-        final isCurrentUser = currentUser == user.id;
+        final isCurrentUser = currentUserId == user.id;
         final champion = teams.where((element) => element.id == user.championId).firstOrNull;
         final textTheme = Theme.of(context).textTheme;
 

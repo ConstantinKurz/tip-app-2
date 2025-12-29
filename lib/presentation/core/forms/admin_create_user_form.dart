@@ -17,6 +17,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
   late String _username;
   late String _email;
   late String _password;
+  bool _isAdmin = false;
 
   String? validateString(String? input) {
     if (input == null || input.isEmpty) {
@@ -109,6 +110,18 @@ class _CreateUserFormState extends State<CreateUserForm> {
                 onChanged: (value) => _password = value,
               ),
               const SizedBox(height: 16),
+              CheckboxListTile(
+                value: _isAdmin,
+                onChanged: (val) {
+                  setState(() {
+                    _isAdmin = val ?? false;
+                  });
+                },
+                title: const Text("Admin"),
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 16),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 CustomButton(
                   buttonText: 'Speichern',
@@ -122,12 +135,13 @@ class _CreateUserFormState extends State<CreateUserForm> {
                           username: _username,
                           email: _email,
                           password: _password,
+                          admin: _isAdmin,
                         ),
                       );
                     } else {
                       BlocProvider.of<AuthformBloc>(context).add(
                         CreateUserEvent(
-                            username: null, email: null, password: null),
+                            username: null, email: null, password: null, admin: false),
                       );
                     }
                   },

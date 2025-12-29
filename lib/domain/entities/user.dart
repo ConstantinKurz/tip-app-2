@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-
+// TODO: change constantin email in firesstore and add new admin field.
+// change code
 class AppUser {
   final String id;
   final String championId;
@@ -9,6 +10,7 @@ class AppUser {
   final int score;
   final int jokerSum;
   final int sixer;
+  final bool admin;
 
   AppUser({
     required this.id,
@@ -19,6 +21,7 @@ class AppUser {
     required this.score,
     required this.jokerSum,
     required this.sixer,
+    required this.admin,
   });
 
   factory AppUser.empty() {
@@ -31,6 +34,7 @@ class AppUser {
       score: 0,
       jokerSum: 0,
       sixer: 0,
+      admin: false,
     );
   }
 
@@ -43,6 +47,7 @@ class AppUser {
     int? score,
     int? jokerSum,
     int? sixer,
+    bool? admin,
   }) {
     return AppUser(
       id: id ?? this.id,
@@ -53,6 +58,7 @@ class AppUser {
       score: score ?? this.score,
       jokerSum: jokerSum ?? this.jokerSum,
       sixer: sixer ?? this.sixer,
+      admin: admin ?? this.admin,
     );
   }
 }

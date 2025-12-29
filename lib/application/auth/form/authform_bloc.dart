@@ -49,6 +49,8 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
   ) {
     emit(state.copyWith(
       name: event.username ?? state.name,
+      email: event.email ?? state.email,
+      admin: event.admin ?? state.admin,
       championId: event.championId ?? state.championId,
       rank: event.rank ?? state.rank,
       score: event.score ?? state.score,

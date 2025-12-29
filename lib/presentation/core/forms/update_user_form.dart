@@ -120,6 +120,24 @@ class UpdateUserForm extends StatelessWidget {
                       .add(UserFormFieldUpdatedEvent(username: value)),
                 ),
                 const SizedBox(height: 16),
+                // --- E-Mail Feld hinzufügen ---
+                TextFormField(
+                  controller: TextEditingController(text: user.email),
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: Colors.white,
+                  validator: _validateEmail,
+                  decoration: InputDecoration(
+                    labelText: "E-Mail",
+                    hintText: user.email,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (value) => context
+                      .read<AuthformBloc>()
+                      .add(UserFormFieldUpdatedEvent(email: value)),
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: rankController,
                   style: const TextStyle(color: Colors.white),
@@ -205,6 +223,21 @@ class UpdateUserForm extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 16),
+                CheckboxListTile(
+                  value: state.admin ?? user.admin,
+                  onChanged: (val) {
+                    context.read<AuthformBloc>().add(
+                      UserFormFieldUpdatedEvent(admin: val),
+                    );
+                  },
+                  title: const Text(
+                    "Admin",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -224,6 +257,7 @@ class UpdateUserForm extends StatelessWidget {
                             jokerSum: state.jokerSum ?? user.jokerSum,
                             championId: state.championId ?? user.championId,
                             sixer: state.sixer ?? user.sixer,
+                            admin: state.admin ?? user.admin,
                           );
                           context.read<AuthformBloc>().add(UpdateUserEvent(
                               user: updatedUser, currentUser: user));

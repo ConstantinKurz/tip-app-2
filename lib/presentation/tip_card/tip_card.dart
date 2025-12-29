@@ -79,7 +79,6 @@ class _TipCardState extends State<TipCard> {
                 _guestController.text = state.tipGuest?.toString() ?? '';
               },
               (_) {
-                // Nach erfolgreichem Update: TipFormBloc neu initialisieren
                 final tipControllerState =
                     context.read<TipControllerBloc>().state;
                 if (tipControllerState is TipControllerLoaded) {

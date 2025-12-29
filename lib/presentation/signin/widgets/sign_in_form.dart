@@ -131,7 +131,7 @@ class _SignInFormState extends State<SignInForm> {
                 ),
                 validator: validateEmail,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               TextFormField(
                 controller: passwordController,
@@ -165,8 +165,6 @@ class _SignInFormState extends State<SignInForm> {
                 },
               ),
               const SizedBox(height: 8),
-
-              // Passwort vergessen Link - rechts unter dem Passwort-Feld
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -181,7 +179,7 @@ class _SignInFormState extends State<SignInForm> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
               Align(
                 alignment: Alignment.center,
@@ -190,7 +188,7 @@ class _SignInFormState extends State<SignInForm> {
                   hoverColor: primaryDark,
                   borderColor: primaryDark,
                   backgroundColor: themeData.scaffoldBackgroundColor,
-                  buttonText: state.isSubmitting ? "Wird angemeldet..." : "Anmelden",
+                  buttonText: state.isSubmitting ? "Anmelden..." : "Anmelden",
                   callback: state.isSubmitting
                       ? () {}
                       : () {
@@ -212,7 +210,7 @@ class _SignInFormState extends State<SignInForm> {
                         },
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
               if (state.isSubmitting)
                 Center(
@@ -220,7 +218,6 @@ class _SignInFormState extends State<SignInForm> {
                     color: themeData.colorScheme.onPrimaryContainer,
                   ),
                 ),
-              const SizedBox(height: 40),
             ],
           ),
         );

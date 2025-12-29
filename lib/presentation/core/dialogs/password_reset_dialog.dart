@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/signupform/signupform_bloc.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/custom_dialog.dart';
 import 'package:flutter_web/constants.dart';
 
 class PasswordResetDialog extends StatefulWidget {
@@ -83,13 +82,13 @@ class _PasswordResetDialogState extends State<PasswordResetDialog> {
             },
       builder: (context, state) {
         return Container(
-          color: Colors.black.withOpacity(0.8), // Schwarzer Hintergrund
+          color: Colors.black.withOpacity(0.8),
           child: Center(
             child: Material(
               color: Colors.transparent,
               child: Container(
                 width: screenWidth * 0.3,
-                height: screenHeight * 0.4,
+                height: screenHeight * 0.5,
                 decoration: BoxDecoration(
                   color: themeData.scaffoldBackgroundColor,
                   border: Border.all(color: Colors.white),
@@ -160,7 +159,7 @@ class _PasswordResetDialogState extends State<PasswordResetDialog> {
                                 backgroundColor: themeData.colorScheme.primary,
                                 hoverColor: primaryDark,
                                 borderColor: primaryDark,
-                                buttonText: state.sendingResetEmail ? "Sende..." : "E-Mail senden",
+                                buttonText: state.sendingResetEmail ? "Sende..." : "Senden",
                                 callback: state.sendingResetEmail ? () {} : () {
                                   if (_formKey.currentState?.validate() ?? false) {
                                     context.read<SignupformBloc>().add(

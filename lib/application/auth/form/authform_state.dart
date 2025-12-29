@@ -15,6 +15,7 @@ class AuthformState {
   final int? score;
   final int? jokerSum;
   final int? sixer;
+  final bool? admin;
 
   final AppUser currentUser;
 
@@ -27,6 +28,7 @@ class AuthformState {
       this.score,
       this.jokerSum,
       this.sixer,
+      this.admin,
       required this.isSubmitting,
       required this.sendingResetMail,
       required this.showValidationMessages,
@@ -46,7 +48,8 @@ class AuthformState {
     int? score,
     int? jokerSum,
     int? sixer,
-    AppUser? curentUser,
+    bool? admin,
+    AppUser? currentUser,
   }) {
     return AuthformState(
       id: id ?? this.id,
@@ -57,13 +60,14 @@ class AuthformState {
       score: score ?? this.score,
       jokerSum: jokerSum ?? this.jokerSum,
       sixer: sixer ?? this.sixer,
+      admin: admin ?? this.admin,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       sendingResetMail: sendingResetMail ?? this.sendingResetMail,
       showValidationMessages:
           showValidationMessages ?? this.showValidationMessages,
       authFailureOrSuccessOption:
           authFailureOrSuccessOption ?? this.authFailureOrSuccessOption,
-      currentUser: currentUser,
+      currentUser: currentUser ?? this.currentUser,
     );
   }
 }
@@ -78,6 +82,8 @@ class AuthFormIntialState extends AuthformState {
             rank: null,
             score: null,
             jokerSum: null,
+            sixer: null,
+            admin: null,
             isSubmitting: false,
             sendingResetMail: false,
             showValidationMessages: false,

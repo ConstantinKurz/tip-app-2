@@ -47,7 +47,8 @@ class UserItem extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: themeData.colorScheme.onPrimaryContainer),
+                    side: BorderSide(
+                        color: themeData.colorScheme.onPrimaryContainer),
                   ),
                 ),
               ),
@@ -67,6 +68,14 @@ class UserItem extends StatelessWidget {
                       user.email,
                       style: themeData.textTheme.bodyLarge,
                     ),
+                    Text(
+                      'Admin:',
+                      style: themeData.textTheme.bodySmall,
+                    ),
+                    Text(
+                      user.admin ? 'Ja' : 'Nein',
+                      style: themeData.textTheme.bodyLarge,
+                    ),
                   ],
                 ),
               ),
@@ -76,11 +85,10 @@ class UserItem extends StatelessWidget {
                   showDialog(
                     context: context,
                     builder: (_) => UserDialog(
-                      user: user,
-                      teams: teams,
-                      dialogText: 'Benutzerdaten bearbeiten',
-                      userAction: UserAction.update
-                    ),
+                        user: user,
+                        teams: teams,
+                        dialogText: 'Benutzerdaten bearbeiten',
+                        userAction: UserAction.update),
                   );
                 },
                 backgroundColor: themeData.colorScheme.primaryContainer,

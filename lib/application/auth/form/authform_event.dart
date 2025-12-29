@@ -6,15 +6,22 @@ sealed class AuthFormEvent {}
 
 class CreateUserEvent extends AuthFormEvent {
   final String? username;
-  final String? password;
   final String? email;
+  final String? password;
+  final bool admin;
 
-  CreateUserEvent(
-      {required this.username, required this.password, required this.email});
+  CreateUserEvent({
+    this.username,
+    this.email,
+    this.password,
+    this.admin = false,
+  });
 }
 
 class UserFormFieldUpdatedEvent extends AuthFormEvent {
   final String? username;
+  final String? email;
+  final bool? admin;
   final String? championId;
   final int? rank;
   final int? score;
@@ -22,6 +29,8 @@ class UserFormFieldUpdatedEvent extends AuthFormEvent {
   final int? sixer;
   UserFormFieldUpdatedEvent({
     this.username,
+    this.email,
+    this.admin,
     this.championId,
     this.rank,
     this.score,

@@ -58,7 +58,8 @@ Future<void> seedTestDataTwentyUsers() async {
       'rank': i + 1,
       'score': random.nextInt(50) + 10, // Zufällige Punkte zwischen 10-60
       'jokerSum': random.nextInt(20),
-      'mixer': random.nextInt(10),
+      'sixer': random.nextInt(10),
+      'admin': false, 
     });
   }
 

@@ -2,14 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 
 class UserModel {
-  final String id; // Firestore doc-ID
-  final String championId; // champion_id
-  final String email; // email
-  final String name; // name
-  final int rank; // rank
-  final int score; // score
-  final int jokerSum; // jokerSum
-  final int sixer; // mixer
+  final String id;
+  final String championId;
+  final String email;
+  final String name;
+  final int rank;
+  final int score;
+  final int jokerSum;
+  final int sixer; 
+  final bool admin; 
 
   UserModel({
     required this.id,
@@ -20,6 +21,7 @@ class UserModel {
     required this.score,
     required this.jokerSum,
     required this.sixer,
+    required this.admin, // <--- NEU
   });
 
   /// Konstruktor aus Map (z. B. aus Firestore-Daten ohne doc-ID)
@@ -33,10 +35,10 @@ class UserModel {
       score: map['score'] as int? ?? 0,
       jokerSum: map['jokerSum'] as int? ?? 0,
       sixer: map['sixer'] as int? ?? 0,
+      admin: map['admin'] as bool? ?? false,
     );
   }
 
-  /// Konstruktor direkt aus Firestore-Snapshot
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return UserModel.fromMap({...data, 'id': doc.id});
@@ -51,6 +53,7 @@ class UserModel {
     int? score,
     int? jokerSum,
     int? sixer,
+    bool? admin,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -61,6 +64,7 @@ class UserModel {
       score: score ?? this.score,
       jokerSum: jokerSum ?? this.jokerSum,
       sixer: sixer ?? this.sixer,
+      admin: admin ?? this.admin, // <--- NEU
     );
   }
 
@@ -75,6 +79,7 @@ class UserModel {
       score: score,
       jokerSum: jokerSum,
       sixer: sixer,
+      admin: admin, // <--- NEU
     );
   }
 
@@ -89,6 +94,7 @@ class UserModel {
       score: user.score,
       jokerSum: user.jokerSum,
       sixer: user.sixer,
+      admin: user.admin, // <--- NEU
     );
   }
 
@@ -103,18 +109,21 @@ class UserModel {
       'score': score,
       'jokerSum': jokerSum,
       'sixer': sixer,
+      'admin': admin,
     };
   }
 
-    factory UserModel.empty(String username, String email) {
+  factory UserModel.empty(String username, String email) {
     return UserModel(
-        id: username,
-        championId: 'TBD',
-        name: username,
-        email: email,
-        rank: 0,
-        score: 0,
-        jokerSum: 0,
-        sixer: 0);
+      id: username,
+      championId: 'TBD',
+      name: username,
+      email: email,
+      rank: 0,
+      score: 0,
+      jokerSum: 0,
+      sixer: 0,
+      admin: false,
+    );
   }
 }

@@ -70,7 +70,7 @@ class RankingSection extends StatelessWidget {
                         RankingUserList(
                           users: visibleUsers,
                           teams: teams,
-                          currentUser: userId,
+                          currentUserId: userId,
                         ),
                         if (users.length > 5)
                           Center(

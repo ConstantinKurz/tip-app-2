@@ -6,30 +6,13 @@ import 'package:flutter_web/infrastructure/repositories/match_repository_impl.da
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/core/failures/match_failures.dart';
 
-// Mock classes
-class MockCollectionReference extends Mock implements CollectionReference<Map<String, dynamic>> {}
-class MockDocumentReference extends Mock implements DocumentReference<Map<String, dynamic>> {}
-class MockDocumentSnapshot extends Mock implements DocumentSnapshot<Map<String, dynamic>> {}
-class MockQuerySnapshot extends Mock implements QuerySnapshot<Map<String, dynamic>> {}
-class MockQueryDocumentSnapshot extends Mock implements QueryDocumentSnapshot<Map<String, dynamic>> {}
-class MockQuery extends Mock implements Query<Map<String, dynamic>> {}
 
 void main() {
   group('MatchRepositoryImpl', () {
     late MatchRepositoryImpl repository;
-    late MockCollectionReference mockCollection;
-    late MockDocumentReference mockDocRef;
-    late MockDocumentSnapshot mockDocSnapshot;
-    late MockQuerySnapshot mockQuerySnapshot;
-    late MockQuery mockQuery;
+
 
     setUp(() {
-      mockCollection = MockCollectionReference();
-      mockDocRef = MockDocumentReference();
-      mockDocSnapshot = MockDocumentSnapshot();
-      mockQuerySnapshot = MockQuerySnapshot();
-      mockQuery = MockQuery();
-      
       repository = MatchRepositoryImpl();
       
       registerFallbackValue(<String, dynamic>{});
@@ -47,18 +30,16 @@ void main() {
           guestTeamId: 'team_b',
           matchDay: 1,
           matchDate: DateTime(2024, 1, 15, 18, 30),
-          matchDay: 1,
           homeScore: null,
           guestScore: null,
         );
 
         expect(match.id, 'match_1');
         expect(match.homeTeamId, 'team_a');
-        expect(match.awayTeamId, 'team_b');
+        expect(match.guestTeamId, 'team_b');
         expect(match.matchDate, DateTime(2024, 1, 15, 18, 30));
         expect(match.homeScore, null);
         expect(match.guestScore, null);
-        expect(match.stage, 'Group');
       });
     });
 
@@ -92,7 +73,6 @@ void main() {
           matchDate: DateTime(2024, 2, 20, 20, 0),
           homeScore: 2,
           guestScore: 1,
-          stage: 'Final',
         );
 
         final updateResult = repository.updateMatch(match);
@@ -101,7 +81,6 @@ void main() {
         // Verify match data integrity
         expect(match.homeScore, 2);
         expect(match.guestScore, 1);
-        expect(match.stage, 'Final');
         expect(match.hasResult, true);
       });
 
@@ -114,7 +93,6 @@ void main() {
           matchDate: DateTime(2024, 3, 10, 15, 0),
           homeScore: null,
           guestScore: null,
-          stage: 'Qualifier',
         );
 
         expect(match.hasResult, false);
@@ -172,7 +150,6 @@ void main() {
           matchDate: DateTime(2024, 1, 1, 12, 0),
           homeScore: 3,
           guestScore: 0,
-          stage: 'Group',
         );
 
         expect(finishedMatch.hasResult, true);
@@ -186,7 +163,6 @@ void main() {
           matchDate: DateTime(2024, 12, 31, 18, 0),
           homeScore: null,
           guestScore: null,
-          stage: 'Group',
         );
 
         expect(upcomingMatch.hasResult, false);
@@ -201,10 +177,9 @@ void main() {
           matchDate: DateTime(2024, 6, 15),
           homeScore: null,
           guestScore: null,
-          stage: 'Group',
         );
 
-        expect(groupMatch.getStageName(), 'Gruppenphase');
+        expect(groupMatch.getStageName, 'Gruppenphase');
 
         final finalMatch = CustomMatch(
           id: 'final_match',
@@ -214,10 +189,9 @@ void main() {
           matchDate: DateTime(2024, 7, 14),
           homeScore: null,
           guestScore: null,
-          stage: 'Final',
         );
 
-        expect(finalMatch.getStageName(), 'Finale');
+        expect(finalMatch.getStageName, 'Finale');
       });
     });
 
@@ -259,7 +233,6 @@ void main() {
           matchDate: pastDate,
           homeScore: 1,
           guestScore: 0,
-          stage: 'Group',
         );
 
         final futureMatch = CustomMatch(
@@ -270,7 +243,6 @@ void main() {
           matchDate: futureDate,
           homeScore: null,
           guestScore: null,
-          stage: 'Group',
         );
 
         expect(pastMatch.matchDate.isBefore(currentDate), true);
@@ -287,7 +259,6 @@ void main() {
           matchDate: DateTime.now(),
           homeScore: 5,
           guestScore: 3,
-          stage: 'Group',
         );
 
         expect(validMatch.homeScore! >= 0, true);
@@ -302,7 +273,6 @@ void main() {
           matchDate: DateTime.now(),
           homeScore: 0,
           guestScore: 0,
-          stage: 'Group',
         );
 
         expect(edgeMatch.homeScore, 0);
@@ -332,7 +302,6 @@ void main() {
           matchDate: DateTime.now(),
           homeScore: null,
           guestScore: null,
-          stage: 'Test',
         );
 
         final createResult = repository.createMatch(match);
@@ -367,7 +336,6 @@ void main() {
           matchDate: DateTime(2024, 6, 1, 16, 0),
           homeScore: null,
           guestScore: null,
-          stage: 'Group',
         );
 
         // Verify match can be used in repository operations

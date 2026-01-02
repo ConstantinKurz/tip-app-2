@@ -77,12 +77,6 @@ class UpdateMatchForm extends StatelessWidget {
         );
       },
       builder: (context, state) {
-        final allMatchDays = <int>{
-          match.matchDay,
-          if (state.matchDay != null) state.matchDay!,
-          ...List.generate(8, (i) => i),
-        }.toList()
-          ..sort();
 
         return Form(
           autovalidateMode: state.showValidationMessages
@@ -226,7 +220,7 @@ class UpdateMatchForm extends StatelessWidget {
                 items: List.generate(8, (index) => index +1).map((value) {
                   return DropdownMenuItem<int>(
                     value: value,
-                    child: Text(CustomMatch.empty().getStageName(value)),
+                    child: Text(CustomMatch.empty().getStageName),
                   );
                 }).toList(),
                 onChanged: (value) {

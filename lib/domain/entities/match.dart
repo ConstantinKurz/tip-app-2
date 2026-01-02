@@ -59,9 +59,9 @@ class CustomMatch {
     );
   }
 
-    String getStageName(int matchDay) {
+    String get getStageName {
     if (matchDay <= 3) {
-      return 'Gruppenphase, Tag $matchDay';
+      return 'Gruppenphase, Tag ${matchDay + 1}';
     }
     switch (matchDay) {
       case 4:
@@ -77,5 +77,9 @@ class CustomMatch {
       default:
         return 'Spieltag $matchDay';
     }
-  }
+  }   
+  
+  bool get hasResult {
+      return homeScore != null && guestScore != null;
+      }
 }

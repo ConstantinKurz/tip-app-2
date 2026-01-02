@@ -3,27 +3,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_web/presentation/core/menu/home_logo.dart';
 import 'package:routemaster/routemaster.dart';
 
-import '../../../helpers/test_app.dart';
-
 void main() {
   group('HomeLogo Widget Tests', () {
     testWidgets('should display logo text correctly', (tester) async {
       // Arrange & Act
       await tester.pumpWidget(
-        RoutemasterApp(
-          routerDelegate: RoutemasterDelegate(
-            routesBuilder: (_) {
-              return RouteMap(routes: {
-                '/': (_) => MaterialPage(child: Container()),
-                '/home': (_) => MaterialPage(child: Container()),
-              });
-            },
-          ),
-          child: MaterialApp(
-            home: Scaffold(
-              body: const HomeLogo(),
-            ),
-          ),
+        Builder(
+          builder: (context) {
+            final routemasterDelegate = RoutemasterDelegate(
+              routesBuilder: (_) {
+                return RouteMap(routes: {
+                  '/': (_) => MaterialPage(child: Container()),
+                  '/home': (_) => MaterialPage(child: Container()),
+                });
+              },
+            );
+            return MaterialApp.router(
+              routerDelegate: routemasterDelegate,
+              routeInformationParser: const RoutemasterParser(),
+              builder: (context, child) => const Scaffold(
+                body: HomeLogo(),
+              ),
+            );
+          },
         ),
       );
 
@@ -34,20 +36,24 @@ void main() {
     testWidgets('should have clickable mouse cursor', (tester) async {
       // Arrange & Act
       await tester.pumpWidget(
-        RoutemasterApp(
-          routerDelegate: RoutemasterDelegate(
-            routesBuilder: (_) {
-              return RouteMap(routes: {
-                '/': (_) => MaterialPage(child: Container()),
-                '/home': (_) => MaterialPage(child: Container()),
-              });
-            },
-          ),
-          child: MaterialApp(
-            home: Scaffold(
-              body: const HomeLogo(),
-            ),
-          ),
+        Builder(
+          builder: (context) {
+            final routemasterDelegate = RoutemasterDelegate(
+              routesBuilder: (_) {
+                return RouteMap(routes: {
+                  '/': (_) => MaterialPage(child: Container()),
+                  '/home': (_) => MaterialPage(child: Container()),
+                });
+              },
+            );
+            return MaterialApp.router(
+              routerDelegate: routemasterDelegate,
+              routeInformationParser: const RoutemasterParser(),
+              builder: (context, child) => const Scaffold(
+                body: HomeLogo(),
+              ),
+            );
+          },
         ),
       );
 
@@ -61,20 +67,24 @@ void main() {
     testWidgets('should be wrapped in GestureDetector for tap handling', (tester) async {
       // Arrange & Act
       await tester.pumpWidget(
-        RoutemasterApp(
-          routerDelegate: RoutemasterDelegate(
-            routesBuilder: (_) {
-              return RouteMap(routes: {
-                '/': (_) => MaterialPage(child: Container()),
-                '/home': (_) => MaterialPage(child: Container()),
-              });
-            },
-          ),
-          child: MaterialApp(
-            home: Scaffold(
-              body: const HomeLogo(),
-            ),
-          ),
+        Builder(
+          builder: (context) {
+            final routemasterDelegate = RoutemasterDelegate(
+              routesBuilder: (_) {
+                return RouteMap(routes: {
+                  '/': (_) => MaterialPage(child: Container()),
+                  '/home': (_) => MaterialPage(child: Container()),
+                });
+              },
+            );
+            return MaterialApp.router(
+              routerDelegate: routemasterDelegate,
+              routeInformationParser: const RoutemasterParser(),
+              builder: (context, child) => const Scaffold(
+                body: HomeLogo(),
+              ),
+            );
+          },
         ),
       );
 
@@ -85,20 +95,24 @@ void main() {
     testWidgets('should apply correct container styling', (tester) async {
       // Arrange & Act
       await tester.pumpWidget(
-        RoutemasterApp(
-          routerDelegate: RoutemasterDelegate(
-            routesBuilder: (_) {
-              return RouteMap(routes: {
-                '/': (_) => MaterialPage(child: Container()),
-                '/home': (_) => MaterialPage(child: Container()),
-              });
-            },
-          ),
-          child: MaterialApp(
-            home: Scaffold(
-              body: const HomeLogo(),
-            ),
-          ),
+        Builder(
+          builder: (context) {
+            final routemasterDelegate = RoutemasterDelegate(
+              routesBuilder: (_) {
+                return RouteMap(routes: {
+                  '/': (_) => MaterialPage(child: Container()),
+                  '/home': (_) => MaterialPage(child: Container()),
+                });
+              },
+            );
+            return MaterialApp.router(
+              routerDelegate: routemasterDelegate,
+              routeInformationParser: const RoutemasterParser(),
+              builder: (context, child) => const Scaffold(
+                body: HomeLogo(),
+              ),
+            );
+          },
         ),
       );
 
@@ -113,23 +127,27 @@ void main() {
     testWidgets('should handle text overflow correctly', (tester) async {
       // Arrange & Act
       await tester.pumpWidget(
-        RoutemasterApp(
-          routerDelegate: RoutemasterDelegate(
-            routesBuilder: (_) {
-              return RouteMap(routes: {
-                '/': (_) => MaterialPage(child: Container()),
-                '/home': (_) => MaterialPage(child: Container()),
-              });
-            },
-          ),
-          child: MaterialApp(
-            home: Scaffold(
-              body: SizedBox(
-                width: 50, // Small width to force overflow
-                child: const HomeLogo(),
+        Builder(
+          builder: (context) {
+            final routemasterDelegate = RoutemasterDelegate(
+              routesBuilder: (_) {
+                return RouteMap(routes: {
+                  '/': (_) => MaterialPage(child: Container()),
+                  '/home': (_) => MaterialPage(child: Container()),
+                });
+              },
+            );
+            return MaterialApp.router(
+              routerDelegate: routemasterDelegate,
+              routeInformationParser: const RoutemasterParser(),
+              builder: (context, child) => const Scaffold(
+                body: SizedBox(
+                  width: 50, // Small width to force overflow
+                  child: HomeLogo(),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       );
 
@@ -140,20 +158,24 @@ void main() {
     testWidgets('should respond to tap gestures', (tester) async {
       // Arrange
       await tester.pumpWidget(
-        RoutemasterApp(
-          routerDelegate: RoutemasterDelegate(
-            routesBuilder: (_) {
-              return RouteMap(routes: {
-                '/': (_) => MaterialPage(child: Container()),
-                '/home': (_) => MaterialPage(child: Container()),
-              });
-            },
-          ),
-          child: MaterialApp(
-            home: Scaffold(
-              body: const HomeLogo(),
-            ),
-          ),
+        Builder(
+          builder: (context) {
+            final routemasterDelegate = RoutemasterDelegate(
+              routesBuilder: (_) {
+                return RouteMap(routes: {
+                  '/': (_) => MaterialPage(child: Container()),
+                  '/home': (_) => MaterialPage(child: Container()),
+                });
+              },
+            );
+            return MaterialApp.router(
+              routerDelegate: routemasterDelegate,
+              routeInformationParser: const RoutemasterParser(),
+              builder: (context, child) => const Scaffold(
+                body: HomeLogo(),
+              ),
+            );
+          },
         ),
       );
 

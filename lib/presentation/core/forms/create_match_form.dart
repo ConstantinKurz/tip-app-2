@@ -132,7 +132,7 @@ class CreateMatchForm extends StatelessWidget {
                 items: List.generate(8, (i) => i + 1) // 1 bis 8, je nach Turnierstruktur
                     .map((day) => DropdownMenuItem(
                           value: day,
-                          child: Text(CustomMatch.empty().getStageName(day)),
+                          child: Text(CustomMatch.empty().getStageName),
                         ))
                     .toList(),
                 onChanged: (day) {

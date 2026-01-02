@@ -55,7 +55,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
       );
       
       final searchLower = _searchQuery.toLowerCase();
-      final stageName = match.getStageName(match.matchDay).toLowerCase();
+      final stageName = match.getStageName.toLowerCase();
       
       // Suche nach Teamnamen (auch Teilwörtern), Spieltag oder Spielphase
       return homeTeam.name.toLowerCase().contains(searchLower) ||

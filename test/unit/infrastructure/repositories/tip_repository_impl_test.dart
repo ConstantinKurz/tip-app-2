@@ -52,7 +52,6 @@ void main() {
           userId: 'user_123',
           tipDate: DateTime.now(),
           matchId: 'match_456',
-          tipDate: DateTime.now(),
           tipHome: 2,
           tipGuest: 1,
           joker: false,
@@ -78,7 +77,6 @@ void main() {
           userId: 'user_456',
           tipDate: DateTime.now(),
           matchId: 'match_789',
-          tipDate: DateTime.now(),
           tipHome: null,
           tipGuest: null,
           joker: true,
@@ -167,10 +165,10 @@ void main() {
 
         expect(validTip.id.isNotEmpty, true);
         expect(validTip.userId.isNotEmpty, true);
-        expect(validTip.matchId.isNotEmpty, true);
+        expect(validTip.matchId?.isNotEmpty, true);
         expect(validTip.tipHome != null && validTip.tipHome! >= 0, true);
         expect(validTip.tipGuest != null && validTip.tipGuest! >= 0, true);
-        expect(validTip.points >= 0, true);
+        expect(validTip.points! >= 0, true);
       });
 
       test('should handle edge case scores', () {
@@ -283,6 +281,7 @@ void main() {
           id: 'test_tip',
           userId: 'test_user',
           matchId: 'test_match',
+          tipDate: DateTime.now(),
           tipHome: 1,
           tipGuest: 0,
           joker: false,
@@ -325,7 +324,7 @@ void main() {
 
         expect(regularTip.joker, false);
         expect(jokerTip.joker, true);
-        expect(jokerTip.points, greaterThan(regularTip.points));
+        expect(jokerTip.points, greaterThan(regularTip.points as Object));
       });
 
       test('should handle points calculation scenarios', () {

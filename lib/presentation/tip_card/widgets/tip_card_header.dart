@@ -22,7 +22,7 @@ class TipCardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('E, dd.MM. HH:mm', 'de_DE');
-    final stageName = match.getStageName(match.matchDay);
+    final stageName = match.getStageName;
     final dateString = dateFormat.format(match.matchDate);
 
     return Row(

@@ -259,27 +259,27 @@ void main() {
 
       test('should return correct group stage names for days 1-3', () {
         // Act & Assert
-        expect(match.getStageName(1), 'Gruppenphase, Tag 1');
-        expect(match.getStageName(2), 'Gruppenphase, Tag 2');
-        expect(match.getStageName(3), 'Gruppenphase, Tag 3');
+        expect(match.getStageName, 'Gruppenphase, Tag 1');
+        expect(match.getStageName, 'Gruppenphase, Tag 2');
+        expect(match.getStageName, 'Gruppenphase, Tag 3');
       });
 
       test('should return correct knockout stage names', () {
         // Act & Assert
-        expect(match.getStageName(4), 'Sechszehntelfinale');
-        expect(match.getStageName(5), 'Achtelfinale');
-        expect(match.getStageName(6), 'Viertelfinale');
-        expect(match.getStageName(7), 'Halbfinale');
-        expect(match.getStageName(8), 'Finale');
+        expect(match.getStageName, 'Sechszehntelfinale');
+        expect(match.getStageName, 'Achtelfinale');
+        expect(match.getStageName, 'Viertelfinale');
+        expect(match.getStageName, 'Halbfinale');
+        expect(match.getStageName, 'Finale');
       });
 
       test('should return generic name for unknown match days', () {
         // Act & Assert
-        expect(match.getStageName(0), 'Gruppenphase, Tag 0');
-        expect(match.getStageName(9), 'Spieltag 9');
-        expect(match.getStageName(15), 'Spieltag 15');
-        expect(match.getStageName(-1), 'Gruppenphase, Tag -1');
-        expect(match.getStageName(999), 'Spieltag 999');
+        expect(match.getStageName, 'Gruppenphase, Tag 0');
+        expect(match.getStageName, 'Spieltag 9');
+        expect(match.getStageName, 'Spieltag 15');
+        expect(match.getStageName, 'Gruppenphase, Tag -1');
+        expect(match.getStageName, 'Spieltag 999');
       });
     });
 

@@ -11,27 +11,16 @@ import 'package:flutter_web/core/failures/auth_failures.dart';
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 class MockUser extends Mock implements User {}
 class MockUserCredential extends Mock implements UserCredential {}
-class MockCollectionReference extends Mock implements CollectionReference<Map<String, dynamic>> {}
-class MockDocumentReference extends Mock implements DocumentReference<Map<String, dynamic>> {}
-class MockDocumentSnapshot extends Mock implements DocumentSnapshot<Map<String, dynamic>> {}
+
+late MockFirebaseAuth mockFirebaseAuth;
 
 void main() {
   group('AuthRepositoryImpl', () {
     late AuthRepositoryImpl repository;
-    late MockFirebaseAuth mockFirebaseAuth;
-    late MockUser mockUser;
-    late MockUserCredential mockUserCredential;
-    late MockCollectionReference mockCollection;
-    late MockDocumentReference mockDocRef;
-    late MockDocumentSnapshot mockDocSnapshot;
+
 
     setUp(() {
       mockFirebaseAuth = MockFirebaseAuth();
-      mockUser = MockUser();
-      mockUserCredential = MockUserCredential();
-      mockCollection = MockCollectionReference();
-      mockDocRef = MockDocumentReference();
-      mockDocSnapshot = MockDocumentSnapshot();
       
       repository = AuthRepositoryImpl(firebaseAuth: mockFirebaseAuth);
       

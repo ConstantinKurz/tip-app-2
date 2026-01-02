@@ -44,6 +44,7 @@ class AppRoutes {
   static const userTipsDetail = '/tips-detail/:id';
   static const userProfile = '/profile';
   static const dashboard = '/dashboard';
+  static const adminUserTips = '/admin/user-tips/:userId';
 }
 
 class MyApp extends StatelessWidget {
@@ -75,7 +76,11 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
           final isAuthenticated = authState is AuthStateAuthenticated;
-
+          final authControllerState = context.watch<AuthControllerBloc>().state;
+          bool isAdmin = false;
+          if (authControllerState is AuthControllerLoaded) {
+            isAdmin = authControllerState.signedInUser?.admin ?? false;
+          }
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
             title: 'Flutter Web',
@@ -110,10 +115,14 @@ class MyApp extends StatelessWidget {
                       routes: {
                         AppRoutes.home: (_) => const MaterialPage(
                             child: HomePage(isAuthenticated: true)),
-                        AppRoutes.admin: (_) => MaterialPage(
-                              child: AdminPage(isAuthenticated: true),
-                            ),
-                        '/admin/user-tips/:userId': (info) {
+                        AppRoutes.admin: (_) => 
+                          isAdmin
+                              ? MaterialPage(
+                                  child: AdminPage(isAuthenticated: true),
+                                )
+                              : const MaterialPage(
+                            child: HomePage(isAuthenticated: true)),
+                        AppRoutes.adminUserTips : (info) {
                           final userId = info.pathParameters['userId']!;
                           return MaterialPage(
                             child: AdminUserTipDetailsPage(

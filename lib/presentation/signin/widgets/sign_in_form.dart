@@ -96,6 +96,7 @@ class _SignInFormState extends State<SignInForm> {
             },
             (_) {
               context.read<AuthBloc>().add(AuthCheckRequestedEvent());
+              context.read<AuthControllerBloc>().add(AuthAllEvent());
             },
           ),
         );

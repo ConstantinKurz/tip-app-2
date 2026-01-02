@@ -9,7 +9,6 @@ import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
 import 'package:flutter_web/presentation/core/menu/home_logo.dart';
 import 'package:flutter_web/presentation/core/menu/menu_item.dart';
 import 'package:flutter_web/presentation/core/buttons/user_button.dart';
-import 'package:flutter_web/theme.dart';
 
 class MyMenuBar extends StatelessWidget {
   final bool isAuthenticated;

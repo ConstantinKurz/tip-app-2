@@ -6,10 +6,15 @@ import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/presentation/tip_card/widgets/tip_card_header.dart';
 import 'package:flutter_web/presentation/tip_card/widgets/tip_status.dart';
 import 'package:dartz/dartz.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import '../../../helpers/test_app.dart';
 
 void main() {
+  setUpAll(() async {
+    await initializeDateFormatting('de_DE', null);
+  });
+
   group('TipCardHeader Widget Tests', () {
     late CustomMatch testMatch;
     late Tip testTip;
@@ -60,8 +65,8 @@ void main() {
       );
 
       // Assert
-      // Check for stage name (should be "1. Spieltag" for matchDay 1)
-      expect(find.text('1. Spieltag'), findsOneWidget);
+      // Check for stage name (should be "Gruppenphase, Tag 2" for matchDay 1)
+      expect(find.text('Gruppenphase, Tag 2'), findsOneWidget);
       
       // Check for formatted date
       expect(find.textContaining('Fr, 14.06. 15:00 Uhr'), findsOneWidget);
@@ -95,7 +100,7 @@ void main() {
       );
 
       // Assert
-      expect(find.textContaining('0'), findsOneWidget);
+      expect(find.textContaining('0 pkt'), findsOneWidget);
       expect(find.textContaining('pkt'), findsOneWidget);
     });
 
@@ -116,7 +121,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('2. Spieltag'), findsOneWidget);
+      expect(find.text('Gruppenphase, Tag 3'), findsOneWidget);
     });
 
     testWidgets('should handle knockout stage matches correctly', (tester) async {
@@ -204,7 +209,7 @@ void main() {
       );
 
       // Assert - Check that theme-based text styles are applied
-      final stageNameText = find.text('1. Spieltag');
+      final stageNameText = find.text('Gruppenphase, Tag 2');
       expect(stageNameText, findsOneWidget);
 
       final richTextFinder = find.byType(RichText);

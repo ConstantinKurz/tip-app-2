@@ -400,7 +400,7 @@ void main() {
 
         // Act - Full cycle: Domain -> Model -> Map -> Domain (via toDomain)
         final model1 = MatchModel.fromDomain(originalDomain);
-        final map = model1.toMap();
+        // ...existing code...
         // Note: We can't complete full cycle easily due to Timestamp requirement
         // But we can test domain -> model -> domain
         final model2 = MatchModel.fromDomain(originalDomain);

@@ -6,9 +6,12 @@ import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
 
-import '../../../helpers/test_app.dart';
-
-class MockTipFormBloc extends Mock implements TipFormBloc {}
+class MockTipFormBloc extends Mock implements TipFormBloc {
+  @override
+  Future<void> close() async {
+    // Mock implementation - return completed future
+  }
+}
 
 void main() {
   group('TipScoreField Widget Tests', () {
@@ -69,10 +72,13 @@ void main() {
       // Act
       await tester.pumpWidget(createTestWidget());
 
-      // Assert
-      expect(find.byType(SizedBox), findsOneWidget);
+      // Assert - find SizedBox with specific width
+      final sizedBoxFinder = find.byWidgetPredicate(
+        (widget) => widget is SizedBox && widget.width == 50.0,
+      );
+      expect(sizedBoxFinder, findsOneWidget);
       
-      final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
+      final sizedBox = tester.widget<SizedBox>(sizedBoxFinder);
       expect(sizedBox.width, 50);
     });
 

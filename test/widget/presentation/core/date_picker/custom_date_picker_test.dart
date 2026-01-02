@@ -110,14 +110,12 @@ void main() {
     });
 
     testWidgets('should handle callback function correctly', (WidgetTester tester) async {
-      DateTime? receivedDate;
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: CustomDatePickerField(
               onDateChanged: (date) {
-                receivedDate = date;
               },
             ),
           ),

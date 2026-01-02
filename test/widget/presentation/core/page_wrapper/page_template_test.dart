@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 
 import '../../../helpers/test_app.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
+const String MOBILE = 'MOBILE';
 
 void main() {
   group('PageTemplate Widget Tests', () {
@@ -12,10 +15,15 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          const PageTemplate(
-            isAuthenticated: true,
-            child: testChild,
+        MaterialApp(
+          home: ResponsiveWrapper.builder(
+            createTestApp(
+              const PageTemplate(
+                isAuthenticated: true,
+                child: testChild,
+              ),
+            ),
+            breakpoints: [const ResponsiveBreakpoint.resize(480, name: MOBILE)],
           ),
         ),
       );
@@ -30,16 +38,22 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          const PageTemplate(
-            isAuthenticated: true,
-            child: testChild,
+        MaterialApp(
+          home: ResponsiveWrapper.builder(
+            createTestApp(
+              const PageTemplate(
+                isAuthenticated: true,
+                child: testChild,
+              ),
+            ),
+            breakpoints: [const ResponsiveBreakpoint.resize(480, name: MOBILE)],
           ),
         ),
       );
 
       // Assert
-      expect(find.byType(Scaffold), findsAtLeastNWidgets(1)); // createTestApp also creates a Scaffold
+      expect(find.byType(Scaffold),
+          findsAtLeastNWidgets(1)); // createTestApp also creates a Scaffold
     });
 
     testWidgets('should have endDrawer available', (tester) async {
@@ -49,16 +63,22 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: const PageTemplate(
-            isAuthenticated: true,
-            child: testChild,
+          home: ResponsiveWrapper.builder(
+            MaterialApp(
+              home: const PageTemplate(
+                isAuthenticated: true,
+                child: testChild,
+              ),
+            ),
+            breakpoints: [const ResponsiveBreakpoint.resize(480, name: MOBILE)],
           ),
         ),
       );
 
       // Assert
       final scaffolds = tester.widgetList<Scaffold>(find.byType(Scaffold));
-      final pageTemplateScaffold = scaffolds.firstWhere((scaffold) => scaffold.endDrawer != null);
+      final pageTemplateScaffold =
+          scaffolds.firstWhere((scaffold) => scaffold.endDrawer != null);
       expect(pageTemplateScaffold.endDrawer, isNotNull);
     });
 
@@ -69,9 +89,14 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: const PageTemplate(
-            isAuthenticated: true,
-            child: testChild,
+          home: ResponsiveWrapper.builder(
+            MaterialApp(
+              home: const PageTemplate(
+                isAuthenticated: true,
+                child: testChild,
+              ),
+            ),
+            breakpoints: [const ResponsiveBreakpoint.resize(480, name: MOBILE)],
           ),
         ),
       );
@@ -86,10 +111,15 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          const PageTemplate(
-            isAuthenticated: false,
-            child: testChild,
+        MaterialApp(
+          home: ResponsiveWrapper.builder(
+            createTestApp(
+              const PageTemplate(
+                isAuthenticated: false,
+                child: testChild,
+              ),
+            ),
+            breakpoints: [const ResponsiveBreakpoint.resize(480, name: MOBILE)],
           ),
         ),
       );
@@ -105,16 +135,22 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: const PageTemplate(
-            isAuthenticated: true,
-            child: testChild,
+          home: ResponsiveWrapper.builder(
+            MaterialApp(
+              home: const PageTemplate(
+                isAuthenticated: true,
+                child: testChild,
+              ),
+            ),
+            breakpoints: [const ResponsiveBreakpoint.resize(480, name: MOBILE)],
           ),
         ),
       );
 
       // Assert
       final scaffolds = tester.widgetList<Scaffold>(find.byType(Scaffold));
-      final pageTemplateScaffold = scaffolds.firstWhere((scaffold) => scaffold.backgroundColor != null);
+      final pageTemplateScaffold =
+          scaffolds.firstWhere((scaffold) => scaffold.backgroundColor != null);
       expect(pageTemplateScaffold.backgroundColor, isNotNull);
     });
   });

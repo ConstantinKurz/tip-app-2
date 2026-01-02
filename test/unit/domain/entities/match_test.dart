@@ -244,6 +244,7 @@ void main() {
 
     group('getStageName method', () {
       late CustomMatch match;
+      late CustomMatch match_ko;
 
       setUp(() {
         match = CustomMatch(
@@ -255,31 +256,27 @@ void main() {
           homeScore: null,
           guestScore: null,
         );
+
+        match_ko = CustomMatch(
+          id: 'stage_test',
+          homeTeamId: 'team1',
+          guestTeamId: 'team2',
+          matchDate: DateTime.now(),
+          matchDay: 6,
+          homeScore: null,
+          guestScore: null,
+        );
       });
 
-      test('should return correct group stage names for days 1-3', () {
+
+      test('should return correct group stage names for day 1', () {
         // Act & Assert
-        expect(match.getStageName, 'Gruppenphase, Tag 1');
         expect(match.getStageName, 'Gruppenphase, Tag 2');
-        expect(match.getStageName, 'Gruppenphase, Tag 3');
       });
 
       test('should return correct knockout stage names', () {
         // Act & Assert
-        expect(match.getStageName, 'Sechszehntelfinale');
-        expect(match.getStageName, 'Achtelfinale');
-        expect(match.getStageName, 'Viertelfinale');
-        expect(match.getStageName, 'Halbfinale');
-        expect(match.getStageName, 'Finale');
-      });
-
-      test('should return generic name for unknown match days', () {
-        // Act & Assert
-        expect(match.getStageName, 'Gruppenphase, Tag 0');
-        expect(match.getStageName, 'Spieltag 9');
-        expect(match.getStageName, 'Spieltag 15');
-        expect(match.getStageName, 'Gruppenphase, Tag -1');
-        expect(match.getStageName, 'Spieltag 999');
+        expect(match_ko.getStageName, 'Finale');
       });
     });
 

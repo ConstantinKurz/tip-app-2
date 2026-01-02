@@ -1,47 +1,34 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/infrastructure/repositories/tip_repository_impl.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/repositories/auth_repository.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 
+
 // Mock classes
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 class MockAuthRepository extends Mock implements AuthRepository {}
-class MockCollectionReference extends Mock implements CollectionReference<Map<String, dynamic>> {}
-class MockDocumentReference extends Mock implements DocumentReference<Map<String, dynamic>> {}
-class MockDocumentSnapshot extends Mock implements DocumentSnapshot<Map<String, dynamic>> {}
-class MockQuerySnapshot extends Mock implements QuerySnapshot<Map<String, dynamic>> {}
-class MockQueryDocumentSnapshot extends Mock implements QueryDocumentSnapshot<Map<String, dynamic>> {}
-class MockQuery extends Mock implements Query<Map<String, dynamic>> {}
+// Für Firestore-Objekte bitte fake_cloud_firestore oder echte Instanzen verwenden.
 
 void main() {
+  // Keine Firebase-Initialisierung nötig, da FakeFirebaseFirestore verwendet wird.
   group('TipRepositoryImpl', () {
     late TipRepositoryImpl repository;
-    late MockFirebaseFirestore mockFirestore;
+    late FakeFirebaseFirestore fakeFirestore;
     late MockAuthRepository mockAuthRepository;
-    late MockCollectionReference mockCollection;
-    late MockDocumentReference mockDocRef;
-    late MockDocumentSnapshot mockDocSnapshot;
-    late MockQuerySnapshot mockQuerySnapshot;
-    late MockQuery mockQuery;
+    // Entfernt: MockCollectionReference, MockDocumentReference, MockDocumentSnapshot, MockQuerySnapshot, MockQuery
 
     setUp(() {
-      mockFirestore = MockFirebaseFirestore();
+      fakeFirestore = FakeFirebaseFirestore();
       mockAuthRepository = MockAuthRepository();
-      mockCollection = MockCollectionReference();
-      mockDocRef = MockDocumentReference();
-      mockDocSnapshot = MockDocumentSnapshot();
-      mockQuerySnapshot = MockQuerySnapshot();
-      mockQuery = MockQuery();
-      
       repository = TipRepositoryImpl(
-        firebaseFirestore: mockFirestore,
+        firebaseFirestore: fakeFirestore,
         authRepository: mockAuthRepository,
       );
-      
       registerFallbackValue(<String, dynamic>{});
     });
 

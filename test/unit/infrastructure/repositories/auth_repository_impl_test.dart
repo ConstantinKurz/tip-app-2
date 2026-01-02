@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// ...existing code...
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/infrastructure/repositories/auth_repository_impl.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
+
+import '../../../helpers/firebase_test_helper.dart';
 
 // Mock classes
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
@@ -15,9 +17,12 @@ class MockUserCredential extends Mock implements UserCredential {}
 late MockFirebaseAuth mockFirebaseAuth;
 
 void main() {
+  setUpAll(() async {
+    await FirebaseTestHelper.initializeFirebase();
+  });
+
   group('AuthRepositoryImpl', () {
     late AuthRepositoryImpl repository;
-
 
     setUp(() {
       mockFirebaseAuth = MockFirebaseAuth();

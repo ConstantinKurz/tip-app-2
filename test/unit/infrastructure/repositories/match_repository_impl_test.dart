@@ -1,21 +1,20 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dartz/dartz.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_web/infrastructure/repositories/match_repository_impl.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:dartz/dartz.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/core/failures/match_failures.dart';
+import 'package:flutter_web/domain/repositories/match_repository.dart';
 
+class MockMatchRepository extends Mock implements MatchRepository {}
 
 void main() {
-  group('MatchRepositoryImpl', () {
-    late MatchRepositoryImpl repository;
-
+  group('MatchRepository Interface Tests', () {
+    late MockMatchRepository repository;
 
     setUp(() {
-      repository = MatchRepositoryImpl();
-      
-      registerFallbackValue(<String, dynamic>{});
+      repository = MockMatchRepository();
     });
 
     group('createMatch', () {

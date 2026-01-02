@@ -15,11 +15,9 @@ class TipRepositoryImpl implements TipRepository {
     required this.authRepository,
   });
 
-  final CollectionReference usersCollection =
-      FirebaseFirestore.instance.collection('users');
+    CollectionReference get usersCollection => firebaseFirestore.collection('users');
 
-  final CollectionReference tipsCollection =
-      FirebaseFirestore.instance.collection("tips");
+    CollectionReference get tipsCollection => firebaseFirestore.collection('tips');
 
   @override
   Future<Either<TipFailure, Unit>> create(Tip tip) async {

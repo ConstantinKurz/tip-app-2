@@ -64,15 +64,15 @@ class CustomMatch {
       return 'Gruppenphase, Tag ${matchDay + 1}';
     }
     switch (matchDay) {
-      case 4:
+      case 3:
         return 'Sechszehntelfinale';
-      case 5:
+      case 4:
         return 'Achtelfinale';
-      case 6:
+      case 5:
         return 'Viertelfinale';
-      case 7:
+      case 6:
         return 'Halbfinale';
-      case 8:
+      case 7:
         return 'Finale';
       default:
         return 'Spieltag $matchDay';

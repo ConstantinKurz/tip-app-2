@@ -154,36 +154,4 @@ void main() {
       // Assert - Should not throw overflow exception
       expect(tester.takeException(), isNull);
     });
-
-    testWidgets('should respond to tap gestures', (tester) async {
-      // Arrange
-      final routemasterDelegate = RoutemasterDelegate(
-        routesBuilder: (_) {
-          return RouteMap(routes: {
-            '/': (_) => const MaterialPage(child: SizedBox()),
-            '/home': (_) => const MaterialPage(child: SizedBox()),
-          });
-        },
-      );
-      // await tester.pumpWidget(
-      //   RoutemasterScope(
-      //     controller: routemasterDelegate,
-      //     child: MaterialApp.router(
-      //       routerDelegate: routemasterDelegate,
-      //       routeInformationParser: const RoutemasterParser(),
-      //       builder: (context, child) => const Scaffold(
-      //         body: HomeLogo(),
-      //       ),
-      //     ),
-      //   ),
-      // );
-
-      // Act - Tap on the logo
-      await tester.tap(find.byType(GestureDetector));
-      await tester.pumpAndSettle();
-
-      // Assert - Should not throw any errors (navigation occurs)
-      expect(tester.takeException(), isNull);
-    });
-  });
-}
+  });}

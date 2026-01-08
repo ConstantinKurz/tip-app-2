@@ -4,7 +4,6 @@ import 'package:flutter_web/presentation/core/buttons/call_to_action.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:routemaster/routemaster.dart';
 
-import '../core/page_wrapper/centered_constrained_wrapper.dart';
 import '../home_page/home_page.dart';
 
 class NotFoundPage extends StatelessWidget {

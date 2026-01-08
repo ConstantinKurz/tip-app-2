@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_web/constants.dart';
 
 class CustomTimePickerField extends StatefulWidget {
   final TimeOfDay? initialTime;
@@ -21,6 +20,20 @@ class CustomTimePickerField extends StatefulWidget {
 }
 
 class _CustomTimePickerFieldState extends State<CustomTimePickerField> {
+    @override
+    void didUpdateWidget(covariant CustomTimePickerField oldWidget) {
+      super.didUpdateWidget(oldWidget);
+      if (widget.initialTime != oldWidget.initialTime) {
+        _selectedTime = widget.initialTime;
+        if (_selectedTime != null) {
+          _hourController.text = _selectedTime!.hour.toString().padLeft(2, '0');
+          _minuteController.text = _selectedTime!.minute.toString().padLeft(2, '0');
+        } else {
+          _hourController.text = '';
+          _minuteController.text = '';
+        }
+      }
+    }
   TimeOfDay? _selectedTime;
   final TextEditingController _hourController = TextEditingController();
   final TextEditingController _minuteController = TextEditingController();
@@ -29,9 +42,13 @@ class _CustomTimePickerFieldState extends State<CustomTimePickerField> {
   void initState() {
     super.initState();
     _selectedTime = widget.initialTime;
-    _hourController.text = _selectedTime?.hour.toString().padLeft(2, '0') ?? '';
-    _minuteController.text =
-        _selectedTime?.minute.toString().padLeft(2, '0') ?? '';
+    if (_selectedTime != null) {
+      _hourController.text = _selectedTime!.hour.toString().padLeft(2, '0');
+      _minuteController.text = _selectedTime!.minute.toString().padLeft(2, '0');
+    } else {
+      _hourController.text = '';
+      _minuteController.text = '';
+    }
   }
 
   @override
@@ -65,7 +82,9 @@ class _CustomTimePickerFieldState extends State<CustomTimePickerField> {
             },
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 8),
+        const Text(':', style: TextStyle(color: Colors.white)),
+        const SizedBox(width: 8),
         Expanded(
           child: TextFormField(
             cursorColor: Colors.white,

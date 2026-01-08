@@ -7,8 +7,10 @@ import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/infrastructure/models/match_model.dart';
 
 class MatchRepositoryImpl implements MatchRepository {
-  final CollectionReference matchesCollection =
-      FirebaseFirestore.instance.collection('matches');
+  final FirebaseFirestore firebaseFirestore;
+  MatchRepositoryImpl({required this.firebaseFirestore});
+
+  CollectionReference get matchesCollection => firebaseFirestore.collection('matches');
 
   @override
   Stream<Either<MatchFailure, List<CustomMatch>>> watchAllMatches() async* {

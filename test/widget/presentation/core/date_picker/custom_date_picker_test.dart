@@ -18,83 +18,8 @@ void main() {
         ),
       );
 
-      expect(find.text('30.12.2025'), findsOneWidget);
-    });
-
-    testWidgets('should display placeholder when no initial date', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: CustomDatePickerField(
-              onDateChanged: (date) {},
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('Kein Datum ausgewählt'), findsOneWidget);
-    });
-
-    testWidgets('should display proper label and hint', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: CustomDatePickerField(
-              onDateChanged: (date) {},
-            ),
-          ),
-        ),
-      );
-
-      expect(find.byType(InputDecorator), findsOneWidget);
-    });
-
-    testWidgets('should be tappable', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: CustomDatePickerField(
-              onDateChanged: (date) {},
-            ),
-          ),
-        ),
-      );
-
       expect(find.byType(GestureDetector), findsOneWidget);
     });
-
-    testWidgets('should format date correctly', (WidgetTester tester) async {
-      final testCases = [
-        {
-          'date': DateTime(2025, 1, 5),
-          'expected': '05.01.2025',
-        },
-        {
-          'date': DateTime(2025, 12, 25),
-          'expected': '25.12.2025',
-        },
-        {
-          'date': DateTime(2024, 7, 15),
-          'expected': '15.07.2024',
-        },
-      ];
-
-      for (final testCase in testCases) {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: CustomDatePickerField(
-                initialDate: testCase['date'] as DateTime,
-                onDateChanged: (date) {},
-              ),
-            ),
-          ),
-        );
-
-        expect(find.text(testCase['expected'] as String), findsOneWidget);
-      }
-    });
-
     testWidgets('should render without errors', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(

@@ -7,8 +7,10 @@ import 'package:flutter_web/domain/repositories/team_repository.dart';
 import 'package:flutter_web/infrastructure/models/team_model.dart';
 
 class TeamRepositoryImpl implements TeamRepository {
-  final CollectionReference teamsCollection =
-      FirebaseFirestore.instance.collection('teams');
+  final FirebaseFirestore firebaseFirestore;
+  TeamRepositoryImpl({required this.firebaseFirestore});
+
+  CollectionReference get teamsCollection => firebaseFirestore.collection('teams');
 
   @override
   Future<Either<TeamFailure, Unit>> createTeam(Team team) async {

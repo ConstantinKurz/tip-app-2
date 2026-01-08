@@ -10,11 +10,11 @@ import 'package:flutter_web/infrastructure/models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuth firebaseAuth;
+  final FirebaseFirestore firebaseFirestore;
 
-  AuthRepositoryImpl({required this.firebaseAuth});
+  AuthRepositoryImpl({required this.firebaseAuth, required this.firebaseFirestore});
 
-  final CollectionReference usersCollection =
-      FirebaseFirestore.instance.collection('users');
+  CollectionReference get usersCollection => firebaseFirestore.collection('users');
 
   @override
   Future<Either<AuthFailure, Unit>> registerWithEmailAndPassword({

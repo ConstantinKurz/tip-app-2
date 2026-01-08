@@ -35,7 +35,11 @@ class HomeLogo extends StatelessWidget {
   }
 
   bool _isActive(BuildContext context) {
-    final currentRoutePath = Routemaster.of(context).currentRoute.path;
-    return currentRoutePath == '/' || currentRoutePath == HomePage.homePagePath;
+    try {
+      final currentRoutePath = Routemaster.of(context).currentRoute.path;
+      return currentRoutePath == '/' || currentRoutePath == HomePage.homePagePath;
+    } catch (_) {
+      return false;
+    }
   }
 }

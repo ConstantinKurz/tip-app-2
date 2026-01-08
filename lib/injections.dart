@@ -23,24 +23,26 @@ import 'package:flutter_web/infrastructure/repositories/tip_repository_impl.dart
 
 final sl = GetIt.I; // sl == service locator
 
-Future<void> init() async {
+Future<void> init({bool useMocks = false}) async {
   // Register external dependencies
-  final firebaseAuth = FirebaseAuth.instance;
-  final firebaseFirestore = FirebaseFirestore.instance;
-  sl.registerLazySingleton(() => firebaseAuth);
-  sl.registerLazySingleton(() => firebaseFirestore);
+  if (!useMocks) {
+    final firebaseAuth = FirebaseAuth.instance;
+    final firebaseFirestore = FirebaseFirestore.instance;
+    sl.registerLazySingleton(() => firebaseAuth);
+    sl.registerLazySingleton(() => firebaseFirestore);
+  }
 
   // Register repositories
   sl.registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(firebaseAuth: sl()));
+      () => AuthRepositoryImpl(firebaseAuth: sl(), firebaseFirestore: sl()));
   
   sl.registerLazySingleton<TipRepository>(
       () => TipRepositoryImpl(firebaseFirestore: sl(), authRepository: sl()));
 
   sl.registerLazySingleton<MatchRepository>(
-      () => MatchRepositoryImpl());
+      () => MatchRepositoryImpl(firebaseFirestore: sl()));
 
-  sl.registerLazySingleton<TeamRepository>(() => TeamRepositoryImpl());
+  sl.registerLazySingleton<TeamRepository>(() => TeamRepositoryImpl(firebaseFirestore: sl()));
   // Register Blocs
   sl.registerFactory(() => SignupformBloc(authRepository: sl()));
   sl.registerFactory(() => AuthBloc(authRepository: sl()));

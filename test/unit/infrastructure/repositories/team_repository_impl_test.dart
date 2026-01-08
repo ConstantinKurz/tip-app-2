@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_web/infrastructure/repositories/team_repository_impl.dart';
 import 'package:mocktail/mocktail.dart';
@@ -11,104 +11,79 @@ import 'package:flutter_web/domain/repositories/team_repository.dart';
 class MockTeamRepository extends Mock implements TeamRepository {}
 
 void main() {
-  group('TeamRepository', () {
-    late MockTeamRepository repository;
+  group('TeamRepositoryImpl', () {
+    late TeamRepositoryImpl repository;
+    late FakeFirebaseFirestore fakeFirestore;
 
     setUp(() {
-      repository = MockTeamRepository();
-      
-      // Register fallback values for mocktail
+      fakeFirestore = FakeFirebaseFirestore();
+      repository = TeamRepositoryImpl(firebaseFirestore: fakeFirestore);
       registerFallbackValue(<String, dynamic>{});
     });
 
     group('createTeam', () {
-      test('should return unit when team is created successfully', () async {
-        // Arrange
+      test('should create team with valid data', () {
         final team = Team(
-          id: 'test_team',
-          name: 'Test Team',
-          flagCode: 'tt',
+          id: 'team_1',
+          name: 'Deutschland',
+          flagCode: 'de',
           winPoints: 3,
           champion: false,
         );
-        // Note: Since we can't easily mock the static FirebaseFirestore.instance,
-        // we'll test the logic without actual Firestore calls in integration tests
-        // For unit tests, we'll test the error handling logic
-
-        // This test verifies the structure rather than implementation
-        expect(repository, isA<TeamRepositoryImpl>());
-        expect(team.id, 'test_team');
-      });
-
-      test('should return failure when creation throws exception', () async {
-        // This would be tested with actual Firebase mocking in integration tests
-        // For now, we verify the repository exists and has the correct interface
-        expect(repository, isA<TeamRepositoryImpl>());
+        final createResult = repository.createTeam(team);
+        expect(createResult, isA<Future<Either<TeamFailure, Unit>>>());
+        expect(team.id, 'team_1');
+        expect(team.name, 'Deutschland');
+        expect(team.flagCode, 'de');
+        expect(team.winPoints, 3);
+        expect(team.champion, false);
       });
     });
 
     group('deleteTeamById', () {
       test('should have correct method signature', () {
-        // Verify method exists and returns correct type
         expect(repository.deleteTeamById, isA<Function>());
       });
     });
 
     group('updateTeam', () {
       test('should have correct method signature', () {
-        // Verify method exists and returns correct type
         expect(repository.updateTeam, isA<Function>());
       });
     });
 
     group('getAll', () {
       test('should have correct method signature', () {
-        // Verify method exists and returns correct type
         expect(repository.getAll, isA<Function>());
       });
     });
 
     group('getById', () {
       test('should have correct method signature', () {
-        // Verify method exists and returns correct type
         expect(repository.getById, isA<Function>());
       });
     });
 
     group('watchAllTeams', () {
-      test('should have correct method signature', () {
-        // Verify method exists and returns correct type
-        expect(repository.watchAllTeams, isA<Function>());
+      test('should return stream of teams', () {
+        final watchResult = repository.watchAllTeams();
+        expect(watchResult, isA<Stream<Either<TeamFailure, List<Team>>>>());
       });
     });
 
     group('Error Handling', () {
-      test('should handle FirebaseException with insufficient permissions', () {
-        // Test error mapping logic
-        final exception = FirebaseException(
-          plugin: 'test',
-          code: 'permission-denied',
-          message: 'Insufficient permissions',
-        );
-
-        // Verify that our exceptions are properly defined
-        expect(InsufficientPermisssons(), isA<TeamFailure>());
-        expect(UnexpectedFailure(), isA<TeamFailure>());
-        expect(NotFoundFailure(), isA<TeamFailure>());
-      });
-
-      test('should handle unknown exceptions as unexpected failure', () {
-        final exception = Exception('Unknown error');
-        
-        // Verify exception types exist
-        expect(exception, isA<Exception>());
-        expect(UnexpectedFailure(), isA<TeamFailure>());
+      test('should handle Firebase exceptions', () {
+        final insufficientPermissions = InsufficientPermisssons();
+        final unexpectedFailure = UnexpectedFailure();
+        final notFoundFailure = NotFoundFailure();
+        expect(insufficientPermissions, isA<TeamFailure>());
+        expect(unexpectedFailure, isA<TeamFailure>());
+        expect(notFoundFailure, isA<TeamFailure>());
       });
     });
 
     group('Domain Mapping', () {
       test('should properly convert between domain and model', () {
-        // Arrange
         final team = Team(
           id: 'mapping_test',
           name: 'Mapping Test Team',
@@ -229,9 +204,13 @@ void main() {
   });
 
   group('Collection Reference', () {
+    late FakeFirebaseFirestore fakeFirestore;
+    setUp(() {
+      fakeFirestore = FakeFirebaseFirestore();
+    });
     test('should use correct collection name', () {
       // Verify that repository targets the correct collection
-        final testRepository = TeamRepositoryImpl();
+        final testRepository = TeamRepositoryImpl(firebaseFirestore: fakeFirestore);
         expect(testRepository, isA<TeamRepositoryImpl>());
       // Collection name verification would be done in integration tests
     });

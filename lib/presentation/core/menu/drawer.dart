@@ -14,32 +14,34 @@ class CustomDrawer extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           child: Stack(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const HomeLogo(),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close,
-                            color: textPrimaryDark, size: 18),
-                      )
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  const MenuItem(text: "Admin", inDrawer: true, path: "/admin"),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  const MenuItem(text: "Showcase", inDrawer: true, path: ""),
-                  const SizedBox(
-                    height: 20,
-                  )
-                ],
+              SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const HomeLogo(),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close,
+                              color: textPrimaryDark, size: 18),
+                        )
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    const MenuItem(text: "Admin", inDrawer: true, path: "/admin"),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    const MenuItem(text: "Showcase", inDrawer: true, path: ""),
+                    const SizedBox(
+                      height: 20,
+                    )
+                  ],
+                ),
               ),
             ],
           )),

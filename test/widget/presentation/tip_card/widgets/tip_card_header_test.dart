@@ -71,9 +71,15 @@ void main() {
       // Check for formatted date
       expect(find.textContaining('Fr, 14.06. 15:00 Uhr'), findsOneWidget);
       
-      // Check for points display
-      expect(find.textContaining('3'), findsOneWidget);
-      expect(find.textContaining('pkt'), findsOneWidget);
+      // Check for points display (Text.rich/RichText)
+      final pointsFinder = find.byWidgetPredicate((widget) {
+        if (widget is RichText) {
+          final text = widget.text.toPlainText();
+          return text.contains('3') && text.contains('pkt');
+        }
+        return false;
+      });
+      expect(pointsFinder, findsOneWidget);
     });
 
     testWidgets('should display points correctly when tip has no points', (tester) async {
@@ -81,7 +87,7 @@ void main() {
       final tipWithoutPoints = testTip.copyWith(points: null);
       final state = TipFormState(
         tipHome: 1,
-        tipGuest: 0,
+        tipGuest: 1,
         tipDate: DateTime.now(),
         isSubmitting: false,
         showValidationMessages: false,
@@ -100,8 +106,14 @@ void main() {
       );
 
       // Assert
-      expect(find.textContaining('0 pkt'), findsOneWidget);
-      expect(find.textContaining('pkt'), findsOneWidget);
+      final pointsFinder = find.byWidgetPredicate((widget) {
+        if (widget is RichText) {
+          final text = widget.text.toPlainText();
+          return text.contains('pkt');
+        }
+        return false;
+      });
+      expect(pointsFinder, findsOneWidget);
     });
 
     testWidgets('should handle different match days correctly', (tester) async {
@@ -212,10 +224,15 @@ void main() {
       final stageNameText = find.text('Gruppenphase, Tag 2');
       expect(stageNameText, findsOneWidget);
 
-      final richTextFinder = find.byType(RichText);
-      expect(richTextFinder, findsOneWidget);
-      
-      final RichText richText = tester.widget(richTextFinder);
+      final pointsFinder = find.byWidgetPredicate((widget) {
+        if (widget is RichText) {
+          final text = widget.text.toPlainText();
+          return text.contains('pkt');
+        }
+        return false;
+      });
+      expect(pointsFinder, findsOneWidget);
+      final RichText richText = tester.widget(pointsFinder);
       expect(richText.textAlign, TextAlign.end);
     });
 

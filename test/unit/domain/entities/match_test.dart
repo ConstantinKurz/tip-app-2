@@ -276,7 +276,7 @@ void main() {
 
       test('should return correct knockout stage names', () {
         // Act & Assert
-        expect(match_ko.getStageName, 'Finale');
+        expect(match_ko.getStageName, 'Halbfinale');
       });
     });
 

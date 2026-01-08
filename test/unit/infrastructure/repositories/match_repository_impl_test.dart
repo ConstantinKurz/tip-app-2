@@ -1,28 +1,25 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_web/infrastructure/repositories/match_repository_impl.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/core/failures/match_failures.dart';
-import 'package:flutter_web/domain/repositories/match_repository.dart';
-
-class MockMatchRepository extends Mock implements MatchRepository {}
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mocktail/mocktail.dart';
 
 void main() {
-  group('MatchRepository Interface Tests', () {
-    late MockMatchRepository repository;
+  group('MatchRepositoryImpl', () {
+    late MatchRepositoryImpl repository;
+    late FakeFirebaseFirestore fakeFirestore;
 
     setUp(() {
-      repository = MockMatchRepository();
+      fakeFirestore = FakeFirebaseFirestore();
+      repository = MatchRepositoryImpl(firebaseFirestore: fakeFirestore);
+      registerFallbackValue(<String, dynamic>{});
     });
 
     group('createMatch', () {
-      test('should have correct method signature', () {
-        expect(repository.createMatch, isA<Function>());
-      });
-
-      test('should handle match creation with valid data', () {
+      test('should create match with valid data', () async {
         final match = CustomMatch(
           id: 'match_1',
           homeTeamId: 'team_a',
@@ -32,38 +29,27 @@ void main() {
           homeScore: null,
           guestScore: null,
         );
-
-        expect(match.id, 'match_1');
-        expect(match.homeTeamId, 'team_a');
-        expect(match.guestTeamId, 'team_b');
-        expect(match.matchDate, DateTime(2024, 1, 15, 18, 30));
-        expect(match.homeScore, null);
-        expect(match.guestScore, null);
+        final result = await repository.createMatch(match);
+        expect(result, isA<Either<MatchFailure, Unit>>());
       });
     });
 
     group('deleteMatchById', () {
-      test('should have correct method signature', () {
-        expect(repository.deleteMatchById, isA<Function>());
-      });
-
-      test('should accept valid match ID', () {
+      test('should delete match by valid ID', () async {
         const matchId = 'valid_match_id';
-        expect(matchId.isNotEmpty, true);
-        
-        final deleteResult = repository.deleteMatchById(matchId);
-        expect(deleteResult, isA<Future<Either<MatchFailure, Unit>>>());
+        final result = await repository.deleteMatchById(matchId);
+        expect(result, isA<Either<MatchFailure, Unit>>());
       });
 
-      test('should handle empty match ID', () {
-        const emptyId = '';
-        final deleteResult = repository.deleteMatchById(emptyId);
-        expect(deleteResult, isA<Future<Either<MatchFailure, Unit>>>());
+      test('should handle deletion of non-existent match', () async {
+        const nonExistentId = 'non_existent_match';
+        final result = await repository.deleteMatchById(nonExistentId);
+        expect(result, isA<Either<MatchFailure, Unit>>());
       });
     });
 
     group('updateMatch', () {
-      test('should handle match updates', () {
+      test('should update match with new data', () async {
         final match = CustomMatch(
           id: 'update_match',
           homeTeamId: 'home_team',
@@ -74,55 +60,23 @@ void main() {
           guestScore: 1,
         );
 
-        final updateResult = repository.updateMatch(match);
-        expect(updateResult, isA<Future<Either<MatchFailure, Unit>>>());
-        
-        // Verify match data integrity
-        expect(match.homeScore, 2);
-        expect(match.guestScore, 1);
-        expect(match.hasResult, true);
-      });
-
-      test('should handle matches without scores', () {
-        final match = CustomMatch(
-          id: 'no_score_match',
-          homeTeamId: 'team_1',
-          guestTeamId: 'team_2',
-          matchDay: 1,
-          matchDate: DateTime(2024, 3, 10, 15, 0),
-          homeScore: null,
-          guestScore: null,
-        );
-
-        expect(match.hasResult, false);
-        expect(match.homeScore, null);
-        expect(match.guestScore, null);
+        final result = await repository.updateMatch(match);
+        expect(result, isA<Either<MatchFailure, Unit>>());
       });
     });
 
     group('getAllMatches', () {
-      test('should return list of matches', () {
-        final getAllResult = repository.getAllMatches();
-        expect(getAllResult, isA<Future<Either<MatchFailure, List<CustomMatch>>>>());
-      });
-
-      test('should handle empty match list', () {
-        // Test that repository can handle empty results
-        expect(repository.getAllMatches, isA<Function>());
+      test('should return list of matches', () async {
+        final result = await repository.getAllMatches();
+        expect(result, isA<Either<MatchFailure, List<CustomMatch>>>());
       });
     });
 
     group('getMatchById', () {
-      test('should return single match for valid ID', () {
+      test('should return single match for valid ID', () async {
         const matchId = 'specific_match_id';
-        final getResult = repository.getMatchById(matchId);
-        expect(getResult, isA<Future<Either<MatchFailure, CustomMatch>>>());
-      });
-
-      test('should handle non-existent match ID', () {
-        const nonExistentId = 'non_existent_match';
-        final getResult = repository.getMatchById(nonExistentId);
-        expect(getResult, isA<Future<Either<MatchFailure, CustomMatch>>>());
+        final result = await repository.getMatchById(matchId);
+        expect(result, isA<Either<MatchFailure, CustomMatch>>());
       });
     });
 
@@ -130,11 +84,6 @@ void main() {
       test('should return stream of matches', () {
         final watchResult = repository.watchAllMatches();
         expect(watchResult, isA<Stream<Either<MatchFailure, List<CustomMatch>>>>());
-      });
-
-      test('should handle real-time updates', () {
-        // Test that watch method exists and returns correct type
-        expect(repository.watchAllMatches, isA<Function>());
       });
     });
 
@@ -178,18 +127,17 @@ void main() {
           guestScore: null,
         );
 
-        expect(groupMatch.getStageName, 'Gruppenphase');
+        expect(groupMatch.getStageName, 'Gruppenphase, Tag 2');
 
         final finalMatch = CustomMatch(
           id: 'final_match',
           homeTeamId: 'team_final_1',
           guestTeamId: 'team_final_2',
-          matchDay: 1,
+          matchDay: 7,
           matchDate: DateTime(2024, 7, 14),
           homeScore: null,
           guestScore: null,
         );
-
         expect(finalMatch.getStageName, 'Finale');
       });
     });
@@ -221,7 +169,7 @@ void main() {
     group('Data Validation', () {
       test('should handle valid match dates', () {
         final pastDate = DateTime(2023, 12, 31);
-        final futureDate = DateTime(2025, 1, 1);
+        final futureDate = DateTime.now().add(Duration(days: 365));
         final currentDate = DateTime.now();
 
         final pastMatch = CustomMatch(
@@ -244,6 +192,8 @@ void main() {
           guestScore: null,
         );
 
+        print('pastMatch: ${pastMatch.matchDate}, now: $currentDate');
+        print('futureMatch: ${futureMatch.matchDate}, now: $currentDate');
         expect(pastMatch.matchDate.isBefore(currentDate), true);
         expect(futureMatch.matchDate.isAfter(currentDate), true);
       });

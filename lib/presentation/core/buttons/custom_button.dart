@@ -92,11 +92,11 @@ class _CustomButtonState extends State<CustomButton> {
             border: Border.all(color: widget.borderColor),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Text(
-              "Sign Up",
-              style: TextStyle(
+              widget.buttonText,
+              style: const TextStyle(
                 fontFamily: fontFamily,
                 fontSize: 15,
                 color: textPrimaryLight,

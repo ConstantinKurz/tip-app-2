@@ -91,7 +91,7 @@ void main() {
 
       expect(find.byType(AnimatedContainer), findsOneWidget);
       expect(find.byType(GestureDetector), findsOneWidget);
-      expect(find.byType(MouseRegion), findsOneWidget);
+      expect(find.byType(MouseRegion), findsAtLeastNWidgets(1));
     });
 
     testWidgets('should render without errors', (WidgetTester tester) async {

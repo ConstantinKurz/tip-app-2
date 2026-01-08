@@ -83,8 +83,11 @@ void main() {
           ),
         );
 
-        expect(find.text(testCase['expectedHour'] as String), findsOneWidget);
-        expect(find.text(testCase['expectedMinute'] as String), findsOneWidget);
+        final textFields = find.byType(TextFormField);
+        final hourField = tester.widget<TextFormField>(textFields.at(0));
+        final minuteField = tester.widget<TextFormField>(textFields.at(1));
+        expect(hourField.controller?.text, testCase['expectedHour']);
+        expect(minuteField.controller?.text, testCase['expectedMinute']);
       }
     });
 
@@ -103,15 +106,11 @@ void main() {
     });
 
     testWidgets('should handle callback function correctly', (WidgetTester tester) async {    
-      TimeOfDay? receivedTime;
-
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: CustomTimePickerField(
-              onTimeChanged: (time) {
-                receivedTime = time;
-              },
+              onTimeChanged: (time) {},
             ),
           ),
         ),

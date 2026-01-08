@@ -43,9 +43,13 @@ class _CustomDatePickerFieldState extends State<CustomDatePickerField> {
           labelText: 'Datum',
           hintText: 'Datum auswählen',
         ),
-        child: Text(_selectedDate != null
-            ? '${_selectedDate!.day.toString().padLeft(2, '0')}.${_selectedDate!.month.toString().padLeft(2, '0')}.${_selectedDate!.year}'
-            : 'Kein Datum ausgewählt', style: const TextStyle(color: Colors.white),),
+        isEmpty: _selectedDate == null,
+        child: Text(
+          _selectedDate != null
+              ? '${_selectedDate!.day.toString().padLeft(2, '0')}.${_selectedDate!.month.toString().padLeft(2, '0')}.${_selectedDate!.year}'
+              : 'Kein Datum ausgewählt',
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
     );
   }

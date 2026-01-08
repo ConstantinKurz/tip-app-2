@@ -1,3 +1,4 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,13 +24,14 @@ void main() {
 
   group('AuthRepositoryImpl', () {
     late AuthRepositoryImpl repository;
-
+    late FakeFirebaseFirestore fakeFirestore;
+    
     setUp(() {
       mockFirebaseAuth = MockFirebaseAuth();
-      
-      repository = AuthRepositoryImpl(firebaseAuth: mockFirebaseAuth);
-      
+      fakeFirestore = FakeFirebaseFirestore();
+      repository = AuthRepositoryImpl(firebaseAuth: mockFirebaseAuth, firebaseFirestore: fakeFirestore);
       registerFallbackValue(<String, dynamic>{});
+      when(() => mockFirebaseAuth.signOut()).thenAnswer((_) async => Future.value());
     });
 
     group('registerWithEmailAndPassword', () {
@@ -118,21 +120,17 @@ void main() {
 
     group('getSignedInUser', () {
       test('should get current signed in user', () {
-        // Test that method exists
         expect(repository.getSignedInUser, isA<Function>());
-        
         final result = repository.getSignedInUser();
-        expect(result, isA<Future<Either<AuthFailure, AppUser>>>());
+        expect(result, isA<Future<Option<AppUser>>>());
       });
     });
 
     group('signOut', () {
       test('should sign out current user', () {
-        // Test that method exists
         expect(repository.signOut, isA<Function>());
-        
         final result = repository.signOut();
-        expect(result, isA<Future<Either<AuthFailure, Unit>>>());
+        expect(result, isA<Future<void>>());
       });
     });
 
@@ -292,8 +290,8 @@ void main() {
 
         expect(registerResult, isA<Future<Either<AuthFailure, Unit>>>());
         expect(signInResult, isA<Future<Either<AuthFailure, Unit>>>());
-        expect(getUserResult, isA<Future<Either<AuthFailure, AppUser>>>());
-        expect(signOutResult, isA<Future<Either<AuthFailure, Unit>>>());
+        expect(getUserResult, isA<Future<Option<AppUser>>>());
+        expect(signOutResult, isA<Future<void>>());
       });
     });
 
@@ -378,6 +376,11 @@ void main() {
   });
 
   group('Authentication Security', () {
+    late FakeFirebaseFirestore fakeFirestore;
+
+    setUp(() {
+      fakeFirestore = FakeFirebaseFirestore();      
+    });
     test('should handle authentication edge cases', () {
       // Test various authentication scenarios
       const scenarios = [
@@ -388,7 +391,7 @@ void main() {
       ];
 
       for (final scenario in scenarios) {
-        final testRepository = AuthRepositoryImpl(firebaseAuth: mockFirebaseAuth);
+        final testRepository = AuthRepositoryImpl(firebaseAuth: mockFirebaseAuth, firebaseFirestore: fakeFirestore);
         final result = testRepository.signInWithEmailAndPassword(
           email: scenario['email']!,
           password: scenario['password']!,

@@ -21,9 +21,14 @@ class TipCardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Format: 'Fr, 14.06. 15:00 Uhr' (ohne Punkt nach dem Wochentag)
     final dateFormat = DateFormat('E, dd.MM. HH:mm', 'de_DE');
+    String dateString = dateFormat.format(match.matchDate);
+    // Entferne Punkt nach Wochentag, falls vorhanden (z.B. 'Fr.' -> 'Fr')
+    if (dateString.length > 2 && dateString[2] == '.') {
+      dateString = dateString.replaceFirst('.', '');
+    }
     final stageName = match.getStageName;
-    final dateString = dateFormat.format(match.matchDate);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -54,21 +59,26 @@ class TipCardHeader extends StatelessWidget {
         Expanded(
           child: SizedBox(
             width: 100,
-            child: RichText(
-              textAlign: TextAlign.end,
-              text: TextSpan(
-                style: theme.textTheme.displayMedium?.copyWith(
-                  fontSize: 24,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.bold,
-                ),
-                children: [
-                  TextSpan(text: '${tip.points ?? 0}'),
-                  TextSpan(
-                    text: ' pkt',
-                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text.rich(
+                TextSpan(
+                  style: theme.textTheme.displayMedium?.copyWith(
+                    fontSize: 24,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
+                  children: [
+                    TextSpan(text: '${tip.points != null ? tip.points.toString() : '0'}'),
+                    TextSpan(
+                      text: ' pkt',
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.end,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ),

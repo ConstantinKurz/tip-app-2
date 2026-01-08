@@ -18,7 +18,6 @@ class CallToAction extends StatelessWidget {
   }
 
   Widget mouseRegionWidget(BuildContext context) {
-    final themeData = Theme.of(context);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -31,19 +30,18 @@ class CallToAction extends StatelessWidget {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                    color: themeData.colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.secondary,
                     borderRadius: BorderRadius.circular(8)),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
                     text,
-                    style: themeData.textTheme.headlineLarge!.copyWith(
+                    style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                         fontSize: 14,
                         color: Colors.blueGrey[800],
                         fontWeight: FontWeight.bold,
                         letterSpacing: 4),
                   ),
-
                 )),
           ),
         ),
@@ -52,7 +50,6 @@ class CallToAction extends StatelessWidget {
   }
 
   Widget inkResponseWidget(BuildContext context) {
-    final themeData = Theme.of(context);
     return InkResponse(
       onTap: () {
         callBack();

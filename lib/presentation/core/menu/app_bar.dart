@@ -7,9 +7,14 @@ class CustomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-    return AppBar(
-      backgroundColor: themeData.appBarTheme.backgroundColor,
-      title: const Row(children: [HomeLogo()]),
+      return AppBar(
+        backgroundColor: themeData.appBarTheme.backgroundColor,
+        title: Row(
+          children: [
+            Expanded(child: HomeLogo()),
+            // ... weitere Widgets ...
+          ],
+        ),
     );
   }
 }

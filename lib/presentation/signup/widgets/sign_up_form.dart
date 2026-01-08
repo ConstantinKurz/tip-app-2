@@ -65,7 +65,7 @@ class SignUpForm extends StatelessWidget {
       listenWhen: (p, c) =>
           p.authFailureOrSuccessOption != c.authFailureOrSuccessOption,
       listener: (context, state) {
-        state.authFailureOrSuccessOption!.fold(
+        state.authFailureOrSuccessOption.fold(
             () {},
             (eitherFailureOrSuccess) => eitherFailureOrSuccess.fold((failure) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(

@@ -19,13 +19,11 @@ class HoverLinkButton extends StatefulWidget {
 }
 
 class _HoverLinkButtonState extends State<HoverLinkButton> {
-  bool _isHovered = false;
-
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+      onEnter: (_) {},
+      onExit: (_) {},
       child: InkWell(
         onTap: widget.onTap,
         child: Row(

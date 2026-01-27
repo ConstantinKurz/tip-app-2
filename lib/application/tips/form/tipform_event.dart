@@ -4,26 +4,42 @@ part of 'tipform_bloc.dart';
 @immutable
 abstract class TipFormEvent {}
 
+class TipFormInitializedEvent extends TipFormEvent {
+  final String userId;
+  final String matchId;
+  final int matchDay;
+
+  TipFormInitializedEvent({
+    required this.userId,
+    required this.matchId,
+    required this.matchDay,
+  });
+}
+
 class TipFormFieldUpdatedEvent extends TipFormEvent {
-  final String? id;
-  final String? userId;
-  final String? matchId;
-  final DateTime? tipDate;
+  final String userId;
+  final String matchId;
+  final int matchDay;
   final int? tipHome;
   final int? tipGuest;
   final bool? joker;
 
-  TipFormFieldUpdatedEvent(
-      {this.id,
-      this.userId,
-      this.matchId,
-      this.tipDate,
-      this.tipHome,
-      this.tipGuest,
-      this.joker});
+  TipFormFieldUpdatedEvent({
+    required this.userId,
+    required this.matchId,
+    required this.matchDay,
+    this.tipHome,
+    this.tipGuest,
+    this.joker,
+  });
 }
 
-class TipFormInitializedEvent extends TipFormEvent {
-  final Tip tip;
-  TipFormInitializedEvent({required this.tip});
+class TipFormJokerValidationEvent extends TipFormEvent {
+  final String userId;
+  final int matchDay;
+
+  TipFormJokerValidationEvent({
+    required this.userId,
+    required this.matchDay,
+  });
 }

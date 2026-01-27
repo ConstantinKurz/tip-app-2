@@ -113,6 +113,14 @@ class UserModel {
     };
   }
 
+  /// toJson für UserRepositoryImpl
+  Map<String, dynamic> toJson() => toMap();
+
+  /// fromJson für UserRepositoryImpl
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel.fromMap(json);
+  }
+
   factory UserModel.empty(String username, String email) {
     return UserModel(
       id: username,

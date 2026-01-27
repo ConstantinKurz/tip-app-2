@@ -28,9 +28,11 @@ void main() {
     testWidgets('should show loading indicator when state is submitting', (tester) async {
       // Arrange
       final state = TipFormState(
+        userId: 'user-1',
+        matchId: 'match-1',
+        matchDay: 1,
         tipHome: 1,
         tipGuest: 2,
-        tipDate: DateTime.now(),
         isSubmitting: true,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
@@ -52,9 +54,11 @@ void main() {
     testWidgets('should show check circle when tip is complete', (tester) async {
       // Arrange
       final state = TipFormState(
+        userId: 'user-1',
+        matchId: 'match-1',
+        matchDay: 1,
         tipHome: 2,
         tipGuest: 1,
-        tipDate: DateTime.now(),
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
@@ -81,9 +85,11 @@ void main() {
     testWidgets('should show error icon when tip is incomplete - missing home', (tester) async {
       // Arrange
       final state = TipFormState(
+        userId: 'user-1',
+        matchId: 'match-1',
+        matchDay: 1,
         tipHome: null,
         tipGuest: 1,
-        tipDate: DateTime.now(),
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
@@ -110,9 +116,11 @@ void main() {
     testWidgets('should show error icon when tip is incomplete - missing guest', (tester) async {
       // Arrange
       final state = TipFormState(
+        userId: 'user-1',
+        matchId: 'match-1',
+        matchDay: 1,
         tipHome: 2,
         tipGuest: null,
-        tipDate: DateTime.now(),
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
@@ -139,9 +147,11 @@ void main() {
     testWidgets('should show error icon when both tips are missing', (tester) async {
       // Arrange
       final state = TipFormState(
+        userId: 'user-1',
+        matchId: 'match-1',
+        matchDay: 1,
         tipHome: null,
         tipGuest: null,
-        tipDate: DateTime.now(),
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
@@ -178,9 +188,11 @@ void main() {
 
       // Update to complete state
       final completeState = TipFormState(
+        userId: 'user-1',
+        matchId: 'match-1',
+        matchDay: 1,
         tipHome: 2,
         tipGuest: 1,
-        tipDate: DateTime.now(),
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),

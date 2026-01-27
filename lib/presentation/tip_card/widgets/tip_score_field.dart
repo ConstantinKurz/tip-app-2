@@ -52,6 +52,7 @@ class TipScoreField extends StatelessWidget {
                   tipHome: scoreType == 'home' ? parsed : state.tipHome,
                   tipGuest: scoreType == 'guest' ? parsed : state.tipGuest,
                   joker: state.joker,
+                  matchDay: state.matchDay,
                 ),
               );
             },

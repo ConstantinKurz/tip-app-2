@@ -75,7 +75,8 @@ class TipCardTippingInput extends StatelessWidget {
                                     userId: userId,
                                     tipHome: state.tipHome,
                                     tipGuest: state.tipGuest,
-                                    joker: !(state.joker ?? false),
+                                    joker: !(state.joker),
+                                    matchDay: state.matchDay,
                                   ),
                                 );
                               }

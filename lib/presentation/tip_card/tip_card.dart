@@ -60,7 +60,7 @@ class _TipCardState extends State<TipCard> {
 
     return BlocProvider<TipFormBloc>(
       create: (_) =>
-          sl<TipFormBloc>()..add(TipFormInitializedEvent(tip: widget.tip)),
+          sl<TipFormBloc>()..add(TipFormInitializedEvent(userId: widget.userId, matchDay: widget.match.matchDay, matchId: widget.match.id)),
       child: BlocConsumer<TipFormBloc, TipFormState>(
         buildWhen: (previous, current) {
           if (previous.isSubmitting != current.isSubmitting) return true;
@@ -82,15 +82,9 @@ class _TipCardState extends State<TipCard> {
                 final tipControllerState =
                     context.read<TipControllerBloc>().state;
                 if (tipControllerState is TipControllerLoaded) {
-                  final userTips = tipControllerState.tips[widget.userId] ?? [];
-                  final updatedTip = userTips.firstWhere(
-                    (t) => t.matchId == widget.match.id,
-                    orElse: () => Tip.empty(widget.userId)
-                        .copyWith(matchId: widget.match.id),
-                  );
                   context
                       .read<TipFormBloc>()
-                      .add(TipFormInitializedEvent(tip: updatedTip));
+                      .add(TipFormInitializedEvent(userId: widget.userId, matchDay: widget.match.matchDay, matchId: widget.match.id));
                 }
               },
             ),

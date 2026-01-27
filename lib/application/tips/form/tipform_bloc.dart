@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
+import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
 import 'package:meta/meta.dart';
 import '../../../domain/entities/tip.dart';
 
@@ -10,25 +11,46 @@ part 'tipform_state.dart';
 
 class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
   final TipRepository tipRepository;
+  final ValidateJokerUsageUseCase validateJokerUseCase;
 
-  TipFormBloc({required this.tipRepository}) : super(TipFormInitialState()) {
+  TipFormBloc({
+    required this.tipRepository,
+    required this.validateJokerUseCase,
+  }) : super(const TipFormInitialState()) {
     on<TipFormInitializedEvent>(_onInitialized);
     on<TipFormFieldUpdatedEvent>(_onFieldUpdated);
+    on<TipFormJokerValidationEvent>(_onJokerValidation);
   }
 
-  void _onInitialized(
+  Future<void> _onInitialized(
     TipFormInitializedEvent event,
     Emitter<TipFormState> emit,
-  ) {
-    emit(state.copyWith(
-      id: event.tip.id,
-      userId: event.tip.userId,
-      matchId: event.tip.matchId,
-      tipDate: event.tip.tipDate,
-      tipHome: event.tip.tipHome,
-      tipGuest: event.tip.tipGuest,
-      joker: event.tip.joker,
-    ));
+  ) async {
+    emit(
+      TipFormState(
+        userId: event.userId,
+        matchId: event.matchId,
+        matchDay: event.matchDay,
+        tipHome: null,
+        tipGuest: null,
+        joker: false,
+      ),
+    );
+
+    // Validiere Joker für diese Phase
+    final validationResult = await validateJokerUseCase(
+      userId: event.userId,
+      matchDay: event.matchDay,
+    );
+
+    emit(
+      state.copyWith(
+        jokerValidation: validationResult.fold(
+          (_) => null,
+          (result) => result,
+        ),
+      ),
+    );
   }
 
   Future<void> _onFieldUpdated(
@@ -42,7 +64,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
 
     // Wenn beide leer, leeren Tip speichern
     if (isTipHomeNull && isTipGuestNull) {
-      final newEmptyTip = Tip.empty(event.userId!).copyWith(
+      final newEmptyTip = Tip.empty(event.userId).copyWith(
         id: "${event.userId}_${event.matchId}",
         matchId: event.matchId,
         joker: false
@@ -71,7 +93,52 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       return;
     }
 
-    final newTip = Tip.empty(event.userId!).copyWith(
+    // Joker-Validierung basierend auf matchDay
+    if (event.joker ?? false) {
+      final validationResult = await validateJokerUseCase(
+        userId: event.userId,
+        matchDay: event.matchDay,
+      );
+
+      final isValid = validationResult.fold(
+        (_) => false,
+        (result) => result.isAvailable,
+      );
+
+      if (!isValid) {
+        final result = validationResult.getOrElse(
+          () => JokerValidationResult(
+            isAvailable: false,
+            used: 0,
+            total: 0,
+            matchDay: 0,
+          ),
+        );
+        
+        emit(state.copyWith(
+          isSubmitting: false,
+          showValidationMessages: true,
+          jokerValidation: result,
+          failureOrSuccessOption: some(
+            left(JokerLimitReachedFailure(
+              used: result.used,
+              limit: result.total,
+              matchDay: result.matchDay,
+            ))
+          ),
+        ));
+        return;
+      }
+
+      // Joker validiert - State aktualisieren
+      emit(
+        state.copyWith(
+          jokerValidation: validationResult.fold((_) => null, (r) => r),
+        ),
+      );
+    }
+
+    final newTip = Tip.empty(event.userId).copyWith(
       id: "${event.userId}_${event.matchId}",
       matchId: event.matchId,
       tipHome: event.tipHome,
@@ -87,4 +154,24 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       isSubmitting: false,
       failureOrSuccessOption: optionOf(result),
     ));
-  }}
+  }
+
+  Future<void> _onJokerValidation(
+    TipFormJokerValidationEvent event,
+    Emitter<TipFormState> emit,
+  ) async {
+    final validationResult = await validateJokerUseCase(
+      userId: event.userId,
+      matchDay: event.matchDay,
+    );
+
+    emit(
+      state.copyWith(
+        jokerValidation: validationResult.fold(
+          (_) => null,
+          (result) => result,
+        ),
+      ),
+    );
+  }
+}

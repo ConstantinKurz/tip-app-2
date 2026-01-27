@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/exception_mapping.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
+import 'package:flutter_web/domain/entities/match_phase.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/repositories/auth_repository.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
@@ -15,9 +16,11 @@ class TipRepositoryImpl implements TipRepository {
     required this.authRepository,
   });
 
-    CollectionReference get usersCollection => firebaseFirestore.collection('users');
+  CollectionReference get usersCollection =>
+      firebaseFirestore.collection('users');
 
-    CollectionReference get tipsCollection => firebaseFirestore.collection('tips');
+  CollectionReference get tipsCollection =>
+      firebaseFirestore.collection('tips');
 
   @override
   Future<Either<TipFailure, Unit>> create(Tip tip) async {
@@ -102,5 +105,114 @@ class TipRepositoryImpl implements TipRepository {
         ),
       );
     });
+  }
+
+  @override
+  Future<Either<TipFailure, int>> getJokersUsedInMatchDay({
+    required String userId,
+    required int matchDay,
+  }) async {
+    try {
+      // Hole alle Tips des Users mit Joker
+      final querySnapshot = await tipsCollection
+          .where('userId', isEqualTo: userId)
+          .where('joker', isEqualTo: true)
+          .get();
+
+      // Zähle nur Joker in diesem matchDay
+      int jokerCount = 0;
+
+      for (final doc in querySnapshot.docs) {
+        final tipData = doc.data() as Map<String, dynamic>;
+        final tipMatchId = tipData['matchId'] as String?;
+
+        if (tipMatchId != null) {
+          // Hole Match um dessen matchDay zu prüfen
+          final matchDoc = await firebaseFirestore
+              .collection('matches')
+              .doc(tipMatchId)
+              .get();
+
+          if (matchDoc.exists) {
+            final matchData = matchDoc.data() as Map<String, dynamic>;
+            final docMatchDay = matchData['matchDay'] as int?;
+
+            if (docMatchDay == matchDay) {
+              jokerCount++;
+            }
+          }
+        }
+      }
+
+      return right(jokerCount);
+    } catch (e) {
+      return left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<TipFailure, bool>> canUseJokerInMatchDay({
+    required String userId,
+    required int matchDay,
+  }) async {
+    final phase = MatchPhase.fromMatchDay(matchDay);
+    final maxJokersForMatchDay = phase.maxJokers;
+
+    final result = await getJokersUsedInMatchDay(
+      userId: userId,
+      matchDay: matchDay,
+    );
+
+    return result.fold(
+      (failure) => left(failure),
+      (usedJokers) => right(usedJokers < maxJokersForMatchDay),
+    );
+  }
+
+  @override
+  Future<Either<TipFailure, List<Tip>>> getTipsForMatch(String matchId) async {
+    try {
+      final querySnapshot = await tipsCollection
+          .where('matchId', isEqualTo: matchId)
+          .get();
+
+      final tips = querySnapshot.docs
+          .map((doc) => TipModel.fromFirestore(doc).toDomain())
+          .toList();
+
+      return right(tips);
+    } catch (e) {
+      return left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<TipFailure, List<Tip>>> getTipsByUserId(String userId) async {
+    try {
+      final querySnapshot = await tipsCollection
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final tips = querySnapshot.docs
+          .map((doc) => TipModel.fromFirestore(doc).toDomain())
+          .toList();
+
+      return right(tips);
+    } catch (e) {
+      return left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<TipFailure, Unit>> updatePoints({
+    required String tipId,
+    required int points,
+  }) async {
+    try {
+      await tipsCollection.doc(tipId).update({'points': points});
+      return right(unit);
+    } catch (e) {
+      return left(ServerFailure(message: e.toString()));
+    }
   }
 }

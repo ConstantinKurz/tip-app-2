@@ -4,16 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web/core/failures/match_failures.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter_web/domain/usecases/recalculate_match_tips_usecase.dart';
 
 part 'matchesform_event.dart';
 part 'matchesform_state.dart';
 
 class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
   final MatchRepository matchesRepository;
+  final RecalculateMatchTipsUseCase recalculateMatchTipsUseCase;
 
-  MatchesformBloc({required this.matchesRepository})
-      : super(MatchesFromInitialState()) {
+  MatchesformBloc({
+    required this.matchesRepository,
+    required this.recalculateMatchTipsUseCase,
+  }) : super(MatchesFromInitialState()) {
     on<CreateMatchEvent>(_onCreateMatch);
     on<MatchFormUpdateEvent>(_onUpdateMatch);
     on<MatchFormFieldUpdatedEvent>(_onFieldUpdated);
@@ -72,10 +75,25 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
     final failureOrSuccess =
         await matchesRepository.updateMatch(event.match!);
 
-    emit(state.copyWith(
-      isSubmitting: false,
-      matchFailureOrSuccessOption: optionOf(failureOrSuccess),
-    ));
+    await failureOrSuccess.fold(
+      (failure) async {
+        emit(state.copyWith(
+          isSubmitting: false,
+          matchFailureOrSuccessOption: some(left(failure)),
+        ));
+      },
+      (_) async {
+        // Wenn Match Ergebnis hat → Punkte + User-Score neuberechnen
+        if (event.match!.hasResult) {
+          await recalculateMatchTipsUseCase(match: event.match!);
+        }
+
+        emit(state.copyWith(
+          isSubmitting: false,
+          matchFailureOrSuccessOption: optionOf(failureOrSuccess),
+        ));
+      },
+    );
   }
 
   void _onFieldUpdated(

@@ -6,6 +6,7 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/application/tips/services/tip_recalculation_service.dart';
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
@@ -32,6 +33,13 @@ void main() async {
 
   setPathUrlStrategy();
   await di.init();
+
+  // ✨ TipRecalculationService starten
+  final recalculationService = di.sl<TipRecalculationService>();
+  recalculationService.startListening();
+
+  print('🚀 App gestartet - Neuberechnung Service aktiv');
+
   runApp(const MyApp());
 }
 

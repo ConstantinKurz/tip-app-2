@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'match_phase.dart';
+
 class CustomMatch {
   final String id;
   final String homeTeamId;
@@ -59,27 +61,30 @@ class CustomMatch {
     );
   }
 
-    String get getStageName {
+  String get getStageName {
     if (matchDay <= 3) {
       return 'Gruppenphase, Tag ${matchDay + 1}';
     }
     switch (matchDay) {
-      case 3:
-        return 'Sechszehntelfinale';
       case 4:
-        return 'Achtelfinale';
+        return 'Sechszehntelfinale';
       case 5:
-        return 'Viertelfinale';
+        return 'Achtelfinale';
       case 6:
-        return 'Halbfinale';
+        return 'Viertelfinale';
       case 7:
+        return 'Halbfinale';
+      case 8:
         return 'Finale';
       default:
         return 'Spieltag $matchDay';
     }
-  }   
+  }
+
+  /// Gibt die MatchPhase für dieses Spiel zurück
+  MatchPhase get phase => MatchPhase.fromMatchDay(matchDay);
   
   bool get hasResult {
-      return homeScore != null && guestScore != null;
-      }
+    return homeScore != null && guestScore != null;
+  }
 }

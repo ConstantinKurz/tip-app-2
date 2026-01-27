@@ -9,10 +9,15 @@ import 'package:flutter_web/application/teams/controller/teams_controller_bloc.d
 import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
+import 'package:flutter_web/application/tips/services/tip_recalculation_service.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/repositories/team_repository.dart';
+import 'package:flutter_web/domain/repositories/user_repository.dart';
+import 'package:flutter_web/domain/usecases/recalculate_match_tips_usecase.dart';
+import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
 import 'package:flutter_web/infrastructure/repositories/match_repository_impl.dart';
 import 'package:flutter_web/infrastructure/repositories/team_repository_impl.dart';
+import 'package:flutter_web/infrastructure/repositories/user_repository_impl.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,16 +48,44 @@ Future<void> init({bool useMocks = false}) async {
       () => MatchRepositoryImpl(firebaseFirestore: sl()));
 
   sl.registerLazySingleton<TeamRepository>(() => TeamRepositoryImpl(firebaseFirestore: sl()));
+
+  sl.registerLazySingleton<UserRepository>(
+      () => UserRepositoryImpl(firebaseFirestore: sl()));
+  
+  // Register Use Cases
+  sl.registerLazySingleton(() => ValidateJokerUsageUseCase(sl<TipRepository>()));
+  
+  sl.registerLazySingleton(
+    () => RecalculateMatchTipsUseCase(
+      tipRepository: sl(),
+      userRepository: sl(),
+    ),
+  );
+
+  // Register Services
+  sl.registerLazySingleton(
+    () => TipRecalculationService(
+      matchRepository: sl(),
+      recalculateMatchTipsUseCase: sl(),
+    ),
+  );
+  
   // Register Blocs
   sl.registerFactory(() => SignupformBloc(authRepository: sl()));
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
   sl.registerFactory(() => AuthControllerBloc(authRepository: sl(), authBloc: sl()));
-  sl.registerFactory(() => MatchesformBloc(matchesRepository: sl()));
+  sl.registerFactory(() => MatchesformBloc(
+    matchesRepository: sl(),
+    recalculateMatchTipsUseCase: sl(),
+  ));
   sl.registerFactory(() => MatchesControllerBloc(matchRepository: sl()));
   sl.registerFactory(() => TipControllerBloc(tipRepository: sl()));
   sl.registerFactory(() => TeamsControllerBloc(teamRepository: sl()));
   sl.registerFactory(() => TeamsformBloc(teamRepository: sl()));
-  sl.registerFactory(() => TipFormBloc(tipRepository: sl()));
+  sl.registerFactory(() => TipFormBloc(
+    tipRepository: sl(),
+    validateJokerUseCase: sl<ValidateJokerUsageUseCase>(),
+  ));
   sl.registerFactory(() => AuthformBloc(authRepository: sl()));
   sl.registerFactory(() => RankingBloc());
 

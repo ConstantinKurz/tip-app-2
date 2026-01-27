@@ -25,7 +25,9 @@ void main() {
       // Setup mock stream with a simple state
       when(() => mockTipFormBloc.stream).thenAnswer(
         (_) => Stream.value(TipFormState(
-          tipDate: DateTime.now(),
+          userId: 'user-1',
+          matchId: 'match-1',
+          matchDay: 1,
           isSubmitting: false,
           showValidationMessages: false,
           failureOrSuccessOption: none(),
@@ -33,7 +35,9 @@ void main() {
       );
       
       when(() => mockTipFormBloc.state).thenReturn(TipFormState(
-        tipDate: DateTime.now(),
+        userId: 'user-1',
+        matchId: 'match-1',
+        matchDay: 1,
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),

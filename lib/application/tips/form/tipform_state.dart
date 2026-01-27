@@ -2,68 +2,71 @@
 part of 'tipform_bloc.dart';
 
 class TipFormState {
-  final String? id;
-  final String? userId;
-  final String? matchId;
-  final DateTime? tipDate;
+  final String userId;
+  final String matchId;
+  final int matchDay;
   final int? tipHome;
   final int? tipGuest;
-  final bool? joker;
+  final bool joker;
   final bool showValidationMessages;
   final bool isSubmitting;
   final Option<Either<TipFailure, Unit>> failureOrSuccessOption;
-  TipFormState({
-    this.id,
-    this.userId,
-    this.matchId,
-    required this.tipDate,
+  final JokerValidationResult? jokerValidation;
+
+  const TipFormState({
+    required this.userId,
+    required this.matchId,
+    required this.matchDay,
     this.tipHome,
     this.tipGuest,
-    this.joker,
-    required this.showValidationMessages,
-    required this.isSubmitting,
-    required this.failureOrSuccessOption,
+    this.joker = false,
+    this.showValidationMessages = false,
+    this.isSubmitting = false,
+    this.failureOrSuccessOption = const None(),
+    this.jokerValidation,
   });
 
   TipFormState copyWith({
-    String? id,
     String? userId,
     String? matchId,
-    DateTime? tipDate,
+    int? matchDay,
     int? tipHome,
     int? tipGuest,
     bool? joker,
     bool? showValidationMessages,
     bool? isSubmitting,
     Option<Either<TipFailure, Unit>>? failureOrSuccessOption,
+    JokerValidationResult? jokerValidation,
   }) {
     return TipFormState(
-      id: id ?? this.id,
       userId: userId ?? this.userId,
       matchId: matchId ?? this.matchId,
-      tipDate: tipDate ?? this.tipDate,
-      tipHome: tipHome,
-      tipGuest: tipGuest,
+      matchDay: matchDay ?? this.matchDay,
+      tipHome: tipHome ?? this.tipHome,
+      tipGuest: tipGuest ?? this.tipGuest,
       joker: joker ?? this.joker,
       showValidationMessages:
           showValidationMessages ?? this.showValidationMessages,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       failureOrSuccessOption:
           failureOrSuccessOption ?? this.failureOrSuccessOption,
+      jokerValidation: jokerValidation ?? this.jokerValidation,
     );
   }
 }
 
 final class TipFormInitialState extends TipFormState {
-  TipFormInitialState()
+  const TipFormInitialState()
       : super(
-            id: null,
-            userId: null,
-            matchId: null,
-            tipDate: null,
-            tipGuest: null,
-            tipHome: null,
-            isSubmitting: false,
-            showValidationMessages: false,
-            failureOrSuccessOption: none());
+          userId: '',
+          matchId: '',
+          matchDay: 0,
+          tipHome: null,
+          tipGuest: null,
+          joker: false,
+          isSubmitting: false,
+          showValidationMessages: false,
+          failureOrSuccessOption: const None(),
+          jokerValidation: null,
+        );
 }

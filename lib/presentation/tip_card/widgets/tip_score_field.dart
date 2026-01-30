@@ -8,6 +8,7 @@ class TipScoreField extends StatelessWidget {
   final String scoreType; // 'home' oder 'guest'
   final String userId;
   final String matchId;
+  final bool readOnly;
 
   const TipScoreField({
     Key? key,
@@ -15,6 +16,7 @@ class TipScoreField extends StatelessWidget {
     required this.scoreType,
     required this.userId,
     required this.matchId,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -23,11 +25,14 @@ class TipScoreField extends StatelessWidget {
 
     return BlocBuilder<TipFormBloc, TipFormState>(
       builder: (context, state) {
+        final isDisabled = state.isTipLimitReached;
+        final bool readOnly = this.readOnly || isDisabled;
         return SizedBox(
           width: 50,
           child: TextFormField(
             textAlign: TextAlign.center,
             controller: controller,
+            readOnly: readOnly,
             style: themeData.textTheme.bodyLarge,
             cursorColor: themeData.colorScheme.onPrimary,
             maxLength: 1,
@@ -42,20 +47,23 @@ class TipScoreField extends StatelessWidget {
                 borderSide: BorderSide(color: themeData.colorScheme.onPrimary),
               ),
             ),
-            onChanged: (value) {
-              final bloc = context.read<TipFormBloc>();
-              final parsed = int.tryParse(value);
-              bloc.add(
-                TipFormFieldUpdatedEvent(
-                  matchId: matchId,
-                  userId: userId,
-                  tipHome: scoreType == 'home' ? parsed : state.tipHome,
-                  tipGuest: scoreType == 'guest' ? parsed : state.tipGuest,
-                  joker: state.joker,
-                  matchDay: state.matchDay,
-                ),
-              );
-            },
+            onChanged: readOnly
+                ? null
+                : (value) {
+                    final bloc = context.read<TipFormBloc>();
+                    final parsed = int.tryParse(value);
+                    bloc.add(
+                      TipFormFieldUpdatedEvent(
+                        matchId: matchId,
+                        userId: userId,
+                        tipHome: scoreType == 'home' ? parsed : state.tipHome,
+                        tipGuest:
+                            scoreType == 'guest' ? parsed : state.tipGuest,
+                        joker: state.joker,
+                        matchDay: state.matchDay,
+                      ),
+                    );
+                  },
           ),
         );
       },

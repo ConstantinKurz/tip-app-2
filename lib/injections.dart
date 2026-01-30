@@ -53,7 +53,10 @@ Future<void> init({bool useMocks = false}) async {
       () => UserRepositoryImpl(firebaseFirestore: sl()));
   
   // Register Use Cases
-  sl.registerLazySingleton(() => ValidateJokerUsageUseCase(sl<TipRepository>()));
+  sl.registerLazySingleton(() => ValidateJokerUsageUseCase(
+    tipRepository: sl(),
+    matchRepository: sl(),
+  ));
   
   sl.registerLazySingleton(
     () => RecalculateMatchTipsUseCase(

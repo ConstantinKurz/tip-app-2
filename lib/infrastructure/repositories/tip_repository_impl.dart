@@ -215,4 +215,57 @@ class TipRepositoryImpl implements TipRepository {
       return left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<TipFailure, int>> getTippedGamesInMatchDay({
+    required String userId,
+    required int matchDay,
+  }) async {
+    try {
+      // First, get all tips for the user that are not null on at least one field.
+      // Firestore does not allow multiple inequality filters.
+      final querySnapshot = await tipsCollection
+          .where('userId', isEqualTo: userId)
+          .where('tipHome', isNull: false)
+          .get();
+
+      int tippedGamesCount = 0;
+      // Iterate through the tips and check the matchDay for each one
+      for (final doc in querySnapshot.docs) {
+        final tipData = doc.data() as Map<String, dynamic>;
+
+        // Perform the second part of the check on the client side.
+        if (tipData['tipGuest'] == null) {
+          continue;
+        }
+
+        final tipMatchId = tipData['matchId'] as String?;
+
+        if (tipMatchId != null) {
+          final matchDoc = await firebaseFirestore
+              .collection('matches')
+              .doc(tipMatchId)
+              .get();
+
+          if (matchDoc.exists) {
+            final matchData = matchDoc.data() as Map<String, dynamic>;
+            final docMatchDay = matchData['matchDay'] as int?;
+
+            if (docMatchDay == matchDay) {
+              tippedGamesCount++;
+            }
+          }
+        }
+      }
+      return right(tippedGamesCount);
+    } on FirebaseException catch (e) {
+      if (e.code.contains('permission-denied')) {
+        return left(InsufficientPermisssons());
+      } else {
+        return left(UnexpectedFailure());
+      }
+    } catch (e) {
+      return left(UnexpectedFailure(message: e.toString()));
+    }
+  }
 }

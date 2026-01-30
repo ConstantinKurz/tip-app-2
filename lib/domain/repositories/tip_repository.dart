@@ -32,4 +32,10 @@ abstract class TipRepository {
     required String userId,
     required int matchDay,
   });
+  
+  /// Gibt die Anzahl der getippten Spiele an einem Spieltag zurück
+  Future<Either<TipFailure, int>> getTippedGamesInMatchDay({
+    required String userId,
+    required int matchDay,
+  });
 }

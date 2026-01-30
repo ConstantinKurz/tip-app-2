@@ -12,6 +12,7 @@ class TipCardTippingInput extends StatelessWidget {
   final TextEditingController homeController;
   final TextEditingController guestController;
   final Tip tip;
+  final bool readOnly;
 
   const TipCardTippingInput({
     Key? key,
@@ -21,6 +22,7 @@ class TipCardTippingInput extends StatelessWidget {
     required this.homeController,
     required this.guestController,
     required this.tip,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -65,9 +67,10 @@ class TipCardTippingInput extends StatelessWidget {
                       width: 48,
                       height: 56,
                       child: StarIconButton(
-                        isStar: state.joker ?? false,
-                        onTap: (state.tipHome != null && state.tipGuest != null) ||
-                                (state.joker ?? false)
+                        isStar: state.joker,
+                        onTap: !readOnly && // ✅ Joker nur wenn nicht readOnly
+                                ((state.tipHome != null && state.tipGuest != null) ||
+                                (state.joker))
                             ? () {
                                 context.read<TipFormBloc>().add(
                                   TipFormFieldUpdatedEvent(
@@ -81,10 +84,9 @@ class TipCardTippingInput extends StatelessWidget {
                                 );
                               }
                             : () {},
-                        tooltipMessage: (state.tipHome != null && state.tipGuest != null) ||
-                                (state.joker ?? false)
-                            ? ((state.joker ?? false) ? "Joker entfernen" : "Joker setzen")
-                            : "Bitte erst einen gültigen Tipp abgeben",
+                        tooltipMessage: readOnly
+                            ? "Spiel bereits beendet - keine Änderungen möglich"
+                            : ((state.joker) ? "Joker entfernen" : "Joker setzen"),
                       ),
                     ),
                   ],
@@ -143,6 +145,7 @@ class TipCardTippingInput extends StatelessWidget {
         scoreType: scoreType,
         userId: userId,
         matchId: matchId,
+        readOnly: readOnly, // ✅ Parameter weitergeben
       ),
     );
   }

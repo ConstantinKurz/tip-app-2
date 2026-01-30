@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
+import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
+import 'package:flutter_web/domain/entities/match_day_statistics.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
 import 'package:meta/meta.dart';
@@ -26,29 +28,37 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     TipFormInitializedEvent event,
     Emitter<TipFormState> emit,
   ) async {
+    final userTipsResult = await tipRepository.getTipsByUserId(event.userId);
+    final tipData = userTipsResult.fold(
+      (failure) => null,
+      (tips) => tips.firstWhereOrNull((tip) => tip.matchId == event.matchId),
+    );
+
+    final statsResult = await validateJokerUseCase(
+      userId: event.userId,
+      matchDay: event.matchDay,
+    );
+    final stats = statsResult.fold(
+      (_) => null,
+      (result) => result,
+    );
+
+    // Prüfe ob Tipp-Limit erreicht (nur Gruppenphase, matchDay 1-3)
+    bool isTipLimitReached = false;
+    if (event.matchDay <= 3 && stats != null) {
+      isTipLimitReached = stats.tippedGames >= 20; //Limit 20 in Gruppenphase
+    }
+
     emit(
       TipFormState(
         userId: event.userId,
         matchId: event.matchId,
         matchDay: event.matchDay,
-        tipHome: null,
-        tipGuest: null,
-        joker: false,
-      ),
-    );
-
-    // Validiere Joker für diese Phase
-    final validationResult = await validateJokerUseCase(
-      userId: event.userId,
-      matchDay: event.matchDay,
-    );
-
-    emit(
-      state.copyWith(
-        jokerValidation: validationResult.fold(
-          (_) => null,
-          (result) => result,
-        ),
+        tipHome: tipData?.tipHome,
+        tipGuest: tipData?.tipGuest,
+        joker: tipData?.joker ?? false,
+        matchDayStatistics: stats,
+        isTipLimitReached: isTipLimitReached,
       ),
     );
   }
@@ -62,21 +72,14 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     final isTipHomeNull = event.tipHome == null;
     final isTipGuestNull = event.tipGuest == null;
 
-    // Wenn beide leer, leeren Tip speichern
+    // Wenn beide leer, nicht speichern - nur State zurücksetzen
     if (isTipHomeNull && isTipGuestNull) {
-      final newEmptyTip = Tip.empty(event.userId).copyWith(
-        id: "${event.userId}_${event.matchId}",
-        matchId: event.matchId,
-        joker: false
-      );
-      final result = await tipRepository.create(newEmptyTip);
-
       emit(state.copyWith(
         tipGuest: null,
         tipHome: null,
         joker: false,
         isSubmitting: false,
-        failureOrSuccessOption: optionOf(result),
+        failureOrSuccessOption: none(),
       ));
       return;
     }
@@ -102,27 +105,28 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
 
       final isValid = validationResult.fold(
         (_) => false,
-        (result) => result.isAvailable,
+        (result) => result.isJokerAvailable,
       );
 
       if (!isValid) {
         final result = validationResult.getOrElse(
-          () => JokerValidationResult(
-            isAvailable: false,
-            used: 0,
-            total: 0,
+          () => MatchDayStatistics(
             matchDay: 0,
+            tippedGames: 0,
+            totalGames: 0,
+            jokersUsed: 0,
+            jokersAvailable: 0,
           ),
         );
         
         emit(state.copyWith(
           isSubmitting: false,
           showValidationMessages: true,
-          jokerValidation: result,
+          matchDayStatistics: result,
           failureOrSuccessOption: some(
             left(JokerLimitReachedFailure(
-              used: result.used,
-              limit: result.total,
+              used: result.jokersUsed,
+              limit: result.jokersAvailable,
               matchDay: result.matchDay,
             ))
           ),
@@ -133,7 +137,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       // Joker validiert - State aktualisieren
       emit(
         state.copyWith(
-          jokerValidation: validationResult.fold((_) => null, (r) => r),
+          matchDayStatistics: validationResult.fold((_) => null, (r) => r),
         ),
       );
     }
@@ -167,7 +171,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
 
     emit(
       state.copyWith(
-        jokerValidation: validationResult.fold(
+        matchDayStatistics: validationResult.fold(
           (_) => null,
           (result) => result,
         ),

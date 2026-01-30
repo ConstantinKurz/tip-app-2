@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
+import 'package:flutter_web/domain/usecases/tip_calculator_usecase.dart';
 import 'package:intl/intl.dart';
 
 import 'tip_status.dart';
@@ -29,6 +30,7 @@ class TipCardHeader extends StatelessWidget {
       dateString = dateString.replaceFirst('.', '');
     }
     final stageName = match.getStageName;
+    final stats = state.matchDayStatistics;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -46,6 +48,17 @@ class TipCardHeader extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: Text(
+                  stats != null
+                      ? 'Joker: ${stats.jokersUsed}/${stats.jokersAvailable} | Tipps: ${stats.tippedGames}/${stats.totalGames}'
+                      : 'Statistiken werden geladen...',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ),
               Text(
                 '$dateString Uhr',
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -61,24 +74,34 @@ class TipCardHeader extends StatelessWidget {
             width: 100,
             child: Align(
               alignment: Alignment.centerRight,
-              child: Text.rich(
-                TextSpan(
-                  style: theme.textTheme.displayMedium?.copyWith(
-                    fontSize: 24,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  children: [
-                    TextSpan(text: '${tip.points != null ? tip.points.toString() : '0'}'),
-                    TextSpan(
-                      text: ' pkt',
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+              child: Tooltip(
+                message: match.hasResult && tip.points != null
+                    ? '${TipCalculator.getPointsDescription(
+                        tipHome: tip.tipHome ?? 0,
+                        tipGuest: tip.tipGuest ?? 0,
+                        actualHome: match.homeScore ?? 0,
+                        actualGuest: match.guestScore ?? 0,
+                      )}\nMultiplikator: x${match.phase.pointMultiplier}${tip.joker ? '\nJoker: x2' : ''}'
+                    : 'Punkte nach Spielende',
+                child: Text.rich(
+                  TextSpan(
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontSize: 24,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                    children: [
+                      TextSpan(text: tip.points != null ? tip.points.toString() : '0'),
+                      TextSpan(
+                        text: ' pkt',
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
-                textAlign: TextAlign.end,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
               ),
             ),
           ),

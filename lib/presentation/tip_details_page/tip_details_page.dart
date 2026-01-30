@@ -97,13 +97,13 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 700),
-              child: SingleChildScrollView(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 700),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -145,8 +145,8 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
                       );

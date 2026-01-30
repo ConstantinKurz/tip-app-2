@@ -4,7 +4,10 @@ abstract class TipFailure {}
 
 class InsufficientPermisssons extends TipFailure {}
 
-class UnexpectedFailure extends TipFailure {}
+class UnexpectedFailure extends TipFailure {
+  final String? message;
+  UnexpectedFailure({this.message});
+}
 
 class InCompleteInputFailure extends TipFailure {}
 

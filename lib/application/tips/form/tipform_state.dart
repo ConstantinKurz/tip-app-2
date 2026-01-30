@@ -1,17 +1,18 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'tipform_bloc.dart';
 
-class TipFormState {
+class TipFormState{
   final String userId;
   final String matchId;
   final int matchDay;
   final int? tipHome;
   final int? tipGuest;
   final bool joker;
-  final bool showValidationMessages;
   final bool isSubmitting;
   final Option<Either<TipFailure, Unit>> failureOrSuccessOption;
-  final JokerValidationResult? jokerValidation;
+  final bool showValidationMessages;
+  final MatchDayStatistics? matchDayStatistics;
+  final bool isTipLimitReached; // Neu hinzufügen
 
   const TipFormState({
     required this.userId,
@@ -20,10 +21,11 @@ class TipFormState {
     this.tipHome,
     this.tipGuest,
     this.joker = false,
-    this.showValidationMessages = false,
     this.isSubmitting = false,
     this.failureOrSuccessOption = const None(),
-    this.jokerValidation,
+    this.showValidationMessages = false,
+    this.matchDayStatistics,
+    this.isTipLimitReached = false, // Neu hinzufügen
   });
 
   TipFormState copyWith({
@@ -33,10 +35,11 @@ class TipFormState {
     int? tipHome,
     int? tipGuest,
     bool? joker,
-    bool? showValidationMessages,
     bool? isSubmitting,
     Option<Either<TipFailure, Unit>>? failureOrSuccessOption,
-    JokerValidationResult? jokerValidation,
+    bool? showValidationMessages,
+    MatchDayStatistics? matchDayStatistics,
+    bool? isTipLimitReached, // Neu hinzufügen
   }) {
     return TipFormState(
       userId: userId ?? this.userId,
@@ -45,12 +48,11 @@ class TipFormState {
       tipHome: tipHome ?? this.tipHome,
       tipGuest: tipGuest ?? this.tipGuest,
       joker: joker ?? this.joker,
-      showValidationMessages:
-          showValidationMessages ?? this.showValidationMessages,
       isSubmitting: isSubmitting ?? this.isSubmitting,
-      failureOrSuccessOption:
-          failureOrSuccessOption ?? this.failureOrSuccessOption,
-      jokerValidation: jokerValidation ?? this.jokerValidation,
+      failureOrSuccessOption: failureOrSuccessOption ?? this.failureOrSuccessOption,
+      showValidationMessages: showValidationMessages ?? this.showValidationMessages,
+      matchDayStatistics: matchDayStatistics ?? this.matchDayStatistics,
+      isTipLimitReached: isTipLimitReached ?? this.isTipLimitReached, // Neu hinzufügen
     );
   }
 }
@@ -67,6 +69,7 @@ final class TipFormInitialState extends TipFormState {
           isSubmitting: false,
           showValidationMessages: false,
           failureOrSuccessOption: const None(),
-          jokerValidation: null,
+          matchDayStatistics: null,
+          isTipLimitReached: false,
         );
 }

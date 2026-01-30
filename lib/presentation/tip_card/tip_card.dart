@@ -65,6 +65,7 @@ class _TipCardState extends State<TipCard> {
         buildWhen: (previous, current) {
           if (previous.isSubmitting != current.isSubmitting) return true;
           if (previous.joker != current.joker) return true;
+          if (previous.matchDayStatistics != current.matchDayStatistics) return true;
           return false;
         },
         listenWhen: (previous, current) {
@@ -91,7 +92,7 @@ class _TipCardState extends State<TipCard> {
           );
         },
         builder: (context, state) {
-          final bool isJokerSet = state.joker ?? false;
+          final bool isJokerSet = state.joker;
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -131,6 +132,7 @@ class _TipCardState extends State<TipCard> {
                         hasResult: hasResult,
                       ),
                       const SizedBox(height: 16),
+                      // Wenn das Spiel noch kein Ergebnis hat, zeige die Eingabefelder
                       if (!hasResult)
                         TipCardTippingInput(
                           homeController: _homeController,
@@ -139,6 +141,17 @@ class _TipCardState extends State<TipCard> {
                           userId: widget.userId,
                           matchId: widget.match.id,
                           tip: widget.tip,
+                        )
+                      // Wenn das Spiel ein Ergebnis hat, zeige den abgegebenen Tipp (schreibgeschützt)
+                      else
+                        TipCardTippingInput(
+                          homeController: _homeController,
+                          guestController: _guestController,
+                          state: state,
+                          userId: widget.userId,
+                          matchId: widget.match.id,
+                          tip: widget.tip,
+                          readOnly: true, // Macht die Felder schreibgeschützt
                         ),
                     ],
                   ),

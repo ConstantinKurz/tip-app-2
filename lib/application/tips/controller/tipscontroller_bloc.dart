@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
+import 'package:flutter_web/domain/entities/match_day_statistics.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:meta/meta.dart';

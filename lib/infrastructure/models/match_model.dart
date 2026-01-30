@@ -32,11 +32,20 @@ class MatchModel {
   }
 
   factory MatchModel.fromMap(Map<String, dynamic> map) {
+    final matchDateValue = map['matchDate'];
+    final DateTime matchDate;
+    if (matchDateValue is Timestamp) {
+      matchDate = matchDateValue.toDate();
+    } else {
+      // Fallback in case it's stored in another format
+      matchDate = DateTime(2026, 6, 1);
+    }
+
     return MatchModel(
       id: (map['id'] ?? '') as String,
       homeTeamId: (map['homeTeamId'] ?? '') as String,
       guestTeamId: (map['guestTeamId'] ?? '') as String,
-      matchDate: (map['matchDate'] as Timestamp).toDate(),
+      matchDate: matchDate,
       matchDay: map['matchDay'] as int? ?? 0,
       homeScore: map['homeScore'] as int?,
       guestScore: map['guestScore'] as int?,

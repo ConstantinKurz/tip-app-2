@@ -15,7 +15,8 @@ class TipRecalculationService {
   /// Startet den Listener für Match-Änderungen
   /// Horcht auf watchAllMatches() Stream und reagiert auf neue Ergebnisse
   void startListening() {
-    print('🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
+    print(
+        '🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
 
     matchRepository.watchAllMatches().listen(
       (failureOrMatches) {
@@ -25,10 +26,12 @@ class TipRecalculationService {
           },
           (matches) async {
             // Filtere nur Matches mit neuen Ergebnissen
-            final matchesWithResults = matches.where((m) => m.hasResult).toList();
+            final matchesWithResults =
+                matches.where((m) => m.hasResult).toList();
 
             if (matchesWithResults.isNotEmpty) {
-              print('🔄 ${matchesWithResults.length} Matches mit Ergebnissen gefunden');
+              print(
+                  '🔄 ${matchesWithResults.length} Matches mit Ergebnissen gefunden');
 
               // Neuberechne Punkte für jedes Match mit Ergebnis
               for (final match in matchesWithResults) {
@@ -46,17 +49,13 @@ class TipRecalculationService {
 
   /// Neuberechnet Punkte für ein einzelnes Match
   Future<void> _recalculateForMatch(CustomMatch match) async {
-    print('📊 Verarbeite Match: ${match.id}');
-
     final result = await recalculateMatchTipsUseCase(match: match);
 
     result.fold(
       (failure) {
         print('❌ Fehler bei Neuberechnung für ${match.id}: $failure');
       },
-      (_) {
-        print('✅ Match ${match.id} erfolgreich neuberechnet');
-      },
+      (_) {},
     );
   }
 }

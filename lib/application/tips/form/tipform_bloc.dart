@@ -5,7 +5,6 @@ import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match_day_statistics.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
-import 'package:meta/meta.dart';
 import '../../../domain/entities/tip.dart';
 
 part 'tipform_event.dart';
@@ -21,44 +20,28 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
   }) : super(const TipFormInitialState()) {
     on<TipFormInitializedEvent>(_onInitialized);
     on<TipFormFieldUpdatedEvent>(_onFieldUpdated);
-    on<TipFormJokerValidationEvent>(_onJokerValidation);
   }
 
   Future<void> _onInitialized(
     TipFormInitializedEvent event,
     Emitter<TipFormState> emit,
   ) async {
-    final userTipsResult = await tipRepository.getTipsByUserId(event.userId);
-    final tipData = userTipsResult.fold(
-      (failure) => null,
-      (tips) => tips.firstWhereOrNull((tip) => tip.matchId == event.matchId),
-    );
-
-    final statsResult = await validateJokerUseCase(
-      userId: event.userId,
-      matchDay: event.matchDay,
-    );
-    final stats = statsResult.fold(
+    // Hole existierenden Tip
+    final existingTips = await tipRepository.getTipsByUserId(event.userId);
+    final tip = existingTips.fold(
       (_) => null,
-      (result) => result,
+      (tips) => tips.firstWhereOrNull((t) => t.matchId == event.matchId),
     );
 
-    // Prüfe ob Tipp-Limit erreicht (nur Gruppenphase, matchDay 1-3)
-    bool isTipLimitReached = false;
-    if (event.matchDay <= 3 && stats != null) {
-      isTipLimitReached = stats.tippedGames >= 20; //Limit 20 in Gruppenphase
-    }
-
+    // Emittiere State ohne Statistiken (werden zentral geladen)
     emit(
       TipFormState(
         userId: event.userId,
         matchId: event.matchId,
         matchDay: event.matchDay,
-        tipHome: tipData?.tipHome,
-        tipGuest: tipData?.tipGuest,
-        joker: tipData?.joker ?? false,
-        matchDayStatistics: stats,
-        isTipLimitReached: isTipLimitReached,
+        tipHome: tip?.tipHome,
+        tipGuest: tip?.tipGuest,
+        joker: tip?.joker ?? false,
       ),
     );
   }
@@ -67,24 +50,12 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     TipFormFieldUpdatedEvent event,
     Emitter<TipFormState> emit,
   ) async {
-    emit(state.copyWith(isSubmitting: true));
+    emit(state.copyWith(
+      isSubmitting: true,
+      failureOrSuccessOption: none(),
+    ));
 
-    final isTipHomeNull = event.tipHome == null;
-    final isTipGuestNull = event.tipGuest == null;
-
-    // Wenn beide leer, nicht speichern - nur State zurücksetzen
-    if (isTipHomeNull && isTipGuestNull) {
-      emit(state.copyWith(
-        tipGuest: null,
-        tipHome: null,
-        joker: false,
-        isSubmitting: false,
-        failureOrSuccessOption: none(),
-      ));
-      return;
-    }
-
-    if (isTipHomeNull || isTipGuestNull) {
+    if (event.tipHome == null || event.tipGuest == null) {
       emit(state.copyWith(
         isSubmitting: false,
         showValidationMessages: true,
@@ -96,7 +67,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       return;
     }
 
-    // Joker-Validierung basierend auf matchDay
+    // Joker-Validierung nur prüfen
     if (event.joker ?? false) {
       final validationResult = await validateJokerUseCase(
         userId: event.userId,
@@ -109,73 +80,52 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       );
 
       if (!isValid) {
-        final result = validationResult.getOrElse(
+        final stats = validationResult.getOrElse(
           () => MatchDayStatistics(
-            matchDay: 0,
+            matchDay: event.matchDay,
             tippedGames: 0,
             totalGames: 0,
             jokersUsed: 0,
             jokersAvailable: 0,
           ),
         );
-        
+
         emit(state.copyWith(
           isSubmitting: false,
           showValidationMessages: true,
-          matchDayStatistics: result,
           failureOrSuccessOption: some(
             left(JokerLimitReachedFailure(
-              used: result.jokersUsed,
-              limit: result.jokersAvailable,
-              matchDay: result.matchDay,
-            ))
+              used: stats.jokersUsed,
+              limit: stats.jokersAvailable,
+              matchDay: event.matchDay,
+            )),
           ),
         ));
         return;
       }
-
-      // Joker validiert - State aktualisieren
-      emit(
-        state.copyWith(
-          matchDayStatistics: validationResult.fold((_) => null, (r) => r),
-        ),
-      );
     }
 
-    final newTip = Tip.empty(event.userId).copyWith(
+    // Erstelle oder aktualisiere Tip
+    final tip = Tip(
       id: "${event.userId}_${event.matchId}",
+      userId: event.userId,
       matchId: event.matchId,
+      tipDate: DateTime.now(),
       tipHome: event.tipHome,
       tipGuest: event.tipGuest,
-      joker: event.joker,
+      joker: event.joker ?? false,
+      points: null, // ✅ Points werden später durch die RecalculateMatchTipsUseCase berechnet
     );
-    final result = await tipRepository.create(newTip);
+
+    final result = await tipRepository.create(tip);
 
     emit(state.copyWith(
-      tipGuest: event.tipGuest,
-      tipHome: event.tipHome,
-      joker: event.joker,
       isSubmitting: false,
-      failureOrSuccessOption: optionOf(result),
+      tipHome: event.tipHome,
+      tipGuest: event.tipGuest,
+      joker: event.joker,
+      showValidationMessages: true,
+      failureOrSuccessOption: some(result),
     ));
-  }
-
-  Future<void> _onJokerValidation(
-    TipFormJokerValidationEvent event,
-    Emitter<TipFormState> emit,
-  ) async {
-    final validationResult = await validateJokerUseCase(
-      userId: event.userId,
-      matchDay: event.matchDay,
-    );
-
-    emit(
-      state.copyWith(
-        matchDayStatistics: validationResult.fold(
-          (_) => null,
-          (result) => result,
-        ),
-      ),
-    );
   }
 }

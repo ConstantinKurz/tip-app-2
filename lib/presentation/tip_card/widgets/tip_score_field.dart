@@ -51,7 +51,7 @@ class TipScoreField extends StatelessWidget {
                 ? null
                 : (value) {
                     final bloc = context.read<TipFormBloc>();
-                    final parsed = int.tryParse(value);
+                    final parsed = value.isEmpty ? null : int.tryParse(value);
                     bloc.add(
                       TipFormFieldUpdatedEvent(
                         matchId: matchId,

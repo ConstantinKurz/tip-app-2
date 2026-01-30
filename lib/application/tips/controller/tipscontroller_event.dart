@@ -14,3 +14,14 @@ class TipUpdatedEvent extends TipControllerEvent {
 }
 
 class UserTipEvent extends TipControllerEvent {}
+
+// ✅ NEU
+class TipUpdateStatisticsEvent extends TipControllerEvent {
+  final String userId;
+  final int matchDay;
+
+  TipUpdateStatisticsEvent({
+    required this.userId,
+    required this.matchDay,
+  });
+}

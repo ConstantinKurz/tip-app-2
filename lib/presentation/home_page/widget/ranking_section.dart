@@ -22,7 +22,29 @@ class RankingSection extends StatelessWidget {
         if (teamState is TeamsControllerLoaded) {
           final themeData = Theme.of(context);
           final teams = teamState.teams;
-          users.sort((a, b) => a.rank.compareTo(b.rank));
+
+          // Sortiere nach Score (absteigend), bei Gleichstand nach Namen
+          final sortedUsers = List<AppUser>.from(users)
+            ..sort((a, b) {
+              final scoreComparison = b.score.compareTo(a.score);
+              if (scoreComparison != 0) return scoreComparison;
+              
+              final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+              if (jokerComparison != 0) return jokerComparison;
+              
+              final sixersComparison = b.sixer.compareTo(a.sixer);
+              if (sixersComparison != 0) return sixersComparison;
+              
+              return a.name.compareTo(b.name);
+            });
+
+          // Debug: Zeige die sortierten User
+          print('📊 Sortierte Rangliste:');
+          for (int i = 0; i < sortedUsers.length; i++) {
+            final user = sortedUsers[i];
+            final isCurrentUser = user.id == userId;
+            print('  ${i + 1}. ${user.name} (${user.score} Pkt) ${isCurrentUser ? "← DU" : ""}');
+          }
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,25 +62,37 @@ class RankingSection extends StatelessWidget {
               BlocBuilder<RankingBloc, RankingState>(
                 builder: (context, rankingState) {
                   final currentUserIndex =
-                      users.indexWhere((u) => u.id == userId);
+                      sortedUsers.indexWhere((u) => u.id == userId);
+                  
+                  print('🔍 Aktueller User Index: $currentUserIndex');
+                  
                   List<AppUser> visibleUsers;
 
-                  if (rankingState.expanded || users.length <= 5) {
-                    visibleUsers = users;
+                  if (rankingState.expanded || sortedUsers.length <= 5) {
+                    // Zeige alle User
+                    visibleUsers = sortedUsers;
+                    print('✅ Expanded: Zeige alle ${visibleUsers.length} User');
                   } else {
-                    if (currentUserIndex != -1) {
-                      int start = (currentUserIndex - 2).clamp(0, users.length);
-                      int end = (currentUserIndex + 3).clamp(0, users.length);
-
-                      if (start == 0) {
-                        end = (start + 5).clamp(0, users.length);
-                      }
-                      if (end == users.length) {
-                        start = (end - 5).clamp(0, users.length);
-                      }
-                      visibleUsers = users.sublist(start, end);
+                    // Collapsed: Zeige 1 über dir, dich, 2 unter dir
+                    if (currentUserIndex == -1) {
+                      // User nicht gefunden: Zeige Top 5
+                      visibleUsers = sortedUsers.take(5).toList();
+                      print('⚠️ User nicht gefunden: Zeige Top 5');
+                    } else if (currentUserIndex <= 1) {
+                      // User ist schon in Top 2: Zeige Top 5
+                      visibleUsers = sortedUsers.take(5).toList();
+                      print('✅ Collapsed (Top Player): Zeige Top 5');
                     } else {
-                      visibleUsers = users.take(5).toList();
+                      // Zeige: 2 über dir, dich, 2 unter dir = 5 User total
+                      int start = currentUserIndex - 2;
+                      int end = currentUserIndex + 3;
+                      
+                      visibleUsers = sortedUsers.sublist(start, end);
+                      
+                      print('✅ Collapsed (Um dich herum): Zeige ${visibleUsers.length} User');
+                      for (int i = 0; i < visibleUsers.length; i++) {
+                        print('    ${start + i + 1}. ${visibleUsers[i].name}');
+                      }
                     }
                   }
 
@@ -71,8 +105,9 @@ class RankingSection extends StatelessWidget {
                           users: visibleUsers,
                           teams: teams,
                           currentUserId: userId,
+                          scrollToCurrentUser: rankingState.expanded,
                         ),
-                        if (users.length > 5)
+                        if (sortedUsers.length > 5)
                           Center(
                             child: IconButton(
                               icon: Icon(
@@ -106,7 +141,7 @@ class RankingSection extends StatelessWidget {
           );
         }
 
-        return const Center(child: Text("Fehler beim Laden"));
+        return const SizedBox.shrink();
       },
     );
   }

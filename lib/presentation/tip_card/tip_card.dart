@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/match_day_statistics.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
@@ -59,106 +60,129 @@ class _TipCardState extends State<TipCard> {
         widget.match.homeScore != null && widget.match.guestScore != null;
 
     return BlocProvider<TipFormBloc>(
-      create: (_) =>
-          sl<TipFormBloc>()..add(TipFormInitializedEvent(userId: widget.userId, matchDay: widget.match.matchDay, matchId: widget.match.id)),
-      child: BlocConsumer<TipFormBloc, TipFormState>(
-        buildWhen: (previous, current) {
-          if (previous.isSubmitting != current.isSubmitting) return true;
-          if (previous.joker != current.joker) return true;
-          if (previous.matchDayStatistics != current.matchDayStatistics) return true;
-          return false;
-        },
-        listenWhen: (previous, current) {
-          return previous.isSubmitting && !current.isSubmitting;
-        },
-        listener: (context, state) {
-          state.failureOrSuccessOption.fold(
-            () {},
-            (either) => either.fold(
-              (failure) {
-                _homeController.text = state.tipHome?.toString() ?? '';
-                _guestController.text = state.tipGuest?.toString() ?? '';
-              },
-              (_) {
-                final tipControllerState =
-                    context.read<TipControllerBloc>().state;
-                if (tipControllerState is TipControllerLoaded) {
-                  context
-                      .read<TipFormBloc>()
-                      .add(TipFormInitializedEvent(userId: widget.userId, matchDay: widget.match.matchDay, matchId: widget.match.id));
-                }
-              },
-            ),
-          );
-        },
-        builder: (context, state) {
-          final bool isJokerSet = state.joker;
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isJokerSet
-                    ? Colors.amber.withOpacity(0.8)
-                    : theme.colorScheme.outline.withOpacity(0.1),
-                width: isJokerSet ? 2 : 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isJokerSet
-                      ? Colors.amber.withOpacity(0.15)
-                      : Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+      create: (_) => sl<TipFormBloc>()
+        ..add(TipFormInitializedEvent(
+          userId: widget.userId,
+          matchDay: widget.match.matchDay,
+          matchId: widget.match.id,
+        )),
+      child: BlocBuilder<TipControllerBloc, TipControllerState>(
+        builder: (context, controllerState) {
+          // ✅ Hole globale Statistiken
+          MatchDayStatistics? globalStats;
+          if (controllerState is TipControllerLoaded) {
+            globalStats =
+                controllerState.matchDayStatistics[widget.match.matchDay];
+
+            // ✅ Lade Statistiken wenn nicht vorhanden
+            if (globalStats == null) {
+              context.read<TipControllerBloc>().add(
+                    TipUpdateStatisticsEvent(
+                      userId: widget.userId,
+                      matchDay: widget.match.matchDay,
+                    ),
+                  );
+            }
+          }
+
+          return BlocConsumer<TipFormBloc, TipFormState>(
+            buildWhen: (previous, current) {
+              return previous.isSubmitting != current.isSubmitting ||
+                  previous.joker != current.joker ||
+                  previous.tipHome != current.tipHome ||
+                  previous.tipGuest != current.tipGuest;
+            },
+            listenWhen: (previous, current) {
+              return previous.isSubmitting && !current.isSubmitting;
+            },
+            listener: (context, state) {
+              state.failureOrSuccessOption.fold(
+                () {},
+                (either) => either.fold(
+                  (failure) {},
+                  (_) {
+                    // ✅ Globale Statistiken nach erfolgreichem Tipp aktualisieren
+                    context.read<TipControllerBloc>().add(
+                          TipUpdateStatisticsEvent(
+                            userId: widget.userId,
+                            matchDay: widget.match.matchDay,
+                          ),
+                        );
+                  },
                 ),
-              ],
-            ),
-            child: Column(
-              children: [
-                TipCardHeader(
-                  match: widget.match,
-                  tip: widget.tip,
-                  state: state,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      TipCardMatchInfo(
-                        match: widget.match,
-                        homeTeam: widget.homeTeam,
-                        guestTeam: widget.guestTeam,
-                        hasResult: hasResult,
-                      ),
-                      const SizedBox(height: 16),
-                      // Wenn das Spiel noch kein Ergebnis hat, zeige die Eingabefelder
-                      if (!hasResult)
-                        TipCardTippingInput(
-                          homeController: _homeController,
-                          guestController: _guestController,
-                          state: state,
-                          userId: widget.userId,
-                          matchId: widget.match.id,
-                          tip: widget.tip,
-                        )
-                      // Wenn das Spiel ein Ergebnis hat, zeige den abgegebenen Tipp (schreibgeschützt)
-                      else
-                        TipCardTippingInput(
-                          homeController: _homeController,
-                          guestController: _guestController,
-                          state: state,
-                          userId: widget.userId,
-                          matchId: widget.match.id,
-                          tip: widget.tip,
-                          readOnly: true, // Macht die Felder schreibgeschützt
-                        ),
-                    ],
+              );
+            },
+            builder: (context, formState) {
+              final bool isJokerSet = formState.joker;
+
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isJokerSet
+                        ? Colors.amber.withOpacity(0.8)
+                        : theme.colorScheme.outline.withOpacity(0.1),
+                    width: isJokerSet ? 2 : 1,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isJokerSet
+                          ? Colors.amber.withOpacity(0.15)
+                          : Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                if (widget.footer != null) widget.footer!,
-              ],
-            ),
+                child: Column(
+                  children: [
+                    TipCardHeader(
+                      match: widget.match,
+                      tip: widget.tip,
+                      formState: formState, // ✅ formState ohne copyWith
+                      stats: globalStats, // ✅ Übergebe globale Stats direkt
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          TipCardMatchInfo(
+                            match: widget.match,
+                            homeTeam: widget.homeTeam,
+                            guestTeam: widget.guestTeam,
+                            hasResult: hasResult,
+                          ),
+                          const SizedBox(height: 16),
+                          if (!hasResult)
+                            TipCardTippingInput(
+                              homeController: _homeController,
+                              guestController: _guestController,
+                              state: formState, // ✅ Nicht stateWithGlobalStats
+                              userId: widget.userId,
+                              matchId: widget.match.id,
+                              tip: widget.tip,
+                            )
+                          else
+                            TipCardTippingInput(
+                              homeController: _homeController,
+                              guestController: _guestController,
+                              state: formState, // ✅ Nicht stateWithGlobalStats
+                              userId: widget.userId,
+                              matchId: widget.match.id,
+                              tip: widget.tip,
+                              readOnly:
+                                  true, // Macht die Felder schreibgeschützt
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (widget.footer != null) widget.footer!,
+                  ],
+                ),
+              );
+            },
           );
         },
       ),

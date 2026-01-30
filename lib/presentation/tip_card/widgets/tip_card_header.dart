@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/match_day_statistics.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/usecases/tip_calculator_usecase.dart';
 import 'package:intl/intl.dart';
@@ -9,28 +10,27 @@ import 'tip_status.dart';
 
 class TipCardHeader extends StatelessWidget {
   final CustomMatch match;
-  final TipFormState state;
   final Tip tip;
+  final TipFormState formState;
+  final MatchDayStatistics? stats; // ✅ Statistiken von außen
 
   const TipCardHeader({
     Key? key,
     required this.match,
-    required this.state,
     required this.tip,
+    required this.formState,
+    this.stats, // ✅ Optional
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Format: 'Fr, 14.06. 15:00 Uhr' (ohne Punkt nach dem Wochentag)
     final dateFormat = DateFormat('E, dd.MM. HH:mm', 'de_DE');
     String dateString = dateFormat.format(match.matchDate);
-    // Entferne Punkt nach Wochentag, falls vorhanden (z.B. 'Fr.' -> 'Fr')
     if (dateString.length > 2 && dateString[2] == '.') {
       dateString = dateString.replaceFirst('.', '');
     }
     final stageName = match.getStageName;
-    final stats = state.matchDayStatistics;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -52,7 +52,7 @@ class TipCardHeader extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 2.0),
                 child: Text(
                   stats != null
-                      ? 'Joker: ${stats.jokersUsed}/${stats.jokersAvailable} | Tipps: ${stats.tippedGames}/${stats.totalGames}'
+                      ? 'Joker: ${stats!.jokersUsed}/${stats!.jokersAvailable} | Tipps: ${stats!.tippedGames}/${stats!.totalGames}'
                       : 'Statistiken werden geladen...',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.6),
@@ -68,7 +68,7 @@ class TipCardHeader extends StatelessWidget {
             ],
           ),
         ),
-        TipStatus(state: state),
+        TipStatus(state: formState),
         Expanded(
           child: SizedBox(
             width: 100,

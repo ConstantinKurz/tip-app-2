@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
+import 'package:flutter_web/core/failures/tip_failures.dart';
 
 class TipStatus extends StatelessWidget {
   final TipFormState state;
@@ -13,11 +14,22 @@ class TipStatus extends StatelessWidget {
       buildWhen: (previous, current) {
         return previous.tipHome != current.tipHome ||
             previous.tipGuest != current.tipGuest ||
-            previous.isSubmitting != current.isSubmitting;
+            previous.isSubmitting != current.isSubmitting ||
+            previous.failureOrSuccessOption != current.failureOrSuccessOption; // ✅ NEU
       },
       builder: (context, state) {
         Widget content;
-        // Nur während Submit Loading → Spinner zeigen, nicht beim Initial State
+        
+        // ✅ Prüfe zuerst ob Joker-Error vorliegt
+        final hasJokerError = state.failureOrSuccessOption.fold(
+          () => false,
+          (either) => either.fold(
+            (failure) => failure is JokerLimitReachedFailure,
+            (_) => false,
+          ),
+        );
+
+        // Während Submit Loading → Spinner zeigen
         if (state.isSubmitting) {
           content = const SizedBox(
             height: 18,
@@ -27,24 +39,39 @@ class TipStatus extends StatelessWidget {
               color: Colors.white,
             ),
           );
-        } else {
-          content = (state.tipHome != null && state.tipGuest != null)
-              ? const Tooltip(
-                  message: 'Tipp vollständig',
-                  child: Icon(
-                    Icons.check_circle,
-                    size: 18,
-                    color: Colors.green,
-                  ),
-                )
-              : const Tooltip(
-                  message: 'Tipp unvollständig',
-                  child: Icon(
-                    Icons.error_outline,
-                    size: 18,
-                    color: Colors.red,
-                  ),
-                );
+        } 
+        // ✅ Joker-Error hat Priorität
+        else if (hasJokerError) {
+          content = const Tooltip(
+            message: 'Joker-Limit erreicht',
+            child: Icon(
+              Icons.block,
+              size: 18,
+              color: Colors.orange,
+            ),
+          );
+        }
+        // Tipp vollständig
+        else if (state.tipHome != null && state.tipGuest != null) {
+          content = const Tooltip(
+            message: 'Tipp vollständig',
+            child: Icon(
+              Icons.check_circle,
+              size: 18,
+              color: Colors.green,
+            ),
+          );
+        }
+        // Tipp unvollständig
+        else {
+          content = const Tooltip(
+            message: 'Tipp unvollständig',
+            child: Icon(
+              Icons.error_outline,
+              size: 18,
+              color: Colors.red,
+            ),
+          );
         }
 
         return AnimatedSwitcher(

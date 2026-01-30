@@ -209,4 +209,22 @@ class AuthRepositoryImpl implements AuthRepository {
       ));
     }
   }
+
+  @override
+  Future<Either<AuthFailure, List<AppUser>>> getAllUsers() async {
+    try {
+      final snapshot = await usersCollection.get();
+      final users = snapshot.docs
+          .map((doc) => UserModel.fromFirestore(doc).toDomain())
+          .toList();
+      return right(users);
+    } catch (e) {
+      return left(mapFirebaseError<AuthFailure>(
+        e,
+        insufficientPermissions: InsufficientPermisssons(),
+        unexpected: UnexpectedAuthFailure(),
+        notFound: UserNotFoundFailure(message: "Benutzer konnten nicht geladen werden"),
+      ));
+    }
+  }
 }

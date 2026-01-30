@@ -94,64 +94,71 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                           orElse: () => Team.empty(),
                         );
 
-    return PageTemplate(
-      isAuthenticated: widget.isAuthenticated,
-      child: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 700),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            if (from == 'tip' && returnIndexString != null) {
-                              Routemaster.of(context).replace('/tips?scrollTo=$returnIndexString');
-                            } else {
-                              Routemaster.of(context).replace('/home');
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    TipCard(
-                      userId: userId,
-                      tip: tip,
-                      homeTeam: homeTeam,
-                      guestTeam: guestTeam,
-                      match: match,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 500,
-                      child: CommunityTipList(
-                        users: authState.users,
-                        allTips: tipState.tips,
-                        match: match,
-                        currentUserId: userId,
-                        teams: teams,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-                      );
-                    }
+                        return PageTemplate(
+                          isAuthenticated: widget.isAuthenticated,
+                          child: Center(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 700),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        const SizedBox(height: 24),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.close),
+                                              onPressed: () {
+                                                if (from == 'tip' &&
+                                                    returnIndexString != null) {
+                                                  Routemaster.of(context).replace(
+                                                      '/tips?scrollTo=$returnIndexString');
+                                                } else {
+                                                  Routemaster.of(context)
+                                                      .replace('/home');
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        TipCard(
+                                          userId: userId,
+                                          tip: tip,
+                                          homeTeam: homeTeam,
+                                          guestTeam: guestTeam,
+                                          match: match,
+                                        ),
+                                        const SizedBox(height: 24),
+                                        SizedBox(
+                                          height: 500,
+                                          child: CommunityTipList(
+                                            users: authState.users,
+                                            allTips: tipState.tips,
+                                            match: match,
+                                            currentUserId: userId,
+                                            teams: teams,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }
 
+                      // Show loading indicator while data is loading
                       return Center(
                         child: CircularProgressIndicator(
                           color:

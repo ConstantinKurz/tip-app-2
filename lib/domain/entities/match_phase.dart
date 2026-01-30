@@ -44,4 +44,19 @@ enum MatchPhase {
 
   /// Gibt den Multiplikator für diese Phase zurück
   int get multiplier => pointMultiplier;
+
+  List<int> getMatchDaysForPhase(MatchPhase phase) {
+    switch (phase) {
+      case MatchPhase.groupStage:
+        return [1, 2, 3];
+      case MatchPhase.roundOf16:
+        return [4];
+      case MatchPhase.quarterFinal:
+        return [5];
+      case MatchPhase.semiFinal:
+        return [6];
+      case MatchPhase.finalStage:
+        return [7, 8]; // ✅ Halbfinale UND Finale teilen sich die Joker!
+    }
+  }
 }

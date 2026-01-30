@@ -113,21 +113,23 @@ class TipRepositoryImpl implements TipRepository {
     required int matchDay,
   }) async {
     try {
+      // ✅ Bestimme die Phase und alle zugehörigen matchDays
+      final phase = MatchPhase.fromMatchDay(matchDay);
+      final matchDaysInPhase = phase.getMatchDaysForPhase(phase);
+
       // Hole alle Tips des Users mit Joker
       final querySnapshot = await tipsCollection
           .where('userId', isEqualTo: userId)
           .where('joker', isEqualTo: true)
           .get();
 
-      // Zähle nur Joker in diesem matchDay
+      // Zähle Joker in ALLEN matchDays dieser Phase
       int jokerCount = 0;
-
       for (final doc in querySnapshot.docs) {
         final tipData = doc.data() as Map<String, dynamic>;
         final tipMatchId = tipData['matchId'] as String?;
 
         if (tipMatchId != null) {
-          // Hole Match um dessen matchDay zu prüfen
           final matchDoc = await firebaseFirestore
               .collection('matches')
               .doc(tipMatchId)
@@ -137,7 +139,8 @@ class TipRepositoryImpl implements TipRepository {
             final matchData = matchDoc.data() as Map<String, dynamic>;
             final docMatchDay = matchData['matchDay'] as int?;
 
-            if (docMatchDay == matchDay) {
+            // ✅ Prüfe ob matchDay in dieser Phase ist
+            if (docMatchDay != null && matchDaysInPhase.contains(docMatchDay)) {
               jokerCount++;
             }
           }

@@ -6,6 +6,7 @@ import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match_day_statistics.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
+import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
 import 'package:meta/meta.dart';
 
 part 'tipscontroller_event.dart';
@@ -13,13 +14,16 @@ part 'tipscontroller_state.dart';
 
 class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   final TipRepository tipRepository;
+  final ValidateJokerUsageUseCase validateJokerUseCase;
   StreamSubscription<Either<TipFailure, Map<String, List<Tip>>>>? _tipStreamSub;
 
-  TipControllerBloc({required this.tipRepository})
-      : super(TipControllerInitial()) {
+  TipControllerBloc({
+    required this.tipRepository,
+    required this.validateJokerUseCase,
+  }) : super(TipControllerInitial()) {
     on<TipAllEvent>(_onTipAllEvent);
-    on<UserTipEvent>(_onUserTipEvent);
     on<TipUpdatedEvent>(_onTipUpdatedEvent);
+    on<TipUpdateStatisticsEvent>(_onUpdateStatistics);
   }
 
   Future<void> _onTipAllEvent(
@@ -35,7 +39,6 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       (failureOrTip) =>
           add(TipUpdatedEvent(failureOrTip: failureOrTip)),
       onError: (_) {
-        // Sollte selten passieren, da das Repository bereits mapFirebaseError nutzt
         emit(TipControllerFailure(tipFailure: UnexpectedFailure()));
       },
     );
@@ -46,17 +49,55 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     Emitter<TipControllerState> emit,
   ) {
     emit(TipControllerLoading());
-    // Falls später zusätzliche Logik für User-spezifische Streams kommt,
-    // kann sie hier ergänzt werden.
   }
 
   void _onTipUpdatedEvent(
     TipUpdatedEvent event,
     Emitter<TipControllerState> emit,
-  ) {
+  ) async {
     event.failureOrTip.fold(
       (failure) => emit(TipControllerFailure(tipFailure: failure)),
-      (tips) => emit(TipControllerLoaded(tips: tips)),
+      (tips) async {
+        final currentState = state;
+        Map<int, MatchDayStatistics> currentStats = {};
+        
+        if (currentState is TipControllerLoaded) {
+          currentStats = Map.from(currentState.matchDayStatistics);
+        }
+
+        emit(TipControllerLoaded(
+          tips: tips,
+          matchDayStatistics: currentStats,
+        ));
+      },
+    );
+  }
+
+  // ✅ Neue Methode zum Aktualisieren der Statistiken
+  Future<void> _onUpdateStatistics(
+    TipUpdateStatisticsEvent event,
+    Emitter<TipControllerState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! TipControllerLoaded) return;
+
+    final statsResult = await validateJokerUseCase(
+      userId: event.userId,
+      matchDay: event.matchDay,
+    );
+
+    statsResult.fold(
+      (_) => null,
+      (stats) {
+        final updatedStats = Map<int, MatchDayStatistics>.from(
+          currentState.matchDayStatistics,
+        );
+        updatedStats[event.matchDay] = stats;
+
+        emit(currentState.copyWith(
+          matchDayStatistics: updatedStats,
+        ));
+      },
     );
   }
 

@@ -11,7 +11,6 @@ class TipFormState{
   final bool isSubmitting;
   final Option<Either<TipFailure, Unit>> failureOrSuccessOption;
   final bool showValidationMessages;
-  final MatchDayStatistics? matchDayStatistics;
   final bool isTipLimitReached; // Neu hinzufügen
 
   const TipFormState({
@@ -24,7 +23,6 @@ class TipFormState{
     this.isSubmitting = false,
     this.failureOrSuccessOption = const None(),
     this.showValidationMessages = false,
-    this.matchDayStatistics,
     this.isTipLimitReached = false, // Neu hinzufügen
   });
 
@@ -38,7 +36,6 @@ class TipFormState{
     bool? isSubmitting,
     Option<Either<TipFailure, Unit>>? failureOrSuccessOption,
     bool? showValidationMessages,
-    MatchDayStatistics? matchDayStatistics,
     bool? isTipLimitReached, // Neu hinzufügen
   }) {
     return TipFormState(
@@ -51,7 +48,6 @@ class TipFormState{
       isSubmitting: isSubmitting ?? this.isSubmitting,
       failureOrSuccessOption: failureOrSuccessOption ?? this.failureOrSuccessOption,
       showValidationMessages: showValidationMessages ?? this.showValidationMessages,
-      matchDayStatistics: matchDayStatistics ?? this.matchDayStatistics,
       isTipLimitReached: isTipLimitReached ?? this.isTipLimitReached, // Neu hinzufügen
     );
   }
@@ -69,7 +65,6 @@ final class TipFormInitialState extends TipFormState {
           isSubmitting: false,
           showValidationMessages: false,
           failureOrSuccessOption: const None(),
-          matchDayStatistics: null,
           isTipLimitReached: false,
         );
 }

@@ -8,11 +8,13 @@ class RankingUserList extends StatelessWidget {
   final List<AppUser> users;
   final List<Team> teams;
   final String currentUserId;
+  final bool scrollToCurrentUser;
 
   const RankingUserList({
     required this.users,
     required this.teams,
     required this.currentUserId,
+    this.scrollToCurrentUser = false,
     Key? key,
   }) : super(key: key);
 
@@ -20,7 +22,7 @@ class RankingUserList extends StatelessWidget {
   Widget build(BuildContext context) {
     // Index des aktuellen Users finden
     final currentUserIndex = users.indexWhere((user) => user.id == currentUserId);
-    final initialScrollIndex = currentUserIndex != -1 ? currentUserIndex : 0;
+    final initialScrollIndex = (scrollToCurrentUser && currentUserIndex != -1) ? currentUserIndex : 0;
 
     return ScrollablePositionedList.builder(
       initialScrollIndex: initialScrollIndex,

@@ -69,24 +69,27 @@ class TipCardTippingInput extends StatelessWidget {
                       child: StarIconButton(
                         isStar: state.joker,
                         onTap: !readOnly && // ✅ Joker nur wenn nicht readOnly
-                                ((state.tipHome != null && state.tipGuest != null) ||
-                                (state.joker))
+                                ((state.tipHome != null &&
+                                        state.tipGuest != null) ||
+                                    (state.joker))
                             ? () {
                                 context.read<TipFormBloc>().add(
-                                  TipFormFieldUpdatedEvent(
-                                    matchId: matchId,
-                                    userId: userId,
-                                    tipHome: state.tipHome,
-                                    tipGuest: state.tipGuest,
-                                    joker: !(state.joker),
-                                    matchDay: state.matchDay,
-                                  ),
-                                );
+                                      TipFormFieldUpdatedEvent(
+                                        matchId: matchId,
+                                        userId: userId,
+                                        tipHome: state.tipHome,
+                                        tipGuest: state.tipGuest,
+                                        joker: !(state.joker),
+                                        matchDay: state.matchDay,
+                                      ),
+                                    );
                               }
                             : () {},
                         tooltipMessage: readOnly
                             ? "Spiel bereits beendet - keine Änderungen möglich"
-                            : ((state.joker) ? "Joker entfernen" : "Joker setzen"),
+                            : ((state.joker)
+                                ? "Joker entfernen"
+                                : "Joker setzen"),
                       ),
                     ),
                   ],
@@ -94,42 +97,6 @@ class TipCardTippingInput extends StatelessWidget {
               ),
             ],
           ),
-          if (tip.points != null) ...[
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${tip.points}',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Punkte',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
     );

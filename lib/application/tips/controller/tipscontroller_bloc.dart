@@ -4,9 +4,10 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match_day_statistics.dart';
+import 'package:flutter_web/domain/entities/match_phase.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
-import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
+import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
 import 'package:meta/meta.dart';
 
 part 'tipscontroller_event.dart';
@@ -14,7 +15,7 @@ part 'tipscontroller_state.dart';
 
 class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   final TipRepository tipRepository;
-  final ValidateJokerUsageUseCase validateJokerUseCase;
+  final ValidateJokerUsageUpdateStatUseCase validateJokerUseCase;
   StreamSubscription<Either<TipFailure, Map<String, List<Tip>>>>? _tipStreamSub;
 
   TipControllerBloc({
@@ -36,8 +37,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     await _tipStreamSub?.cancel();
 
     _tipStreamSub = tipRepository.watchAll().listen(
-      (failureOrTip) =>
-          add(TipUpdatedEvent(failureOrTip: failureOrTip)),
+      (failureOrTip) => add(TipUpdatedEvent(failureOrTip: failureOrTip)),
       onError: (_) {
         emit(TipControllerFailure(tipFailure: UnexpectedFailure()));
       },
@@ -60,7 +60,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       (tips) async {
         final currentState = state;
         Map<int, MatchDayStatistics> currentStats = {};
-        
+
         if (currentState is TipControllerLoaded) {
           currentStats = Map.from(currentState.matchDayStatistics);
         }
@@ -73,7 +73,6 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     );
   }
 
-  // ✅ Neue Methode zum Aktualisieren der Statistiken
   Future<void> _onUpdateStatistics(
     TipUpdateStatisticsEvent event,
     Emitter<TipControllerState> emit,
@@ -92,7 +91,29 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         final updatedStats = Map<int, MatchDayStatistics>.from(
           currentState.matchDayStatistics,
         );
-        updatedStats[event.matchDay] = stats;
+        final phase = MatchPhase.fromMatchDay(event.matchDay);
+        final matchDaysInPhase = phase.getMatchDaysForPhase();
+
+        for (final matchDayInPhase in matchDaysInPhase) {
+          if (event.matchDay == matchDayInPhase) {
+            // ✅ Aktualisiere ALLE Stats für den aktuellen matchDay
+            updatedStats[matchDayInPhase] = stats;
+          } else {
+            // ✅ Für andere matchDays in der Phase: nur jokersUsed aktualisieren
+            final existingStat = updatedStats[matchDayInPhase];
+            if (existingStat != null) {
+              updatedStats[matchDayInPhase] = existingStat.copyWith(
+                jokersUsed: stats.jokersUsed,
+                jokersAvailable: stats.jokersAvailable, // Auch maxJokers übernehmen
+              );
+            } else {
+              // Falls noch keine Stats vorhanden, erstelle neue
+              updatedStats[matchDayInPhase] = stats.copyWith(
+                matchDay: matchDayInPhase,
+              );
+            }
+          }
+        }
 
         emit(currentState.copyWith(
           matchDayStatistics: updatedStats,

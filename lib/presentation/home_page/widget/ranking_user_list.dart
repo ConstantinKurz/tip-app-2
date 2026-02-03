@@ -49,7 +49,7 @@ class RankingUserList extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 40,
-                  child: Text('#${user.rank}', style: textTheme.bodyMedium),
+                  child: Text('#${index + 1}', style: textTheme.bodyMedium),
                 ),
                 Expanded(
                   flex: 2,

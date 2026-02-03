@@ -172,25 +172,27 @@ class CommunityTipList extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              if (tip!.joker)
+                              if (tip == null)
+                                const SizedBox(width: 20),
+                              if (tip?.joker == true)
                                 const Padding(
                                   padding: EdgeInsets.only(right: 4.0),
                                   child: Icon(Icons.star,
                                       color: Colors.amber, size: 16),
                                 ),
-                              if (!tip.joker)
+                              if (tip?.joker != true)
                                 const SizedBox(
                                   width: 20,
                                 ),
                               Text(
-                                (tip.tipHome != null && tip.tipGuest != null)
-                                    ? '${tip.tipHome} : ${tip.tipGuest}'
+                                (tip?.tipHome != null && tip?.tipGuest != null)
+                                    ? '${tip?.tipHome} : ${tip?.tipGuest}'
                                     : '–',
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   fontFamily: 'monospace',
                                   fontWeight: FontWeight.w600,
-                                  color: (tip.tipHome != null &&
-                                          tip.tipGuest != null)
+                                  color: (tip?.tipHome != null &&
+                                          tip?.tipGuest != null)
                                       ? theme.colorScheme.onSurface
                                       : theme.colorScheme.onSurface
                                           .withOpacity(0.4),
@@ -214,7 +216,7 @@ class CommunityTipList extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                               children: [
-                                TextSpan(text: '${tip.points ?? 0}'),
+                                TextSpan(text: '${tip?.points ?? 0}'),
                                 TextSpan(
                                   text: ' pkt',
                                   style: theme.textTheme.bodySmall,

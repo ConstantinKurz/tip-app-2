@@ -4,7 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match_day_statistics.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
-import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
+import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
 import '../../../domain/entities/tip.dart';
 
 part 'tipform_event.dart';
@@ -12,7 +12,7 @@ part 'tipform_state.dart';
 
 class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
   final TipRepository tipRepository;
-  final ValidateJokerUsageUseCase validateJokerUseCase;
+  final ValidateJokerUsageUpdateStatUseCase validateJokerUseCase;
 
   TipFormBloc({
     required this.tipRepository,

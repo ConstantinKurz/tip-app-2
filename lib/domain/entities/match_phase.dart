@@ -45,8 +45,8 @@ enum MatchPhase {
   /// Gibt den Multiplikator für diese Phase zurück
   int get multiplier => pointMultiplier;
 
-  List<int> getMatchDaysForPhase(MatchPhase phase) {
-    switch (phase) {
+  List<int> getMatchDaysForPhase() {
+    switch (this) {
       case MatchPhase.groupStage:
         return [1, 2, 3];
       case MatchPhase.roundOf16:

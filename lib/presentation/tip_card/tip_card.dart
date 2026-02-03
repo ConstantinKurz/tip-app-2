@@ -66,54 +66,49 @@ class _TipCardState extends State<TipCard> {
           matchDay: widget.match.matchDay,
           matchId: widget.match.id,
         )),
-      child: BlocBuilder<TipControllerBloc, TipControllerState>(
-        builder: (context, controllerState) {
-          // ✅ Hole globale Statistiken
-          MatchDayStatistics? globalStats;
-          if (controllerState is TipControllerLoaded) {
-            globalStats =
-                controllerState.matchDayStatistics[widget.match.matchDay];
+      child: BlocConsumer<TipFormBloc, TipFormState>(
+        listenWhen: (previous, current) =>
+            previous.isSubmitting && !current.isSubmitting,
+        listener: (context, state) {
+          state.failureOrSuccessOption.fold(
+            () {},
+            (either) => either.fold(
+              (failure) {
+                print('❌ Tipp fehlgeschlagen: $failure');
+              },
+              (_) {
+                // ✅ Aktualisiere globale Statistiken nach erfolgreichem Tipp
+                context.read<TipControllerBloc>().add(
+                      TipUpdateStatisticsEvent(
+                        userId: widget.userId,
+                        matchDay: widget.match.matchDay,
+                      ),
+                    );
+              },
+            ),
+          );
+        },
+        builder: (context, formState) {
+          final bool isJokerSet = formState.joker;
 
-            // ✅ Lade Statistiken wenn nicht vorhanden
-            if (globalStats == null) {
-              context.read<TipControllerBloc>().add(
-                    TipUpdateStatisticsEvent(
-                      userId: widget.userId,
-                      matchDay: widget.match.matchDay,
-                    ),
-                  );
-            }
-          }
+          return BlocBuilder<TipControllerBloc, TipControllerState>(
+            builder: (context, controllerState) {
+              MatchDayStatistics? globalStats;
+              if (controllerState is TipControllerLoaded) {
+                globalStats =
+                    controllerState.matchDayStatistics[widget.match.matchDay];
 
-          return BlocConsumer<TipFormBloc, TipFormState>(
-            buildWhen: (previous, current) {
-              return previous.isSubmitting != current.isSubmitting ||
-                  previous.joker != current.joker ||
-                  previous.tipHome != current.tipHome ||
-                  previous.tipGuest != current.tipGuest;
-            },
-            listenWhen: (previous, current) {
-              return previous.isSubmitting && !current.isSubmitting;
-            },
-            listener: (context, state) {
-              state.failureOrSuccessOption.fold(
-                () {},
-                (either) => either.fold(
-                  (failure) {},
-                  (_) {
-                    // ✅ Globale Statistiken nach erfolgreichem Tipp aktualisieren
-                    context.read<TipControllerBloc>().add(
-                          TipUpdateStatisticsEvent(
-                            userId: widget.userId,
-                            matchDay: widget.match.matchDay,
-                          ),
-                        );
-                  },
-                ),
-              );
-            },
-            builder: (context, formState) {
-              final bool isJokerSet = formState.joker;
+                // ✅ Lade Statistiken wenn nicht vorhanden
+                if (globalStats == null) {
+                  print('🔄 Lade Statistiken für matchDay ${widget.match.matchDay}');
+                  context.read<TipControllerBloc>().add(
+                        TipUpdateStatisticsEvent(
+                          userId: widget.userId,
+                          matchDay: widget.match.matchDay,
+                        ),
+                      );
+                }
+              }
 
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -141,8 +136,8 @@ class _TipCardState extends State<TipCard> {
                     TipCardHeader(
                       match: widget.match,
                       tip: widget.tip,
-                      formState: formState, // ✅ formState ohne copyWith
-                      stats: globalStats, // ✅ Übergebe globale Stats direkt
+                      formState: formState,
+                      stats: globalStats,
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -155,26 +150,15 @@ class _TipCardState extends State<TipCard> {
                             hasResult: hasResult,
                           ),
                           const SizedBox(height: 16),
-                          if (!hasResult)
-                            TipCardTippingInput(
-                              homeController: _homeController,
-                              guestController: _guestController,
-                              state: formState, // ✅ Nicht stateWithGlobalStats
-                              userId: widget.userId,
-                              matchId: widget.match.id,
-                              tip: widget.tip,
-                            )
-                          else
-                            TipCardTippingInput(
-                              homeController: _homeController,
-                              guestController: _guestController,
-                              state: formState, // ✅ Nicht stateWithGlobalStats
-                              userId: widget.userId,
-                              matchId: widget.match.id,
-                              tip: widget.tip,
-                              readOnly:
-                                  true, // Macht die Felder schreibgeschützt
-                            ),
+                          TipCardTippingInput(
+                            homeController: _homeController,
+                            guestController: _guestController,
+                            state: formState,
+                            userId: widget.userId,
+                            matchId: widget.match.id,
+                            tip: widget.tip,
+                            readOnly: hasResult,
+                          ),
                         ],
                       ),
                     ),

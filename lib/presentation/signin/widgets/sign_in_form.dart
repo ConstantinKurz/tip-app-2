@@ -78,7 +78,8 @@ class _SignInFormState extends State<SignInForm> {
     final hDesktopPadding = isDesktop ? screenWidth * 0.3 : 20.0;
 
     return BlocConsumer<SignupformBloc, SignupformState>(
-      listenWhen: (p, c) => p.authFailureOrSuccessOption != c.authFailureOrSuccessOption,
+      listenWhen: (p, c) =>
+          p.authFailureOrSuccessOption != c.authFailureOrSuccessOption,
       listener: (context, state) {
         state.authFailureOrSuccessOption.fold(
           () {},
@@ -89,7 +90,8 @@ class _SignInFormState extends State<SignInForm> {
                   backgroundColor: Colors.red,
                   content: Text(
                     mapFailureMessage(failure),
-                    style: themeData.textTheme.bodyLarge?.copyWith(color: Colors.white),
+                    style: themeData.textTheme.bodyLarge
+                        ?.copyWith(color: Colors.white),
                   ),
                 ),
               );
@@ -120,9 +122,9 @@ class _SignInFormState extends State<SignInForm> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text("Bitte melde Dich sich an", style: themeData.textTheme.bodySmall),
+              Text("Bitte melde Dich sich an",
+                  style: themeData.textTheme.bodySmall),
               const SizedBox(height: 80),
-
               TextFormField(
                 controller: emailController,
                 cursorColor: Theme.of(context).colorScheme.onPrimary,
@@ -134,7 +136,6 @@ class _SignInFormState extends State<SignInForm> {
                 validator: validateEmail,
               ),
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: passwordController,
                 cursorColor: Theme.of(context).colorScheme.onPrimary,
@@ -145,7 +146,9 @@ class _SignInFormState extends State<SignInForm> {
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                      _passwordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
@@ -158,11 +161,11 @@ class _SignInFormState extends State<SignInForm> {
                 onFieldSubmitted: (_) {
                   if (formKey.currentState!.validate()) {
                     context.read<SignupformBloc>().add(
-                      SignInWithEmailAndPasswordPressed(
-                        email: emailController.text.trim(),
-                        password: passwordController.text,
-                      ),
-                    );
+                          SignInWithEmailAndPasswordPressed(
+                            email: emailController.text.trim(),
+                            password: passwordController.text,
+                          ),
+                        );
                   }
                 },
               ),
@@ -180,46 +183,43 @@ class _SignInFormState extends State<SignInForm> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 8),
-
               Align(
                 alignment: Alignment.center,
-                child: CustomButton(
-                  width: screenWidth * 0.1,
-                  hoverColor: primaryDark,
-                  borderColor: primaryDark,
-                  backgroundColor: themeData.scaffoldBackgroundColor,
-                  buttonText: state.isSubmitting ? "Anmelden..." : "Anmelden",
-                  callback: state.isSubmitting
-                      ? () {}
-                      : () {
-                          if (formKey.currentState!.validate()) {
-                            context.read<SignupformBloc>().add(
-                              SignInWithEmailAndPasswordPressed(
-                                email: emailController.text.trim(),
-                                password: passwordController.text,
-                              ),
-                            );
-                          } else {
-                            context.read<SignupformBloc>().add(
-                              SignInWithEmailAndPasswordPressed(
-                                email: null,
-                                password: null,
-                              ),
-                            );
-                          }
-                        },
-                ),
+                child: state.isSubmitting
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: themeData.colorScheme.onPrimaryContainer,
+                        ),
+                      )
+                    : CustomButton(
+                        width: screenWidth * 0.1,
+                        hoverColor: primaryDark,
+                        borderColor: primaryDark,
+                        backgroundColor: themeData.scaffoldBackgroundColor,
+                        buttonText: "Anmelden",
+                        callback: state.isSubmitting
+                            ? () {}
+                            : () {
+                                if (formKey.currentState!.validate()) {
+                                  context.read<SignupformBloc>().add(
+                                        SignInWithEmailAndPasswordPressed(
+                                          email: emailController.text.trim(),
+                                          password: passwordController.text,
+                                        ),
+                                      );
+                                } else {
+                                  context.read<SignupformBloc>().add(
+                                        SignInWithEmailAndPasswordPressed(
+                                          email: null,
+                                          password: null,
+                                        ),
+                                      );
+                                }
+                              },
+                      ),
               ),
               const SizedBox(height: 8),
-
-              if (state.isSubmitting)
-                Center(
-                  child: CircularProgressIndicator(
-                    color: themeData.colorScheme.onPrimaryContainer,
-                  ),
-                ),
             ],
           ),
         );

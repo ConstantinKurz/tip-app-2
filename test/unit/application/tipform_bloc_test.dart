@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
+import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';

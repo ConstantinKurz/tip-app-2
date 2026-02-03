@@ -8,11 +8,11 @@ import '../repositories/tip_repository.dart';
 import '../repositories/match_repository.dart';
 
 /// UseCase zur Validierung der Joker-Nutzung basierend auf matchDay
-class ValidateJokerUsageUseCase {
+class ValidateJokerUsageUpdateStatUseCase {
   final TipRepository tipRepository;
   final MatchRepository matchRepository;
   
-  ValidateJokerUsageUseCase({
+  ValidateJokerUsageUpdateStatUseCase({
     required this.tipRepository,
     required this.matchRepository,
   });

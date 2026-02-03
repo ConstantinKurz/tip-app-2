@@ -12,14 +12,13 @@ class TipCardHeader extends StatelessWidget {
   final CustomMatch match;
   final Tip tip;
   final TipFormState formState;
-  final MatchDayStatistics? stats; // ✅ Statistiken von außen
-
+  final MatchDayStatistics? stats;
   const TipCardHeader({
     Key? key,
     required this.match,
     required this.tip,
     required this.formState,
-    this.stats, // ✅ Optional
+    this.stats,
   }) : super(key: key);
 
   @override

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/core/utils/clear_data.dart';
-import 'package:flutter_web/core/utils/seed_data.dart';
+import 'package:flutter_web/core/utils/setup_tournament.dart';
+import 'package:flutter_web/core/utils/simulate_tournament.dart';
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
 import 'package:flutter_web/presentation/core/buttons/signin_button.dart';
 import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
@@ -24,7 +25,6 @@ class MyMenuBar extends StatelessWidget {
         if (authState is AuthControllerLoaded &&
             authState.signedInUser != null) {
           isAdmin = authState.signedInUser?.admin ?? false;
-
         }
         return Container(
           height: 66,
@@ -49,7 +49,24 @@ class MyMenuBar extends StatelessWidget {
                 tooltip: "Seed Data",
                 onPressed: () async {
                   try {
-                    await seedTestDataTwentyUsers();
+                    await setupTournament();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("✅ Testdaten erfolgreich geladen")),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("❌ Fehler beim Laden: $e")),
+                    );
+                  }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.play_circle),
+                tooltip: "Simulate",
+                onPressed: () async {
+                  try {
+                    await simulateTournamentResults();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                           content: Text("✅ Testdaten erfolgreich geladen")),
@@ -103,13 +120,13 @@ class MyMenuBar extends StatelessWidget {
                 },
               ),
               const SizedBox(width: 12),
-                if (isAuthenticated) ...[
-                  const UserButton(),
-                  const SizedBox(width: 8),
-                  const SignOutButton(),
-                ] else
-                  const SignInButton(),
-                  const SizedBox(width: 10),
+              if (isAuthenticated) ...[
+                const UserButton(),
+                const SizedBox(width: 8),
+                const SignOutButton(),
+              ] else
+                const SignInButton(),
+              const SizedBox(width: 10),
             ],
           ),
         );

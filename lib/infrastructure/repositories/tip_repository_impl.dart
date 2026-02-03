@@ -115,7 +115,7 @@ class TipRepositoryImpl implements TipRepository {
     try {
       // ✅ Bestimme die Phase und alle zugehörigen matchDays
       final phase = MatchPhase.fromMatchDay(matchDay);
-      final matchDaysInPhase = phase.getMatchDaysForPhase(phase);
+      final matchDaysInPhase = phase.getMatchDaysForPhase();
 
       // Hole alle Tips des Users mit Joker
       final querySnapshot = await tipsCollection

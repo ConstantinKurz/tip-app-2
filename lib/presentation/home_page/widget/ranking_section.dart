@@ -28,23 +28,15 @@ class RankingSection extends StatelessWidget {
             ..sort((a, b) {
               final scoreComparison = b.score.compareTo(a.score);
               if (scoreComparison != 0) return scoreComparison;
-              
+
               final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
               if (jokerComparison != 0) return jokerComparison;
-              
+
               final sixersComparison = b.sixer.compareTo(a.sixer);
               if (sixersComparison != 0) return sixersComparison;
-              
+
               return a.name.compareTo(b.name);
             });
-
-          // Debug: Zeige die sortierten User
-          print('📊 Sortierte Rangliste:');
-          for (int i = 0; i < sortedUsers.length; i++) {
-            final user = sortedUsers[i];
-            final isCurrentUser = user.id == userId;
-            print('  ${i + 1}. ${user.name} (${user.score} Pkt) ${isCurrentUser ? "← DU" : ""}');
-          }
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,36 +55,26 @@ class RankingSection extends StatelessWidget {
                 builder: (context, rankingState) {
                   final currentUserIndex =
                       sortedUsers.indexWhere((u) => u.id == userId);
-                  
-                  print('🔍 Aktueller User Index: $currentUserIndex');
-                  
+
                   List<AppUser> visibleUsers;
 
                   if (rankingState.expanded || sortedUsers.length <= 5) {
                     // Zeige alle User
                     visibleUsers = sortedUsers;
-                    print('✅ Expanded: Zeige alle ${visibleUsers.length} User');
                   } else {
                     // Collapsed: Zeige 1 über dir, dich, 2 unter dir
                     if (currentUserIndex == -1) {
                       // User nicht gefunden: Zeige Top 5
                       visibleUsers = sortedUsers.take(5).toList();
-                      print('⚠️ User nicht gefunden: Zeige Top 5');
                     } else if (currentUserIndex <= 1) {
                       // User ist schon in Top 2: Zeige Top 5
                       visibleUsers = sortedUsers.take(5).toList();
-                      print('✅ Collapsed (Top Player): Zeige Top 5');
                     } else {
                       // Zeige: 2 über dir, dich, 2 unter dir = 5 User total
                       int start = currentUserIndex - 2;
                       int end = currentUserIndex + 3;
-                      
+
                       visibleUsers = sortedUsers.sublist(start, end);
-                      
-                      print('✅ Collapsed (Um dich herum): Zeige ${visibleUsers.length} User');
-                      for (int i = 0; i < visibleUsers.length; i++) {
-                        print('    ${start + i + 1}. ${visibleUsers[i].name}');
-                      }
                     }
                   }
 

@@ -14,7 +14,7 @@ import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/repositories/team_repository.dart';
 import 'package:flutter_web/domain/repositories/user_repository.dart';
 import 'package:flutter_web/domain/usecases/recalculate_match_tips_usecase.dart';
-import 'package:flutter_web/domain/usecases/validate_joker_usage_usecase.dart';
+import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
 import 'package:flutter_web/infrastructure/repositories/match_repository_impl.dart';
 import 'package:flutter_web/infrastructure/repositories/team_repository_impl.dart';
 import 'package:flutter_web/infrastructure/repositories/user_repository_impl.dart';
@@ -53,7 +53,7 @@ Future<void> init({bool useMocks = false}) async {
       () => UserRepositoryImpl(firebaseFirestore: sl()));
   
   // Register Use Cases
-  sl.registerLazySingleton(() => ValidateJokerUsageUseCase(
+  sl.registerLazySingleton(() => ValidateJokerUsageUpdateStatUseCase(
     tipRepository: sl(),
     matchRepository: sl(),
   ));
@@ -89,7 +89,7 @@ Future<void> init({bool useMocks = false}) async {
   sl.registerFactory(() => TeamsformBloc(teamRepository: sl()));
   sl.registerFactory(() => TipFormBloc(
     tipRepository: sl(),
-    validateJokerUseCase: sl<ValidateJokerUsageUseCase>(),
+    validateJokerUseCase: sl<ValidateJokerUsageUpdateStatUseCase>(),
   ));
   sl.registerFactory(() => AuthformBloc(authRepository: sl()));
   sl.registerFactory(() => RankingBloc());

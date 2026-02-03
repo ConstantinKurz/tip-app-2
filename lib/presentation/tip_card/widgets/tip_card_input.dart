@@ -68,28 +68,32 @@ class TipCardTippingInput extends StatelessWidget {
                       height: 56,
                       child: StarIconButton(
                         isStar: state.joker,
-                        onTap: !readOnly && // ✅ Joker nur wenn nicht readOnly
-                                ((state.tipHome != null &&
-                                        state.tipGuest != null) ||
-                                    (state.joker))
+                        onTap: (homeController.text.isNotEmpty && 
+                                guestController.text.isNotEmpty && 
+                                !readOnly)
                             ? () {
+                                final tipHome = int.tryParse(homeController.text);
+                                final tipGuest = int.tryParse(guestController.text);
+                                
                                 context.read<TipFormBloc>().add(
-                                      TipFormFieldUpdatedEvent(
-                                        matchId: matchId,
-                                        userId: userId,
-                                        tipHome: state.tipHome,
-                                        tipGuest: state.tipGuest,
-                                        joker: !(state.joker),
-                                        matchDay: state.matchDay,
-                                      ),
-                                    );
+                                  TipFormFieldUpdatedEvent(
+                                    matchId: matchId,
+                                    userId: userId,
+                                    tipHome: tipHome,
+                                    tipGuest: tipGuest,
+                                    joker: !(state.joker),
+                                    matchDay: state.matchDay,
+                                  ),
+                                );
                               }
                             : () {},
                         tooltipMessage: readOnly
                             ? "Spiel bereits beendet - keine Änderungen möglich"
-                            : ((state.joker)
-                                ? "Joker entfernen"
-                                : "Joker setzen"),
+                            : (homeController.text.isEmpty || guestController.text.isEmpty)
+                                ? "Beide Felder erforderlich"
+                                : ((state.joker)
+                                    ? "Joker entfernen"
+                                    : "Joker setzen"),
                       ),
                     ),
                   ],
@@ -103,16 +107,21 @@ class TipCardTippingInput extends StatelessWidget {
   }
 
   Widget _buildScoreInput(
-      BuildContext context, TipFormState state, String scoreType) {
+    BuildContext context,
+    TipFormState state,
+    String scoreType,
+  ) {
     return SizedBox(
       width: 60,
       height: 56,
       child: TipScoreField(
         controller: scoreType == 'home' ? homeController : guestController,
+        otherController: scoreType == 'home' ? guestController : homeController,
         scoreType: scoreType,
         userId: userId,
         matchId: matchId,
-        readOnly: readOnly, // ✅ Parameter weitergeben
+        matchDay: state.matchDay,
+        readOnly: readOnly,
       ),
     );
   }

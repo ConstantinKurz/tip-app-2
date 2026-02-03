@@ -33,15 +33,16 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       (tips) => tips.firstWhereOrNull((t) => t.matchId == event.matchId),
     );
 
-    // Emittiere State ohne Statistiken (werden zentral geladen)
+    // ✅ Setze isLoading = false, egal ob Tipp existiert oder nicht
     emit(
-      TipFormState(
+      state.copyWith(
         userId: event.userId,
         matchId: event.matchId,
         matchDay: event.matchDay,
         tipHome: tip?.tipHome,
         tipGuest: tip?.tipGuest,
         joker: tip?.joker ?? false,
+        isLoading: false, // ✅ Fertig mit Laden
       ),
     );
   }
@@ -61,7 +62,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
         showValidationMessages: true,
         tipGuest: event.tipGuest,
         tipHome: event.tipHome,
-        joker: event.joker,
+        joker: state.joker,
         failureOrSuccessOption: some(left(InCompleteInputFailure())),
       ));
       return;
@@ -114,7 +115,8 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       tipHome: event.tipHome,
       tipGuest: event.tipGuest,
       joker: event.joker ?? false,
-      points: null, // ✅ Points werden später durch die RecalculateMatchTipsUseCase berechnet
+      points:
+          null, // ✅ Points werden später durch die RecalculateMatchTipsUseCase berechnet
     );
 
     final result = await tipRepository.create(tip);

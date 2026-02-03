@@ -4,9 +4,7 @@ import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 
 class TipStatus extends StatelessWidget {
-  final TipFormState state;
-
-  const TipStatus({Key? key, required this.state}) : super(key: key);
+  const TipStatus({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +13,22 @@ class TipStatus extends StatelessWidget {
         return previous.tipHome != current.tipHome ||
             previous.tipGuest != current.tipGuest ||
             previous.isSubmitting != current.isSubmitting ||
-            previous.failureOrSuccessOption != current.failureOrSuccessOption; // ✅ NEU
+            previous.isLoading != current.isLoading ||
+            previous.failureOrSuccessOption != current.failureOrSuccessOption;
       },
       builder: (context, state) {
         Widget content;
-        
-        // ✅ Prüfe zuerst ob Joker-Error vorliegt
+
+        // ✅ Prüfe zuerst ob InCompleteInputFailure vorliegt
+        final hasIncompleteError = state.failureOrSuccessOption.fold(
+          () => false,
+          (either) => either.fold(
+            (failure) => failure is InCompleteInputFailure,
+            (_) => false,
+          ),
+        );
+
+        // ✅ Prüfe ob Joker-Error vorliegt
         final hasJokerError = state.failureOrSuccessOption.fold(
           () => false,
           (either) => either.fold(
@@ -29,8 +37,8 @@ class TipStatus extends StatelessWidget {
           ),
         );
 
-        // Während Submit Loading → Spinner zeigen
-        if (state.isSubmitting) {
+        // ✅ Loading: nur wenn isLoading = true
+        if (state.isLoading) {
           content = const SizedBox(
             height: 18,
             width: 18,
@@ -39,8 +47,30 @@ class TipStatus extends StatelessWidget {
               color: Colors.white,
             ),
           );
-        } 
-        // ✅ Joker-Error hat Priorität
+        }
+        // Während Submit Loading → Spinner zeigen
+        else if (state.isSubmitting) {
+          content = const SizedBox(
+            height: 18,
+            width: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
+            ),
+          );
+        }
+        // ✅ InCompleteInputFailure hat Priorität (ROT)
+        else if (hasIncompleteError || (state.tipGuest == null && state.tipHome == null)) {
+          content = const Tooltip(
+            message: 'Tipp unvollständig - beide Felder erforderlich',
+            child: Icon(
+              Icons.error_outline,
+              size: 18,
+              color: Colors.red,
+            ),
+          );
+        }
+        // ✅ Joker-Error (ORANGE)
         else if (hasJokerError) {
           content = const Tooltip(
             message: 'Joker-Limit erreicht',
@@ -51,7 +81,7 @@ class TipStatus extends StatelessWidget {
             ),
           );
         }
-        // Tipp vollständig
+        // Tipp vollständig (GRÜN)
         else if (state.tipHome != null && state.tipGuest != null) {
           content = const Tooltip(
             message: 'Tipp vollständig',
@@ -62,14 +92,14 @@ class TipStatus extends StatelessWidget {
             ),
           );
         }
-        // Tipp unvollständig
+        // Fallback: Loading
         else {
-          content = const Tooltip(
-            message: 'Tipp unvollständig',
-            child: Icon(
-              Icons.error_outline,
-              size: 18,
-              color: Colors.red,
+          content = const SizedBox(
+            height: 18,
+            width: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
             ),
           );
         }

@@ -136,7 +136,6 @@ class _TipCardState extends State<TipCard> {
                     TipCardHeader(
                       match: widget.match,
                       tip: widget.tip,
-                      formState: formState,
                       stats: globalStats,
                     ),
                     Padding(

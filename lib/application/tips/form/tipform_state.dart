@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'tipform_bloc.dart';
 
-class TipFormState{
+class TipFormState {
   final String userId;
   final String matchId;
   final int matchDay;
@@ -11,7 +11,8 @@ class TipFormState{
   final bool isSubmitting;
   final Option<Either<TipFailure, Unit>> failureOrSuccessOption;
   final bool showValidationMessages;
-  final bool isTipLimitReached; // Neu hinzufügen
+  final bool isTipLimitReached;
+  final bool isLoading; // ✅ NEU: unterscheidet "wird geladen" von "ist leer"
 
   const TipFormState({
     required this.userId,
@@ -23,7 +24,8 @@ class TipFormState{
     this.isSubmitting = false,
     this.failureOrSuccessOption = const None(),
     this.showValidationMessages = false,
-    this.isTipLimitReached = false, // Neu hinzufügen
+    this.isTipLimitReached = false,
+    this.isLoading = true, // ✅ Default: true beim Laden
   });
 
   TipFormState copyWith({
@@ -36,7 +38,8 @@ class TipFormState{
     bool? isSubmitting,
     Option<Either<TipFailure, Unit>>? failureOrSuccessOption,
     bool? showValidationMessages,
-    bool? isTipLimitReached, // Neu hinzufügen
+    bool? isTipLimitReached,
+    bool? isLoading, // ✅ NEU
   }) {
     return TipFormState(
       userId: userId ?? this.userId,
@@ -48,8 +51,25 @@ class TipFormState{
       isSubmitting: isSubmitting ?? this.isSubmitting,
       failureOrSuccessOption: failureOrSuccessOption ?? this.failureOrSuccessOption,
       showValidationMessages: showValidationMessages ?? this.showValidationMessages,
-      isTipLimitReached: isTipLimitReached ?? this.isTipLimitReached, // Neu hinzufügen
+      isTipLimitReached: isTipLimitReached ?? this.isTipLimitReached,
+      isLoading: isLoading ?? this.isLoading, // ✅ NEU
     );
+  }
+
+  @override
+  String toString() {
+    return '''
+TipFormState(
+  userId: $userId,
+  matchId: $matchId,
+  tipHome: $tipHome,
+  tipGuest: $tipGuest,
+  joker: $joker,
+  isSubmitting: $isSubmitting,
+  isLoading: $isLoading,
+  showValidationMessages: $showValidationMessages,
+)
+  ''';
   }
 }
 
@@ -66,5 +86,6 @@ final class TipFormInitialState extends TipFormState {
           showValidationMessages: false,
           failureOrSuccessOption: const None(),
           isTipLimitReached: false,
+          isLoading: true, // ✅ Initial ist es "Loading"
         );
 }

@@ -11,13 +11,11 @@ import 'tip_status.dart';
 class TipCardHeader extends StatelessWidget {
   final CustomMatch match;
   final Tip tip;
-  final TipFormState formState;
   final MatchDayStatistics? stats;
   const TipCardHeader({
     Key? key,
     required this.match,
     required this.tip,
-    required this.formState,
     this.stats,
   }) : super(key: key);
 
@@ -67,7 +65,7 @@ class TipCardHeader extends StatelessWidget {
             ],
           ),
         ),
-        TipStatus(state: formState),
+        const TipStatus(),
         Expanded(
           child: SizedBox(
             width: 100,

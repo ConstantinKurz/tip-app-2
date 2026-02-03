@@ -5,17 +5,21 @@ import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 
 class TipScoreField extends StatelessWidget {
   final TextEditingController controller;
-  final String scoreType; // 'home' oder 'guest'
+  final TextEditingController otherController; 
+  final String scoreType;
   final String userId;
   final String matchId;
+  final int matchDay;
   final bool readOnly;
 
   const TipScoreField({
     Key? key,
     required this.controller,
+    required this.otherController,
     required this.scoreType,
     required this.userId,
     required this.matchId,
+    required this.matchDay,
     this.readOnly = false,
   }) : super(key: key);
 
@@ -27,6 +31,7 @@ class TipScoreField extends StatelessWidget {
       builder: (context, state) {
         final isDisabled = state.isTipLimitReached;
         final bool readOnly = this.readOnly || isDisabled;
+        
         return SizedBox(
           width: 50,
           child: TextFormField(
@@ -50,17 +55,22 @@ class TipScoreField extends StatelessWidget {
             onChanged: readOnly
                 ? null
                 : (value) {
-                    final bloc = context.read<TipFormBloc>();
-                    final parsed = value.isEmpty ? null : int.tryParse(value);
-                    bloc.add(
+                    final currentHome = scoreType == 'home' 
+                        ? (value.isEmpty ? null : int.tryParse(value))
+                        : (otherController.text.isEmpty ? null : int.tryParse(otherController.text));
+                    
+                    final currentGuest = scoreType == 'guest' 
+                        ? (value.isEmpty ? null : int.tryParse(value))
+                        : (otherController.text.isEmpty ? null : int.tryParse(otherController.text));
+
+                    context.read<TipFormBloc>().add(
                       TipFormFieldUpdatedEvent(
                         matchId: matchId,
                         userId: userId,
-                        tipHome: scoreType == 'home' ? parsed : state.tipHome,
-                        tipGuest:
-                            scoreType == 'guest' ? parsed : state.tipGuest,
+                        tipHome: currentHome,
+                        tipGuest: currentGuest,
                         joker: state.joker,
-                        matchDay: state.matchDay,
+                        matchDay: matchDay,
                       ),
                     );
                   },

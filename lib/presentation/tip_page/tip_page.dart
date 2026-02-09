@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
+import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
@@ -178,13 +179,12 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
-    // ✅ Initialisiere nur EINMAL
     if (!_initialized) {
-      final bloc = context.read<TipFormBloc>();
+      final formBloc = context.read<TipFormBloc>();
+      final controllerBloc = context.read<TipControllerBloc>();
       
-      if (bloc.state.matchId != widget.matchId) {
-        bloc.add(
+      if (formBloc.state.matchId != widget.matchId) {
+        formBloc.add(
           TipFormInitializedEvent(
             userId: widget.userId,
             matchDay: widget.matchDay,
@@ -192,6 +192,14 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
           ),
         );
       }
+
+      // ✅ NEU: Statistiken beim initialen Laden berechnen
+      controllerBloc.add(
+        TipUpdateStatisticsEvent(
+          userId: widget.userId,
+          matchDay: widget.matchDay,
+        ),
+      );
       
       _initialized = true;
     }

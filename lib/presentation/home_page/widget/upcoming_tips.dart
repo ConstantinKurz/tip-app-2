@@ -18,11 +18,13 @@ class UpcomingTipSection extends StatefulWidget {
     required this.userId,
   }) : super(key: key);
 
-  @override  State<UpcomingTipSection> createState() => _UpcomingTipSectionState();
+  @override
+  State<UpcomingTipSection> createState() => _UpcomingTipSectionState();
 }
 
 class _UpcomingTipSectionState extends State<UpcomingTipSection> {
   final Map<String, TipFormBloc> _tipFormBlocs = {};
+  final Set<int> _statsLoadedForMatchDays = {}; // ✅ NEU: Verhindere doppeltes Laden
 
   @override
   void dispose() {
@@ -39,7 +41,8 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
     return _tipFormBlocs[matchId]!;
   }
 
-  @override  Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     final themeData = Theme.of(context);
 
     return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
@@ -51,7 +54,6 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                 if (matchState is MatchesControllerLoaded &&
                     teamState is TeamsControllerLoaded &&
                     tipState is TipControllerLoaded) {
-                  
                   final matches = matchState.matches;
                   final teams = teamState.teams;
                   final tips = tipState.tips;
@@ -62,13 +64,28 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                     final matchEndTime = match.matchDate.add(const Duration(minutes: matchDuration));
                     return matchEndTime.isAfter(now);
                   }).toList();
-                  
+
                   upcomingMatches.sort((a, b) => a.matchDate.compareTo(b.matchDate));
                   final closestMatches = upcomingMatches.take(3).toList();
 
                   if (closestMatches.isEmpty) {
                     return _buildEmptyState(context, themeData);
                   }
+
+                  // ✅ NEU: Lade Statistiken für alle sichtbaren MatchDays
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    for (final match in closestMatches) {
+                      if (!_statsLoadedForMatchDays.contains(match.matchDay)) {
+                        context.read<TipControllerBloc>().add(
+                              TipUpdateStatisticsEvent(
+                                userId: widget.userId,
+                                matchDay: match.matchDay,
+                              ),
+                            );
+                        _statsLoadedForMatchDays.add(match.matchDay);
+                      }
+                    }
+                  });
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +113,7 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Spiele-Cards
                       ...closestMatches.map((match) {
                         final homeTeam = teams.firstWhere(
@@ -105,7 +122,7 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                         final guestTeam = teams.firstWhere(
                           (team) => team.id == match.guestTeamId,
                         );
-                        
+
                         final userTips = tips[widget.userId] ?? <Tip>[];
                         final tip = userTips.firstWhere(
                           (t) => t.matchId == match.id,
@@ -120,7 +137,8 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                               final tipId = tip.id.isNotEmpty
                                   ? tip.id
                                   : "${widget.userId}_${match.id}";
-                              Routemaster.of(context).push('/tips-detail/$tipId?from=home');
+                              Routemaster.of(context)
+                                  .push('/tips-detail/$tipId?from=home');
                             },
                             child: BlocProvider<TipFormBloc>.value(
                               value: _getTipFormBloc(match.id),

@@ -5,7 +5,6 @@ import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
-import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/tip_card/widgets/tip_card_header.dart';
 import 'package:flutter_web/presentation/tip_card/widgets/tip_card_match_info.dart';
 import 'widgets/tip_card_input.dart';
@@ -17,7 +16,6 @@ class TipCard extends StatefulWidget {
   final Team guestTeam;
   final Tip tip;
   final Widget? footer;
-  final TipFormBloc? formBloc; // ✅ Optional pre-created bloc
 
   const TipCard({
     Key? key,
@@ -27,7 +25,6 @@ class TipCard extends StatefulWidget {
     required this.guestTeam,
     required this.tip,
     this.footer,
-    this.formBloc, // ✅ Accept bloc from parent
   }) : super(key: key);
 
   @override
@@ -41,10 +38,8 @@ class _TipCardState extends State<TipCard> {
   @override
   void initState() {
     super.initState();
-    _homeController =
-        TextEditingController(text: widget.tip.tipHome?.toString() ?? '');
-    _guestController =
-        TextEditingController(text: widget.tip.tipGuest?.toString() ?? '');
+    _homeController = TextEditingController(text: widget.tip.tipHome?.toString() ?? '');
+    _guestController = TextEditingController(text: widget.tip.tipGuest?.toString() ?? '');
   }
 
   @override
@@ -57,74 +52,9 @@ class _TipCardState extends State<TipCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasResult =
-        widget.match.homeScore != null && widget.match.guestScore != null;
+    final hasResult = widget.match.homeScore != null && widget.match.guestScore != null;
 
-    // ✅ If bloc provided from parent (TipPage), use it; otherwise create one
-    if (widget.formBloc != null) {
-      return BlocProvider<TipFormBloc>.value(
-        value: widget.formBloc!,
-        child: _TipCardContent(
-          theme: theme,
-          hasResult: hasResult,
-          match: widget.match,
-          homeTeam: widget.homeTeam,
-          guestTeam: widget.guestTeam,
-          tip: widget.tip,
-          userId: widget.userId,
-          homeController: _homeController,
-          guestController: _guestController,
-          footer: widget.footer,
-        ),
-      );
-    }
-
-    return BlocProvider<TipFormBloc>(
-      create: (_) => sl<TipFormBloc>(),
-      child: _TipCardContent(
-        theme: theme,
-        hasResult: hasResult,
-        match: widget.match,
-        homeTeam: widget.homeTeam,
-        guestTeam: widget.guestTeam,
-        tip: widget.tip,
-        userId: widget.userId,
-        homeController: _homeController,
-        guestController: _guestController,
-        footer: widget.footer,
-      ),
-    );
-  }
-}
-
-class _TipCardContent extends StatelessWidget {
-  final ThemeData theme;
-  final bool hasResult;
-  final CustomMatch match;
-  final Team homeTeam;
-  final Team guestTeam;
-  final Tip tip;
-  final String userId;
-  final TextEditingController homeController;
-  final TextEditingController guestController;
-  final Widget? footer;
-
-  const _TipCardContent({
-    Key? key,
-    required this.theme,
-    required this.hasResult,
-    required this.match,
-    required this.homeTeam,
-    required this.guestTeam,
-    required this.tip,
-    required this.userId,
-    required this.homeController,
-    required this.guestController,
-    required this.footer,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+    // ✅ Nutze BlocConsumer DIREKT hier (Bloc kommt von Parent via BlocProvider.value)
     return BlocConsumer<TipFormBloc, TipFormState>(
       listenWhen: (previous, current) =>
           previous.isSubmitting && !current.isSubmitting,
@@ -144,8 +74,8 @@ class _TipCardContent extends StatelessWidget {
               // ✅ Nach erfolgreichem Speichern: Update Stats
               context.read<TipControllerBloc>().add(
                     TipUpdateStatisticsEvent(
-                      userId: userId,
-                      matchDay: match.matchDay,
+                      userId: widget.userId,
+                      matchDay: widget.match.matchDay,
                     ),
                   );
             },
@@ -168,26 +98,30 @@ class _TipCardContent extends StatelessWidget {
           child: Column(
             children: [
               TipCardHeader(
-                match: match,
-                tip: tip,
+                match: widget.match,
+                tip: widget.tip,
               ),
               const SizedBox(height: 12),
               TipCardMatchInfo(
-                match: match,
-                homeTeam: homeTeam,
-                guestTeam: guestTeam,
+                match: widget.match,
+                homeTeam: widget.homeTeam,
+                guestTeam: widget.guestTeam,
                 hasResult: hasResult,
               ),
               const SizedBox(height: 16),
               TipCardTippingInput(
-                homeController: homeController,
-                guestController: guestController,
+                homeController: _homeController,
+                guestController: _guestController,
                 state: formState,
-                userId: userId,
-                matchId: match.id,
-                tip: tip,
+                userId: widget.userId,
+                matchId: widget.match.id,
+                tip: widget.tip,
                 readOnly: hasResult,
               ),
+              if (widget.footer != null) ...[
+                const SizedBox(height: 16),
+                widget.footer!,
+              ],
             ],
           ),
         );

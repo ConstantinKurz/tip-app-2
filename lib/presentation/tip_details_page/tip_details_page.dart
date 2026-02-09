@@ -4,9 +4,11 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
+import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:flutter_web/presentation/tip_page/widgets/tip_details_community_tip_list.dart';
@@ -31,6 +33,14 @@ class TipDetailsPage extends StatefulWidget {
 }
 
 class _TipDetailsPageState extends State<TipDetailsPage> {
+  TipFormBloc? _tipFormBloc;
+
+  @override
+  void dispose() {
+    _tipFormBloc?.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final routeData = RouteData.of(context);
@@ -94,6 +104,9 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                           orElse: () => Team.empty(),
                         );
 
+                        // Create TipFormBloc once for this match
+                        _tipFormBloc ??= sl<TipFormBloc>();
+
                         return PageTemplate(
                           isAuthenticated: widget.isAuthenticated,
                           child: Center(
@@ -130,12 +143,20 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                             ),
                                           ],
                                         ),
-                                        TipCard(
-                                          userId: userId,
-                                          tip: tip,
-                                          homeTeam: homeTeam,
-                                          guestTeam: guestTeam,
-                                          match: match,
+                                        BlocProvider<TipFormBloc>.value(
+                                          value: _tipFormBloc!,
+                                          child: _TipCardInitializer(
+                                            matchId: match.id,
+                                            userId: userId,
+                                            matchDay: match.matchDay,
+                                            child: TipCard(
+                                              userId: userId,
+                                              tip: tip,
+                                              homeTeam: homeTeam,
+                                              guestTeam: guestTeam,
+                                              match: match,
+                                            ),
+                                          ),
                                         ),
                                         const SizedBox(height: 24),
                                         SizedBox(
@@ -174,5 +195,46 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
         },
       ),
     );
+  }
+}
+
+/// Wrapper widget that initializes TipFormBloc only once
+class _TipCardInitializer extends StatefulWidget {
+  final String matchId;
+  final String userId;
+  final int matchDay;
+  final Widget child;
+
+  const _TipCardInitializer({
+    required this.matchId,
+    required this.userId,
+    required this.matchDay,
+    required this.child,
+  });
+
+  @override
+  State<_TipCardInitializer> createState() => _TipCardInitializerState();
+}
+
+class _TipCardInitializerState extends State<_TipCardInitializer> {
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final bloc = context.read<TipFormBloc>();
+      bloc.add(TipFormInitializedEvent(
+        matchId: widget.matchId,
+        userId: widget.userId,
+        matchDay: widget.matchDay,
+      ));
+      _initialized = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

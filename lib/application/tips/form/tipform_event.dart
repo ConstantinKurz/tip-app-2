@@ -42,3 +42,21 @@ class TipFormJokerValidationEvent extends TipFormEvent {
     required this.matchDay,
   });
 }
+
+class TipFormStreamUpdatedEvent extends TipFormEvent {
+  final String userId;
+  final String matchId;
+  final int matchDay;
+  final int? tipHome;
+  final int? tipGuest;
+  final bool joker;
+
+  TipFormStreamUpdatedEvent({
+    required this.userId,
+    required this.matchId,
+    required this.matchDay,
+    this.tipHome,
+    this.tipGuest,
+    required this.joker,
+  });
+}

@@ -3,12 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
+import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
 import 'package:routemaster/routemaster.dart';
 
-class UpcomingTipSection extends StatelessWidget {
+class UpcomingTipSection extends StatefulWidget {
   final String userId;
 
   const UpcomingTipSection({
@@ -16,8 +18,28 @@ class UpcomingTipSection extends StatelessWidget {
     required this.userId,
   }) : super(key: key);
 
+  @override  State<UpcomingTipSection> createState() => _UpcomingTipSectionState();
+}
+
+class _UpcomingTipSectionState extends State<UpcomingTipSection> {
+  final Map<String, TipFormBloc> _tipFormBlocs = {};
+
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    for (var bloc in _tipFormBlocs.values) {
+      bloc.close();
+    }
+    super.dispose();
+  }
+
+  TipFormBloc _getTipFormBloc(String matchId) {
+    if (!_tipFormBlocs.containsKey(matchId)) {
+      _tipFormBlocs[matchId] = sl<TipFormBloc>();
+    }
+    return _tipFormBlocs[matchId]!;
+  }
+
+  @override  Widget build(BuildContext context) {
     final themeData = Theme.of(context);
 
     return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
@@ -84,10 +106,10 @@ class UpcomingTipSection extends StatelessWidget {
                           (team) => team.id == match.guestTeamId,
                         );
                         
-                        final userTips = tips[userId] ?? <Tip>[];
+                        final userTips = tips[widget.userId] ?? <Tip>[];
                         final tip = userTips.firstWhere(
                           (t) => t.matchId == match.id,
-                          orElse: () => Tip.empty(userId),
+                          orElse: () => Tip.empty(widget.userId),
                         );
 
                         return Padding(
@@ -97,15 +119,23 @@ class UpcomingTipSection extends StatelessWidget {
                             onTap: () {
                               final tipId = tip.id.isNotEmpty
                                   ? tip.id
-                                  : "${userId}_${match.id}";
+                                  : "${widget.userId}_${match.id}";
                               Routemaster.of(context).push('/tips-detail/$tipId?from=home');
                             },
-                            child: TipCard(
-                              userId: userId,
-                              tip: tip,
-                              homeTeam: homeTeam,
-                              guestTeam: guestTeam,
-                              match: match,
+                            child: BlocProvider<TipFormBloc>.value(
+                              value: _getTipFormBloc(match.id),
+                              child: _TipCardInitializer(
+                                matchId: match.id,
+                                userId: widget.userId,
+                                matchDay: match.matchDay,
+                                child: TipCard(
+                                  userId: widget.userId,
+                                  tip: tip,
+                                  homeTeam: homeTeam,
+                                  guestTeam: guestTeam,
+                                  match: match,
+                                ),
+                              ),
                             ),
                           ),
                         );
@@ -161,5 +191,46 @@ class UpcomingTipSection extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Wrapper widget that initializes TipFormBloc only once
+class _TipCardInitializer extends StatefulWidget {
+  final String matchId;
+  final String userId;
+  final int matchDay;
+  final Widget child;
+
+  const _TipCardInitializer({
+    required this.matchId,
+    required this.userId,
+    required this.matchDay,
+    required this.child,
+  });
+
+  @override
+  State<_TipCardInitializer> createState() => _TipCardInitializerState();
+}
+
+class _TipCardInitializerState extends State<_TipCardInitializer> {
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final bloc = context.read<TipFormBloc>();
+      bloc.add(TipFormInitializedEvent(
+        matchId: widget.matchId,
+        userId: widget.userId,
+        matchDay: widget.matchDay,
+      ));
+      _initialized = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

@@ -116,28 +116,20 @@ class _TipPageState extends State<TipPage> {
                                           (t) => t.id == match.guestTeamId,
                                           orElse: () => Team.empty(),
                                         );
-
                                         // ✅ Each card gets its own TipFormBloc from pool
                                         final bloc = _getTipFormBloc(match.id);
-                                        // Initialize bloc for this match on first use
-                                        if (bloc.state.matchId != match.id) {
-                                          bloc.add(
-                                            TipFormInitializedEvent(
-                                              userId: userId,
-                                              matchDay: match.matchDay,
-                                              matchId: match.id,
-                                            ),
-                                          );
-                                        }
                                         
-                                        return TipCard(
-                                          key: ValueKey(match.id),
-                                          userId: userId,
-                                          match: match,
-                                          homeTeam: homeTeam,
-                                          guestTeam: guestTeam,
-                                          tip: Tip.empty(userId),
-                                          formBloc: bloc, // ✅ Pass bloc to card
+                                        // ✅ Wrap with BlocProvider.value
+                                        return BlocProvider<TipFormBloc>.value(
+                                          value: bloc,
+                                          child: _TipCardInitializer(
+                                            matchId: match.id,
+                                            userId: userId,
+                                            matchDay: match.matchDay,
+                                            match: match,
+                                            homeTeam: homeTeam,
+                                            guestTeam: guestTeam,
+                                          ),
                                         );
                                       },
                                     ),
@@ -153,6 +145,67 @@ class _TipPageState extends State<TipPage> {
           );
         },
       ),
+    );
+  }
+}
+
+// ✅ Wrapper Widget um Event nur EINMAL zu triggern
+class _TipCardInitializer extends StatefulWidget {
+  final String matchId;
+  final String userId;
+  final int matchDay;
+  final CustomMatch match;
+  final Team homeTeam;
+  final Team guestTeam;
+
+  const _TipCardInitializer({
+    Key? key,
+    required this.matchId,
+    required this.userId,
+    required this.matchDay,
+    required this.match,
+    required this.homeTeam,
+    required this.guestTeam,
+  }) : super(key: key);
+
+  @override
+  State<_TipCardInitializer> createState() => _TipCardInitializerState();
+}
+
+class _TipCardInitializerState extends State<_TipCardInitializer> {
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // ✅ Initialisiere nur EINMAL
+    if (!_initialized) {
+      final bloc = context.read<TipFormBloc>();
+      
+      if (bloc.state.matchId != widget.matchId) {
+        bloc.add(
+          TipFormInitializedEvent(
+            userId: widget.userId,
+            matchDay: widget.matchDay,
+            matchId: widget.matchId,
+          ),
+        );
+      }
+      
+      _initialized = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TipCard(
+      key: ValueKey(widget.matchId),
+      userId: widget.userId,
+      match: widget.match,
+      homeTeam: widget.homeTeam,
+      guestTeam: widget.guestTeam,
+      tip: Tip.empty(widget.userId),
     );
   }
 }

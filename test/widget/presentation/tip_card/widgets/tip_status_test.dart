@@ -1,21 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/presentation/tip_card/widgets/tip_status.dart';
 import 'package:dartz/dartz.dart';
 
-import '../../../helpers/test_app.dart';
+class MockTipFormBloc extends Mock implements TipFormBloc {}
 
 void main() {
   group('TipStatus Widget Tests', () {
+    late MockTipFormBloc mockTipFormBloc;
+
+    setUp(() {
+      mockTipFormBloc = MockTipFormBloc();
+    });
+
     testWidgets('should show loading indicator when state is TipFormInitialState', (tester) async {
       // Arrange
       final state = TipFormInitialState();
+      when(() => mockTipFormBloc.state).thenReturn(state);
+      when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(state));
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          TipStatus(state: state),
+        BlocProvider<TipFormBloc>.value(
+          value: mockTipFormBloc,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TipStatus(),
+            ),
+          ),
         ),
       );
 
@@ -36,12 +51,20 @@ void main() {
         isSubmitting: true,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
+        isLoading: false,
       );
+      when(() => mockTipFormBloc.state).thenReturn(state);
+      when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(state));
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          TipStatus(state: state),
+        BlocProvider<TipFormBloc>.value(
+          value: mockTipFormBloc,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TipStatus(),
+            ),
+          ),
         ),
       );
 
@@ -62,12 +85,20 @@ void main() {
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
+        isLoading: false,
       );
+      when(() => mockTipFormBloc.state).thenReturn(state);
+      when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(state));
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          TipStatus(state: state),
+        BlocProvider<TipFormBloc>.value(
+          value: mockTipFormBloc,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TipStatus(),
+            ),
+          ),
         ),
       );
       
@@ -93,12 +124,20 @@ void main() {
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
+        isLoading: false,
       );
+      when(() => mockTipFormBloc.state).thenReturn(state);
+      when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(state));
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          TipStatus(state: state),
+        BlocProvider<TipFormBloc>.value(
+          value: mockTipFormBloc,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TipStatus(),
+            ),
+          ),
         ),
       );
       
@@ -124,12 +163,20 @@ void main() {
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
+        isLoading: false,
       );
+      when(() => mockTipFormBloc.state).thenReturn(state);
+      when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(state));
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          TipStatus(state: state),
+        BlocProvider<TipFormBloc>.value(
+          value: mockTipFormBloc,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TipStatus(),
+            ),
+          ),
         ),
       );
       
@@ -155,12 +202,20 @@ void main() {
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
+        isLoading: false,
       );
+      when(() => mockTipFormBloc.state).thenReturn(state);
+      when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(state));
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          TipStatus(state: state),
+        BlocProvider<TipFormBloc>.value(
+          value: mockTipFormBloc,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TipStatus(),
+            ),
+          ),
         ),
       );
       
@@ -175,11 +230,18 @@ void main() {
     testWidgets('should animate between states smoothly', (tester) async {
       // Arrange
       final initialState = TipFormInitialState();
+      when(() => mockTipFormBloc.state).thenReturn(initialState);
+      when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(initialState));
 
       // Act
       await tester.pumpWidget(
-        createTestApp(
-          TipStatus(state: initialState),
+        BlocProvider<TipFormBloc>.value(
+          value: mockTipFormBloc,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TipStatus(),
+            ),
+          ),
         ),
       );
 
@@ -196,17 +258,24 @@ void main() {
         isSubmitting: false,
         showValidationMessages: false,
         failureOrSuccessOption: none(),
+        isLoading: false,
       );
 
+      when(() => mockTipFormBloc.state).thenReturn(completeState);
       await tester.pumpWidget(
-        createTestApp(
-          TipStatus(state: completeState),
+        BlocProvider<TipFormBloc>.value(
+          value: mockTipFormBloc,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TipStatus(),
+            ),
+          ),
         ),
       );
 
       // Animation should be in progress
       await tester.pump(const Duration(milliseconds: 150));
-      
+
       // Verify animation completes
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.check_circle), findsOneWidget);

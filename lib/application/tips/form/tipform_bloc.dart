@@ -23,6 +23,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
   }) : super(const TipFormInitialState()) {
     on<TipFormInitializedEvent>(_onInitialized);
     on<TipFormFieldUpdatedEvent>(_onFieldUpdated);
+    on<TipFormStreamUpdatedEvent>(_onStreamUpdated);
   }
 
   Future<void> _onInitialized(
@@ -38,27 +39,25 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
           (tipResult) {
             tipResult.fold(
               (_) {
-                emit(state.copyWith(
+                add(TipFormStreamUpdatedEvent(
                   userId: event.userId,
                   matchId: event.matchId,
                   matchDay: event.matchDay,
                   tipHome: null,
                   tipGuest: null,
                   joker: false,
-                  isLoading: false,
                 ));
               },
               (tips) {
                 final tip = tips.firstWhereOrNull((t) => t.matchId == event.matchId);
 
-                emit(state.copyWith(
+                add(TipFormStreamUpdatedEvent(
                   userId: event.userId,
                   matchId: event.matchId,
                   matchDay: event.matchDay,
                   tipHome: tip?.tipHome,
                   tipGuest: tip?.tipGuest,
                   joker: tip?.joker ?? false,
-                  isLoading: false,
                 ));
               },
             );
@@ -73,6 +72,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     emit(state.copyWith(
       isSubmitting: true,
       failureOrSuccessOption: none(),
+      isLoading: false
     ));
 
     if (event.tipHome == null || event.tipGuest == null) {
@@ -149,8 +149,25 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       failureOrSuccessOption: some(result),
     ));
   }
+
+  Future<void> _onStreamUpdated(
+    TipFormStreamUpdatedEvent event,
+    Emitter<TipFormState> emit,
+  ) async {
+    emit(state.copyWith(
+      userId: event.userId,
+      matchId: event.matchId,
+      matchDay: event.matchDay,
+      tipHome: event.tipHome,
+      tipGuest: event.tipGuest,
+      joker: event.joker,
+      isLoading: false,
+    ));
+  }
+
   @override
   Future<void> close() async {
     await _userTipsSubscription?.cancel();
     return super.close();
-  }}
+  }
+}

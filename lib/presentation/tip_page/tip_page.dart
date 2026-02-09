@@ -3,14 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
-import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+
+import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
+import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/core/widgets/match_search_field.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
-import 'package:routemaster/routemaster.dart';
+
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class TipPage extends StatefulWidget {
@@ -28,141 +30,84 @@ class TipPage extends StatefulWidget {
 }
 
 class _TipPageState extends State<TipPage> {
-  final ItemScrollController _itemScrollController = ItemScrollController();
-  final ItemPositionsListener _itemPositionsListener =
-      ItemPositionsListener.create();
   List<CustomMatch> _filteredMatches = [];
+  final Map<String, TipFormBloc> _tipFormBlocs = {};
 
-  int? _calculatedScrollIndex;
+  @override
+  void dispose() {
+    for (var bloc in _tipFormBlocs.values) {
+      bloc.close();
+    }
+    super.dispose();
+  }
 
-  int _getCurrentMatchIndex(List<CustomMatch> matches) {
-    final now = DateTime.now();
-    return matches.indexWhere((match) {
-      final matchEndTime = match.matchDate.add(const Duration(minutes: 150));
-      return now.isBefore(matchEndTime);
-    });
+  TipFormBloc _getTipFormBloc(String matchId) {
+    if (!_tipFormBlocs.containsKey(matchId)) {
+      _tipFormBlocs[matchId] = sl<TipFormBloc>();
+    }
+    return _tipFormBlocs[matchId]!;
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeData = Theme.of(context);
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    const contentMaxWidth = 700.0;
-    final horizontalMargin = (screenWidth > contentMaxWidth)
-        ? (screenWidth - contentMaxWidth) / 2
-        : 16.0;
-
     return Scaffold(
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         builder: (context, authState) {
-          return BlocBuilder<TipControllerBloc, TipControllerState>(
-            builder: (context, tipState) {
-              return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
-                builder: (context, matchState) {
-                  return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
-                    builder: (context, teamState) {
-                      if (tipState is TipControllerFailure) {
-                        return Center(
-                          child: Text("Tip Failure: ${tipState.tipFailure}"),
-                        );
-                      }
-                      if (matchState is MatchesControllerFailure) {
-                        return Center(
-                          child:
-                              Text("Match Failure: ${matchState.matchFailure}"),
-                        );
-                      }
-                      if (teamState is TeamsControllerFailureState) {
-                        return Center(
-                          child: Text("Team Failure: ${teamState.teamFailure}"),
-                        );
-                      }
-                      if (authState is AuthControllerFailure) {
-                        return Center(
-                          child: Text("Auth Failure: ${authState.authFailure}"),
-                        );
-                      }
+          return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
+            builder: (context, matchState) {
+              return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
+                builder: (context, teamState) {
+                  if (matchState is MatchesControllerFailure) {
+                    return const Center(child: Text('Fehler beim Laden der Matches'));
+                  }
 
-                      if (tipState is TipControllerLoaded &&
-                          matchState is MatchesControllerLoaded &&
-                          teamState is TeamsControllerLoaded &&
-                          authState is AuthControllerLoaded) {
-                        final matches = matchState.matches;
-                        final teams = teamState.teams;
-                        final tips = tipState.tips;
-                        final userId = authState.signedInUser!.id;
-                        final userTips = tips[userId] ?? [];
+                  if (matchState is! MatchesControllerLoaded) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                        final filteredMatches = _filteredMatches.isNotEmpty || matches.isEmpty 
-                            ? _filteredMatches 
-                            : matches;
+                  if (teamState is! TeamsControllerLoaded) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                        // Bestimme den Scroll-Index:
-                        // 1. Aus URL-Parameter (höchste Priorität)
-                        // 2. Aus berechnetem aktuellem Spiel
-                        if (_calculatedScrollIndex == null) {
-                          _calculatedScrollIndex = widget.initialScrollIndex ?? 
-                              _getCurrentMatchIndex(filteredMatches);
-                          
-                          // Bereinige URL nach dem ersten Laden
-                          if (widget.initialScrollIndex != null) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              Routemaster.of(context).replace('/tips');
-                            });
-                          }
-                        }
+                  final matches = matchState.matches;
+                  final teams = teamState.teams;
+                  final userId = authState is AuthControllerLoaded
+                      ? authState.signedInUser?.id ?? ''
+                      : '';
 
-                        final scrollIndex = filteredMatches.isEmpty 
-                            ? 0 
-                            : _calculatedScrollIndex!.clamp(0, filteredMatches.length - 1);
+                  return PageTemplate(
+                    isAuthenticated: widget.isAuthenticated,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 700),
+                        child: Column(
+                          children: [
+                            // Suchfeld
+                            MatchSearchField(
+                              matches: matches,
+                              teams: teams,
+                              onFilteredMatchesChanged: (filtered) {
+                                setState(() {
+                                  _filteredMatches = filtered;
+                                });
+                              },
+                            ),
 
-                        return PageTemplate(
-                          isAuthenticated: widget.isAuthenticated,
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 700),
-                              child: Column(
-                                children: [
-                                  // Suchfeld
-                                  MatchSearchField(
-                                    matches: matches,
-                                    teams: teams,
-                                    onFilteredMatchesChanged: (filtered) {
-                                      setState(() {
-                                        _filteredMatches = filtered;
-                                      });
-                                    },
-                                  ),
-                                  
-                                  // Matches Liste
-                                  Expanded(
-                                    child: filteredMatches.isEmpty
-                                      ? Center(
-                                          child: Text(
-                                            filteredMatches.length < matches.length
-                                              ? "Keine Matches gefunden"
-                                              : "Noch keine Spiele verfügbar",
-                                            style: const TextStyle(color: Colors.white),
-                                            
-                                          ),
-                                        )
-                                      : ScrollablePositionedList.separated(
-                                          itemScrollController: _itemScrollController,
-                                          itemPositionsListener: _itemPositionsListener,
-                                          initialScrollIndex: scrollIndex,
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 8.0, horizontal: 16.0),
-                                          itemCount: filteredMatches.length,
-                                          separatorBuilder: (_, __) =>
-                                              const SizedBox(height: 24),
+                            // Matches Liste
+                            Expanded(
+                              child: _filteredMatches.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'Keine Matches gefunden',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    )
+                                  : ScrollablePositionedList.separated(
+                                      itemCount: _filteredMatches.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 16),
                                       itemBuilder: (context, index) {
-                                        final match = filteredMatches[index];
-                                        final tip = userTips.firstWhere(
-                                          (t) => t.matchId == match.id,
-                                          orElse: () => Tip.empty(userId)
-                                              .copyWith(matchId: match.id),
-                                        );
+                                        final match = _filteredMatches[index];
                                         final homeTeam = teams.firstWhere(
                                           (t) => t.id == match.homeTeamId,
                                           orElse: () => Team.empty(),
@@ -171,40 +116,36 @@ class _TipPageState extends State<TipPage> {
                                           (t) => t.id == match.guestTeamId,
                                           orElse: () => Team.empty(),
                                         );
-                                        return InkWell(
-                                          borderRadius: BorderRadius.circular(16),
-                                          onTap: () {
-                                            final tipId = tip.id.isNotEmpty
-                                                ? tip.id
-                                                : "${userId}_${match.id}";
-                                            
-                                            // Navigiere mit dem returnIndex-Parameter
-                                            Routemaster.of(context).push(
-                                                '/tips-detail/$tipId?from=tip&returnIndex=$index');
-                                          },
-                                          child: TipCard(
-                                            userId: userId,
-                                            tip: tip,
-                                            homeTeam: homeTeam,
-                                            guestTeam: guestTeam,
-                                            match: match,
-                                          ),
+
+                                        // ✅ Each card gets its own TipFormBloc from pool
+                                        final bloc = _getTipFormBloc(match.id);
+                                        // Initialize bloc for this match on first use
+                                        if (bloc.state.matchId != match.id) {
+                                          bloc.add(
+                                            TipFormInitializedEvent(
+                                              userId: userId,
+                                              matchDay: match.matchDay,
+                                              matchId: match.id,
+                                            ),
+                                          );
+                                        }
+                                        
+                                        return TipCard(
+                                          key: ValueKey(match.id),
+                                          userId: userId,
+                                          match: match,
+                                          homeTeam: homeTeam,
+                                          guestTeam: guestTeam,
+                                          tip: Tip.empty(userId),
+                                          formBloc: bloc, // ✅ Pass bloc to card
                                         );
                                       },
                                     ),
-                                  ),
-                                ]),
                             ),
-                          ),
-                        );
-                      }
-
-                      return Center(
-                        child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          ],
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   );
                 },
               );
@@ -212,27 +153,6 @@ class _TipPageState extends State<TipPage> {
           );
         },
       ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
-        child: ElevatedButton.icon(
-          onPressed: () {
-            Routemaster.of(context).replace('/home');
-          },
-          icon: const Icon(Icons.home),
-          label: const Text('Home', overflow: TextOverflow.ellipsis),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: themeData.colorScheme.onPrimary,
-            foregroundColor: themeData.colorScheme.primary,
-            textStyle: themeData.textTheme.bodyLarge,
-            minimumSize: const Size(140, 48),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

@@ -4,16 +4,24 @@ part of 'tipscontroller_bloc.dart';
 @immutable
 abstract class TipControllerEvent {}
 
+class TipLoadForUserEvent extends TipControllerEvent {
+  final String userId;
+
+  TipLoadForUserEvent({required this.userId});
+}
+
 class TipAllEvent extends TipControllerEvent {}
 
-class TipUpdatedEvent extends TipControllerEvent {
-  final Either<TipFailure, Map<String, List<Tip>>> failureOrTip;
+class TipUpdatedEvent extends TipControllerEvent { // ✅ NEU
+  final Either<TipFailure, dynamic> failureOrTip;
+  final String? userId;
+
   TipUpdatedEvent({
     required this.failureOrTip,
+    this.userId,
   });
 }
 
-class UserTipEvent extends TipControllerEvent {}
 class TipUpdateStatisticsEvent extends TipControllerEvent {
   final String userId;
   final int matchDay;

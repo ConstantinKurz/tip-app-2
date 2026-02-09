@@ -7,7 +7,6 @@ import 'package:flutter_web/application/matches/controller/matchescontroller_blo
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/services/tip_recalculation_service.dart';
-import 'package:flutter_web/core/utils/setup_tournament.dart';
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
@@ -80,7 +79,7 @@ class MyApp extends StatelessWidget {
               di.sl<TeamsControllerBloc>()..add(TeamsControllerAllEvent()),
         ),
         BlocProvider(
-          create: (_) => di.sl<TipControllerBloc>()..add(TipAllEvent()),
+          create: (_) => di.sl<TipControllerBloc>(),
         ),
       ],
       // BlocBuilder rund um dein gesamtes Routing
@@ -89,8 +88,26 @@ class MyApp extends StatelessWidget {
           final isAuthenticated = authState is AuthStateAuthenticated;
           final authControllerState = context.watch<AuthControllerBloc>().state;
           bool isAdmin = false;
+          String? userId;
+          
           if (authControllerState is AuthControllerLoaded) {
             isAdmin = authControllerState.signedInUser?.admin ?? false;
+            userId = authControllerState.signedInUser?.id;
+          }
+
+          // ✅ Initialisiere TipControllerBloc basierend auf User-Rolle
+          if (isAuthenticated && userId != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (isAdmin) {
+                // Admin sieht ALLE Tips
+                context.read<TipControllerBloc>().add(TipAllEvent());
+              } else {
+                // Normale User sehen nur ihre eigenen Tips (98% weniger Reads)
+                context.read<TipControllerBloc>().add(
+                  TipLoadForUserEvent(userId: userId!),
+                );
+              }
+            });
           }
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,

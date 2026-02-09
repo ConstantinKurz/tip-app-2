@@ -72,6 +72,39 @@ class TipRepositoryImpl implements TipRepository {
   }
 
   @override
+  Stream<Either<TipFailure, List<Tip>>> watchTipsForMatch(String matchId) async* {
+    yield* tipsCollection
+        .where('matchId', isEqualTo: matchId)
+        .snapshots()
+        .map<Either<TipFailure, List<Tip>>>((snapshot) {
+      try {
+        final matchTips = snapshot.docs
+            .map((doc) => TipModel.fromFirestore(doc).toDomain())
+            .toList();
+        return right<TipFailure, List<Tip>>(matchTips);
+      } catch (e) {
+        return left<TipFailure, List<Tip>>(
+          mapFirebaseError<TipFailure>(
+            e,
+            insufficientPermissions: InsufficientPermisssons(),
+            unexpected: UnexpectedFailure(),
+            notFound: NotFoundFailure(),
+          ),
+        );
+      }
+    }).handleError((e) {
+      return left<TipFailure, List<Tip>>(
+        mapFirebaseError<TipFailure>(
+          e,
+          insufficientPermissions: InsufficientPermisssons(),
+          unexpected: UnexpectedFailure(),
+          notFound: NotFoundFailure(),
+        ),
+      );
+    });
+  }
+
+  @override
   Stream<Either<TipFailure, Map<String, List<Tip>>>> watchAll() async* {
     yield* tipsCollection
         .snapshots()

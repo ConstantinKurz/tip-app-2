@@ -126,9 +126,12 @@ Future<void> seedRealisticWMSimulation() async {
     match['guestScore'] = result['guest'];
   }
 
-  // Speichere alle Matches
+  // Speichere alle Matches mit id-Feld
   for (var match in allMatches) {
-    await firestore.collection('matches').doc(match['id']).set(match);
+    await firestore.collection('matches').doc(match['id']).set({
+      ...match,
+      'id': match['id'], // ✅ Speichere id auch als Feld!
+    });
   }
 
   print('\n✅ ${allMatches.length} Matches erstellt');

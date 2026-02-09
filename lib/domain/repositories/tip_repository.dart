@@ -7,6 +7,9 @@ abstract class TipRepository {
 
   Stream<Either<TipFailure, List<Tip>>> watchUserTips(String userID);
 
+  /// ✅ NEU: Stream für Community-Tips eines einzelnen Matches
+  Stream<Either<TipFailure, List<Tip>>> watchTipsForMatch(String matchId);
+
   Future<Either<TipFailure, Unit>> create(Tip tip);
   
   /// Gibt alle Tips für ein bestimmtes Match zurück

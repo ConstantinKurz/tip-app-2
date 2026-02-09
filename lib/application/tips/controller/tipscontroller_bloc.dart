@@ -16,48 +16,54 @@ part 'tipscontroller_state.dart';
 class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   final TipRepository tipRepository;
   final ValidateJokerUsageUpdateStatUseCase validateJokerUseCase;
-  StreamSubscription<Either<TipFailure, Map<String, List<Tip>>>>? _tipStreamSub;
+
+  StreamSubscription<Either<TipFailure, dynamic>>? _tipStreamSub; // ✅ GEÄNDERT
 
   TipControllerBloc({
     required this.tipRepository,
     required this.validateJokerUseCase,
   }) : super(TipControllerInitial()) {
-    on<TipAllEvent>(_onTipAllEvent);
-    on<TipUpdatedEvent>(_onTipUpdatedEvent);
+    on<TipLoadForUserEvent>(_onLoadForUser); // ✅ NEU
+    on<TipAllEvent>(_onTipAllEvent); // ✅ BEHALTEN
+    on<TipUpdatedEvent>(_onTipUpdatedEvent); // ✅ NEU
     on<TipUpdateStatisticsEvent>(_onUpdateStatistics);
   }
 
-  Future<void> _onTipAllEvent(
-    TipAllEvent event,
+  // ✅ NEU: Lädt nur Tips des eingeloggten Users
+  Future<void> _onLoadForUser(
+    TipLoadForUserEvent event,
     Emitter<TipControllerState> emit,
   ) async {
     emit(TipControllerLoading());
-
-    // Vorherigen Stream schließen
     await _tipStreamSub?.cancel();
 
-    _tipStreamSub = tipRepository.watchAll().listen(
-      (failureOrTip) => add(TipUpdatedEvent(failureOrTip: failureOrTip)),
-      onError: (_) {
-        emit(TipControllerFailure(tipFailure: UnexpectedFailure()));
-      },
-    );
+    _tipStreamSub = tipRepository
+        .watchUserTips(event.userId)
+        .listen(
+          (tipResult) {
+            // ✅ Trigger Event statt direkt emit
+            add(TipUpdatedEvent(
+              failureOrTip: tipResult,
+              userId: event.userId,
+            ));
+          },
+          onError: (_) {
+            add(TipUpdatedEvent(
+              failureOrTip: left(UnexpectedFailure()),
+              userId: event.userId,
+            ));
+          },
+        );
   }
 
-  void _onUserTipEvent(
-    UserTipEvent event,
-    Emitter<TipControllerState> emit,
-  ) {
-    emit(TipControllerLoading());
-  }
-
+  // ✅ NEU: Verarbeitet Updates aus dem Stream
   void _onTipUpdatedEvent(
     TipUpdatedEvent event,
     Emitter<TipControllerState> emit,
-  ) async {
+  ) {
     event.failureOrTip.fold(
       (failure) => emit(TipControllerFailure(tipFailure: failure)),
-      (tips) async {
+      (tips) {
         final currentState = state;
         Map<int, MatchDayStatistics> currentStats = {};
 
@@ -65,9 +71,43 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
           currentStats = Map.from(currentState.matchDayStatistics);
         }
 
+        late Map<String, List<Tip>> tipMap;
+
+        // ✅ Prüfe ob List oder Map
+        if (tips is List<Tip>) {
+          tipMap = {event.userId ?? '': tips};
+        } else {
+          tipMap = tips as Map<String, List<Tip>>;
+        }
+
         emit(TipControllerLoaded(
-          tips: tips,
+          tips: tipMap,
           matchDayStatistics: currentStats,
+        ));
+      },
+    );
+  }
+
+  // ✅ BEHALTEN: Für Admin-Dashboard
+  Future<void> _onTipAllEvent(
+    TipAllEvent event,
+    Emitter<TipControllerState> emit,
+  ) async {
+    emit(TipControllerLoading());
+    await _tipStreamSub?.cancel();
+
+    _tipStreamSub = tipRepository.watchAll().listen(
+      (failureOrTips) {
+        // ✅ Trigger Event statt direkt emit
+        add(TipUpdatedEvent(
+          failureOrTip: failureOrTips,
+          userId: null,
+        ));
+      },
+      onError: (_) {
+        add(TipUpdatedEvent(
+          failureOrTip: left(UnexpectedFailure()),
+          userId: null,
         ));
       },
     );
@@ -96,18 +136,15 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
 
         for (final matchDayInPhase in matchDaysInPhase) {
           if (event.matchDay == matchDayInPhase) {
-            // ✅ Aktualisiere ALLE Stats für den aktuellen matchDay
             updatedStats[matchDayInPhase] = stats;
           } else {
-            // ✅ Für andere matchDays in der Phase: nur jokersUsed aktualisieren
             final existingStat = updatedStats[matchDayInPhase];
             if (existingStat != null) {
               updatedStats[matchDayInPhase] = existingStat.copyWith(
                 jokersUsed: stats.jokersUsed,
-                jokersAvailable: stats.jokersAvailable, // Auch maxJokers übernehmen
+                jokersAvailable: stats.jokersAvailable,
               );
             } else {
-              // Falls noch keine Stats vorhanden, erstelle neue
               updatedStats[matchDayInPhase] = stats.copyWith(
                 matchDay: matchDayInPhase,
               );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
@@ -13,6 +15,7 @@ part 'tipform_state.dart';
 class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
   final TipRepository tipRepository;
   final ValidateJokerUsageUpdateStatUseCase validateJokerUseCase;
+  StreamSubscription<Either<TipFailure, List<Tip>>>? _userTipsSubscription;
 
   TipFormBloc({
     required this.tipRepository,
@@ -26,25 +29,41 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     TipFormInitializedEvent event,
     Emitter<TipFormState> emit,
   ) async {
-    // Hole existierenden Tip
-    final existingTips = await tipRepository.getTipsByUserId(event.userId);
-    final tip = existingTips.fold(
-      (_) => null,
-      (tips) => tips.firstWhereOrNull((t) => t.matchId == event.matchId),
-    );
+    // ✅ Nutze Stream statt Future - reduziert Firebase Reads
+    await _userTipsSubscription?.cancel();
 
-    // ✅ Setze isLoading = false, egal ob Tipp existiert oder nicht
-    emit(
-      state.copyWith(
-        userId: event.userId,
-        matchId: event.matchId,
-        matchDay: event.matchDay,
-        tipHome: tip?.tipHome,
-        tipGuest: tip?.tipGuest,
-        joker: tip?.joker ?? false,
-        isLoading: false, // ✅ Fertig mit Laden
-      ),
-    );
+    _userTipsSubscription = tipRepository
+        .watchUserTips(event.userId)
+        .listen(
+          (tipResult) {
+            tipResult.fold(
+              (_) {
+                emit(state.copyWith(
+                  userId: event.userId,
+                  matchId: event.matchId,
+                  matchDay: event.matchDay,
+                  tipHome: null,
+                  tipGuest: null,
+                  joker: false,
+                  isLoading: false,
+                ));
+              },
+              (tips) {
+                final tip = tips.firstWhereOrNull((t) => t.matchId == event.matchId);
+
+                emit(state.copyWith(
+                  userId: event.userId,
+                  matchId: event.matchId,
+                  matchDay: event.matchDay,
+                  tipHome: tip?.tipHome,
+                  tipGuest: tip?.tipGuest,
+                  joker: tip?.joker ?? false,
+                  isLoading: false,
+                ));
+              },
+            );
+          },
+        );
   }
 
   Future<void> _onFieldUpdated(
@@ -130,4 +149,8 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       failureOrSuccessOption: some(result),
     ));
   }
-}
+  @override
+  Future<void> close() async {
+    await _userTipsSubscription?.cancel();
+    return super.close();
+  }}

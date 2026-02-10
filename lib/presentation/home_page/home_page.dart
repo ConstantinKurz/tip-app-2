@@ -31,34 +31,32 @@ class _HomePageState extends State<HomePage> {
     const contentMaxWidth = 700.0;
     final horizontalMargin = (screenWidth > contentMaxWidth)
         ? (screenWidth - contentMaxWidth) / 2
-        : 16.0; 
+        : 16.0;
 
-    return BlocBuilder<AuthControllerBloc, AuthControllerState>(
-      builder: (context, authState) {
-        if (authState is! AuthControllerLoaded ||
-            authState.signedInUser == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return BlocProvider(
+      create: (_) => sl<RankingBloc>(),
+      child: BlocBuilder<AuthControllerBloc, AuthControllerState>(
+        builder: (context, authState) {
+          if (authState is! AuthControllerLoaded) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        final userId = authState.signedInUser!.id;
-        final users = authState.users;
+          final userId = authState.signedInUser?.id ?? '';
+          final users = authState.users;
 
-        return Scaffold(
-          body: PageTemplate(
-            isAuthenticated: widget.isAuthenticated,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: contentMaxWidth),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        key: _rankingSectionKey,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 16.0),
-                        child: BlocProvider<RankingBloc>(
+          return Scaffold(
+            body: PageTemplate(
+              isAuthenticated: widget.isAuthenticated,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: contentMaxWidth),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        BlocProvider(
                           create: (_) => sl<RankingBloc>(),
                           child: BlocListener<RankingBloc, RankingState>(
                             listener: (context, state) {
@@ -73,44 +71,40 @@ class _HomePageState extends State<HomePage> {
                             child: RankingSection(userId: userId, users: users),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 16.0),
-                        child: UpcomingTipSection(
+                        UpcomingTipSection(
                           userId: userId,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          floatingActionButton: Padding(
-            padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Routemaster.of(context).push('/tips');
-              },
-              icon: const Icon(Icons.list_alt),
-              label: const Text('Tipps', overflow: TextOverflow.ellipsis),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: themeData.colorScheme.onPrimary,
-                foregroundColor: themeData.colorScheme.primary,
-                textStyle: themeData.textTheme.bodyLarge,
-                minimumSize: const Size(140, 48),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            floatingActionButton: Padding(
+              padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Routemaster.of(context).push('/tips');
+                },
+                icon: const Icon(Icons.list_alt),
+                label: const Text('Tipps', overflow: TextOverflow.ellipsis),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeData.colorScheme.onPrimary,
+                  foregroundColor: themeData.colorScheme.primary,
+                  textStyle: themeData.textTheme.bodyLarge,
+                  minimumSize: const Size(140, 48),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
-          ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        );
-      },
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          );
+        },
+      ),
     );
   }
 }

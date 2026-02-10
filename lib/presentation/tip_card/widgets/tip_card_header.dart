@@ -9,12 +9,11 @@ import 'package:flutter_web/presentation/tip_card/widgets/tip_status.dart';
 class TipCardHeader extends StatelessWidget {
   final CustomMatch match;
   final Tip tip;
+  final bool? showStatus;
 
-  const TipCardHeader({
-    Key? key,
-    required this.match,
-    required this.tip,
-  }) : super(key: key);
+  const TipCardHeader(
+      {Key? key, required this.match, required this.tip, this.showStatus})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +99,9 @@ class TipCardHeader extends StatelessWidget {
                         ),
                         children: [
                           TextSpan(
-                            text: '${tip.points ?? '–'}',
-                            style: TextStyle(
-                              color: tip.points != null
-                                  ? Colors.green
-                                  : theme.colorScheme.onSurface.withOpacity(0.4),
+                            text: tip.points != null ? '${tip.points}' : '0',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                           TextSpan(
@@ -126,8 +123,18 @@ class TipCardHeader extends StatelessWidget {
 
   String _formatDate(DateTime dateTime) {
     final months = [
-      'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'
+      'Jan',
+      'Feb',
+      'Mär',
+      'Apr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Dez'
     ];
     final days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 

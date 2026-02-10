@@ -85,7 +85,6 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                           orElse: () => Team.empty(),
                         );
 
-                        // ✅ NEU: Lade Statistiken für dieses Match
                         if (!_statsLoaded && match.id.isNotEmpty) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             context.read<TipControllerBloc>().add(

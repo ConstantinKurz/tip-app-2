@@ -4,10 +4,12 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/entities/user.dart';
+import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/core/widgets/match_search_field.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
@@ -50,23 +52,35 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                   return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
                     builder: (context, teamState) {
                       if (tipState is TipControllerFailure) {
-                        return Center(
-                          child: Text("Tip Failure: ${tipState.tipFailure}"),
+                        return PageTemplate(
+                          isAuthenticated: widget.isAuthenticated,
+                          child: Center(
+                            child: Text("Tip Failure: ${tipState.tipFailure}"),
+                          ),
                         );
                       }
                       if (matchState is MatchesControllerFailure) {
-                        return Center(
-                          child: Text("Match Failure: ${matchState.matchFailure}"),
+                        return PageTemplate(
+                          isAuthenticated: widget.isAuthenticated,
+                          child: Center(
+                            child: Text("Match Failure: ${matchState.matchFailure}"),
+                          ),
                         );
                       }
                       if (teamState is TeamsControllerFailureState) {
-                        return Center(
-                          child: Text("Team Failure: ${teamState.teamFailure}"),
+                        return PageTemplate(
+                          isAuthenticated: widget.isAuthenticated,
+                          child: Center(
+                            child: Text("Team Failure: ${teamState.teamFailure}"),
+                          ),
                         );
                       }
                       if (authState is AuthControllerFailure) {
-                        return Center(
-                          child: Text("Auth Failure: ${authState.authFailure}"),
+                        return PageTemplate(
+                          isAuthenticated: widget.isAuthenticated,
+                          child: Center(
+                            child: Text("Auth Failure: ${authState.authFailure}"),
+                          ),
                         );
                       }
 
@@ -74,16 +88,15 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                           matchState is MatchesControllerLoaded &&
                           teamState is TeamsControllerLoaded &&
                           authState is AuthControllerLoaded) {
-                        
                         final teams = teamState.teams;
                         final matches = matchState.matches;
                         final tips = tipState.tips;
                         final userTips = tips[widget.selectedUserId] ?? [];
-                        
-                        final filteredMatches = _filteredMatches.isNotEmpty || matches.isEmpty 
-                            ? _filteredMatches 
+                        final filteredMatches = _filteredMatches.isNotEmpty ||
+                                matches.isEmpty
+                            ? _filteredMatches
                             : matches;
-                        
+
                         final selectedUser = authState.users.firstWhere(
                           (u) => u.id == widget.selectedUserId,
                           orElse: () => AppUser.empty(),
@@ -99,13 +112,17 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                                     // Header Text
                                     Container(
                                       width: double.infinity,
-                                      padding: const EdgeInsets.only(top: 60, bottom: 16),
+                                      padding: const EdgeInsets.only(
+                                          top: 60, bottom: 16),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Text(
                                             "Tipps von ${selectedUser.name}",
-                                            style: themeData.textTheme.headlineSmall?.copyWith(
+                                            style: themeData.textTheme
+                                                .headlineSmall
+                                                ?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
@@ -113,19 +130,21 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                                           const SizedBox(height: 8),
                                           Text(
                                             "Rang: #${selectedUser.rank} • Punkte: ${selectedUser.score} • Joker: ${selectedUser.jokerSum}",
-                                            style: themeData.textTheme.bodyMedium?.copyWith(
+                                            style: themeData.textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
                                               color: Colors.white,
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    
                                     // Suchfeld
                                     MatchSearchField(
                                       matches: matches,
                                       teams: teams,
-                                      hintText: "Nach Teams, Spielphase oder Matchtag suchen...",
+                                      hintText:
+                                          "Nach Teams, Spielphase oder Matchtag suchen...",
                                       showHelpDialog: false,
                                       onFilteredMatchesChanged: (filtered) {
                                         setState(() {
@@ -133,53 +152,92 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                                         });
                                       },
                                     ),
-                                    
                                     // Tipps Liste
                                     Expanded(
                                       child: Center(
                                         child: ConstrainedBox(
-                                          constraints: const BoxConstraints(maxWidth: contentMaxWidth),
-                                          child: ScrollablePositionedList.separated(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 16.0,
-                                              horizontal: 16.0,
-                                            ),
-                                            itemCount: filteredMatches.length,
-                                            separatorBuilder: (_, __) => const SizedBox(height: 24),
-                                            itemBuilder: (context, index) {
-                                              final match = filteredMatches[index];
-                                              final tip = userTips.firstWhere(
-                                                (t) => t.matchId == match.id,
-                                                orElse: () => Tip.empty(widget.selectedUserId)
-                                                    .copyWith(matchId: match.id),
-                                              );
-                                              final homeTeam = teams.firstWhere(
-                                                (t) => t.id == match.homeTeamId,
-                                                orElse: () => Team.empty(),
-                                              );
-                                              final guestTeam = teams.firstWhere(
-                                                (t) => t.id == match.guestTeamId,
-                                                orElse: () => Team.empty(),
-                                              );
+                                          constraints: const BoxConstraints(
+                                              maxWidth: contentMaxWidth),
+                                          child: filteredMatches.isEmpty
+                                              ? const Center(
+                                                  child: Text(
+                                                    'Keine Matches gefunden',
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
+                                                )
+                                              : ScrollablePositionedList
+                                                  .separated(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: 16.0,
+                                                    horizontal: 16.0,
+                                                  ),
+                                                  itemCount:
+                                                      filteredMatches.length,
+                                                  separatorBuilder: (_, __) =>
+                                                      const SizedBox(
+                                                          height: 24),
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    final match =
+                                                        filteredMatches[index];
+                                                    final tip = userTips
+                                                        .firstWhere(
+                                                          (t) =>
+                                                              t.matchId ==
+                                                              match.id,
+                                                          orElse: () => Tip
+                                                              .empty(widget
+                                                                  .selectedUserId)
+                                                              .copyWith(
+                                                                  matchId:
+                                                                      match.id),
+                                                        );
+                                                    final homeTeam = teams
+                                                        .firstWhere(
+                                                          (t) =>
+                                                              t.id ==
+                                                              match.homeTeamId,
+                                                          orElse: () =>
+                                                              Team.empty(),
+                                                        );
+                                                    final guestTeam = teams
+                                                        .firstWhere(
+                                                          (t) =>
+                                                              t.id ==
+                                                              match.guestTeamId,
+                                                          orElse: () =>
+                                                              Team.empty(),
+                                                        );
 
-                                              return TipCard(
-                                                userId: widget.selectedUserId,
-                                                tip: tip,
-                                                homeTeam: homeTeam,
-                                                guestTeam: guestTeam,
-                                                match: match,
-                                              );
-                                            },
-                                          ),
+                                                    return BlocProvider<
+                                                        TipFormBloc>(
+                                                      create: (_) =>
+                                                          sl<TipFormBloc>(),
+                                                      child:
+                                                          _AdminTipCardInitializer(
+                                                        matchId: match.id,
+                                                        userId: widget
+                                                            .selectedUserId,
+                                                        matchDay:
+                                                            match.matchDay,
+                                                        match: match,
+                                                        homeTeam: homeTeam,
+                                                        guestTeam: guestTeam,
+                                                        tip: tip,
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              
                               Positioned(
-                                top: 48,
+                                top: 16,
                                 right: horizontalMargin,
                                 child: Container(
                                   decoration: BoxDecoration(
@@ -187,9 +245,11 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: IconButton(
-                                    icon: const Icon(Icons.close, size: 28, color: Colors.white),
+                                    icon: const Icon(Icons.close,
+                                        size: 28, color: Colors.white),
                                     onPressed: () {
-                                      Routemaster.of(context).replace('/admin');
+                                      Routemaster.of(context)
+                                          .replace('/admin');
                                     },
                                   ),
                                 ),
@@ -199,9 +259,12 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                         );
                       }
 
-                      return Center(
-                        child: CircularProgressIndicator(
-                          color: themeData.colorScheme.onPrimaryContainer,
+                      return PageTemplate(
+                        isAuthenticated: widget.isAuthenticated,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: themeData.colorScheme.onPrimaryContainer,
+                          ),
                         ),
                       );
                     },
@@ -212,6 +275,74 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
           );
         },
       ),
+    );
+  }
+}
+
+// ✅ Wrapper Widget um TipUpdateStatisticsEvent nur EINMAL zu triggern
+class _AdminTipCardInitializer extends StatefulWidget {
+  final String matchId;
+  final String userId;
+  final int matchDay;
+  final CustomMatch match;
+  final Team homeTeam;
+  final Team guestTeam;
+  final Tip tip;
+
+  const _AdminTipCardInitializer({
+    Key? key,
+    required this.matchId,
+    required this.userId,
+    required this.matchDay,
+    required this.match,
+    required this.homeTeam,
+    required this.guestTeam,
+    required this.tip,
+  }) : super(key: key);
+
+  @override
+  State<_AdminTipCardInitializer> createState() =>
+      _AdminTipCardInitializerState();
+}
+
+class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      // ✅ NEU: Initialisiere TipFormBloc einmalig
+      final formBloc = context.read<TipFormBloc>();
+      formBloc.add(
+        TipFormInitializedEvent(
+          userId: widget.userId,
+          matchId: widget.matchId,
+          matchDay: widget.matchDay,
+        ),
+      );
+
+      // Lade Statistiken
+      context.read<TipControllerBloc>().add(
+        TipUpdateStatisticsEvent(
+          userId: widget.userId,
+          matchDay: widget.matchDay,
+        ),
+      );
+      
+      _initialized = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TipCard(
+      key: ValueKey(widget.matchId),
+      userId: widget.userId,
+      match: widget.match,
+      homeTeam: widget.homeTeam,
+      guestTeam: widget.guestTeam,
+      tip: widget.tip,
     );
   }
 }

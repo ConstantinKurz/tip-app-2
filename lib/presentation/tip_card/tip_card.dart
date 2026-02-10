@@ -49,16 +49,38 @@ class _TipCardState extends State<TipCard> {
     super.dispose();
   }
 
+  // ✅ NEU: Update Controller wenn sich Tips ändern
+  void _updateControllersFromState(TipFormState state) {
+    // Nur updaten wenn die Werte sich wirklich geändert haben
+    final newHomeValue = state.tipHome?.toString() ?? '';
+    final newGuestValue = state.tipGuest?.toString() ?? '';
+    
+    if (_homeController.text != newHomeValue) {
+      _homeController.text = newHomeValue;
+    }
+    
+    if (_guestController.text != newGuestValue) {
+      _guestController.text = newGuestValue;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasResult = widget.match.homeScore != null && widget.match.guestScore != null;
 
-    // ✅ Nutze BlocConsumer DIREKT hier (Bloc kommt von Parent via BlocProvider.value)
     return BlocConsumer<TipFormBloc, TipFormState>(
       listenWhen: (previous, current) =>
-          previous.isSubmitting && !current.isSubmitting,
+          previous.isSubmitting && !current.isSubmitting ||
+          previous.matchId != current.matchId ||
+          previous.tipHome != current.tipHome ||
+          previous.tipGuest != current.tipGuest,
       listener: (context, state) {
+        // ✅ Update Controller wenn Tips vom Stream kommen
+        if (state.matchId == widget.match.id && !state.isLoading) {
+          _updateControllersFromState(state);
+        }
+
         state.failureOrSuccessOption.fold(
           () {},
           (either) => either.fold(
@@ -71,7 +93,6 @@ class _TipCardState extends State<TipCard> {
               );
             },
             (_) {
-              // ✅ Nach erfolgreichem Speichern: Update Stats
               context.read<TipControllerBloc>().add(
                     TipUpdateStatisticsEvent(
                       userId: widget.userId,
@@ -81,6 +102,13 @@ class _TipCardState extends State<TipCard> {
             },
           ),
         );
+      },
+      buildWhen: (previous, current) {
+        // Rebuild wenn sich relevante Felder ändern
+        return previous.joker != current.joker ||
+            previous.isLoading != current.isLoading ||
+            previous.isSubmitting != current.isSubmitting ||
+            previous.matchId != current.matchId;
       },
       builder: (context, formState) {
         return Container(

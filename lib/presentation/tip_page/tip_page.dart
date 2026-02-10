@@ -13,6 +13,7 @@ import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/core/widgets/match_search_field.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
+import 'package:routemaster/routemaster.dart';
 
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -51,6 +52,12 @@ class _TipPageState extends State<TipPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeData = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    const contentMaxWidth = 700.0;
+    final horizontalMargin = (screenWidth > contentMaxWidth)
+        ? (screenWidth - contentMaxWidth) / 2
+        : 16.0;
     return Scaffold(
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         builder: (context, authState) {
@@ -59,7 +66,8 @@ class _TipPageState extends State<TipPage> {
               return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
                 builder: (context, teamState) {
                   if (matchState is MatchesControllerFailure) {
-                    return const Center(child: Text('Fehler beim Laden der Matches'));
+                    return const Center(
+                        child: Text('Fehler beim Laden der Matches'));
                   }
 
                   if (matchState is! MatchesControllerLoaded) {
@@ -76,11 +84,16 @@ class _TipPageState extends State<TipPage> {
                       ? authState.signedInUser?.id ?? ''
                       : '';
 
+                  // ✅ NEU: Verwende matches als Fallback wenn _filteredMatches leer
+                  final displayedMatches = _filteredMatches.isEmpty 
+                      ? matches 
+                      : _filteredMatches;
+
                   return PageTemplate(
                     isAuthenticated: widget.isAuthenticated,
                     child: Center(
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 700),
+                        constraints: const BoxConstraints(maxWidth: contentMaxWidth),
                         child: Column(
                           children: [
                             // Suchfeld
@@ -96,7 +109,7 @@ class _TipPageState extends State<TipPage> {
 
                             // Matches Liste
                             Expanded(
-                              child: _filteredMatches.isEmpty
+                              child: displayedMatches.isEmpty // ✅ GEÄNDERT
                                   ? const Center(
                                       child: Text(
                                         'Keine Matches gefunden',
@@ -104,11 +117,11 @@ class _TipPageState extends State<TipPage> {
                                       ),
                                     )
                                   : ScrollablePositionedList.separated(
-                                      itemCount: _filteredMatches.length,
+                                      itemCount: displayedMatches.length, // ✅ GEÄNDERT
                                       separatorBuilder: (_, __) =>
                                           const SizedBox(height: 16),
                                       itemBuilder: (context, index) {
-                                        final match = _filteredMatches[index];
+                                        final match = displayedMatches[index]; // ✅ GEÄNDERT
                                         final homeTeam = teams.firstWhere(
                                           (t) => t.id == match.homeTeamId,
                                           orElse: () => Team.empty(),
@@ -117,19 +130,43 @@ class _TipPageState extends State<TipPage> {
                                           (t) => t.id == match.guestTeamId,
                                           orElse: () => Team.empty(),
                                         );
-                                        // ✅ Each card gets its own TipFormBloc from pool
+
+                                        final tipState = context
+                                            .read<TipControllerBloc>()
+                                            .state;
+                                        final tip = (tipState
+                                                is TipControllerLoaded)
+                                            ? (tipState.tips[userId] ?? [])
+                                                .firstWhere(
+                                                (t) => t.matchId == match.id,
+                                                orElse: () => Tip.empty(userId),
+                                              )
+                                            : Tip.empty(userId);
+
                                         final bloc = _getTipFormBloc(match.id);
-                                        
-                                        // ✅ Wrap with BlocProvider.value
-                                        return BlocProvider<TipFormBloc>.value(
-                                          value: bloc,
-                                          child: _TipCardInitializer(
-                                            matchId: match.id,
-                                            userId: userId,
-                                            matchDay: match.matchDay,
-                                            match: match,
-                                            homeTeam: homeTeam,
-                                            guestTeam: guestTeam,
+
+                                        return InkWell(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          onTap: () {
+                                            final tipId = tip.id.isNotEmpty
+                                                ? tip.id
+                                                : "${userId}_${match.id}";
+                                            Routemaster.of(context).push(
+                                              '/tips-detail/$tipId?from=tip&returnIndex=$index',
+                                            );
+                                          },
+                                          child:
+                                              BlocProvider<TipFormBloc>.value(
+                                            value: bloc,
+                                            child: _TipCardInitializer(
+                                              matchId: match.id,
+                                              userId: userId,
+                                              matchDay: match.matchDay,
+                                              match: match,
+                                              homeTeam: homeTeam,
+                                              guestTeam: guestTeam,
+                                            ),
                                           ),
                                         );
                                       },
@@ -146,6 +183,27 @@ class _TipPageState extends State<TipPage> {
           );
         },
       ),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
+        child: ElevatedButton.icon(
+          onPressed: () {
+            Routemaster.of(context).push('/home');
+          },
+          icon: const Icon(Icons.home),
+          label: const Text('Home', overflow: TextOverflow.ellipsis),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: themeData.colorScheme.onPrimary,
+            foregroundColor: themeData.colorScheme.primary,
+            textStyle: themeData.textTheme.bodyLarge,
+            minimumSize: const Size(140, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
@@ -182,7 +240,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
     if (!_initialized) {
       final formBloc = context.read<TipFormBloc>();
       final controllerBloc = context.read<TipControllerBloc>();
-      
+
       if (formBloc.state.matchId != widget.matchId) {
         formBloc.add(
           TipFormInitializedEvent(
@@ -193,14 +251,13 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
         );
       }
 
-      // ✅ NEU: Statistiken beim initialen Laden berechnen
       controllerBloc.add(
         TipUpdateStatisticsEvent(
           userId: widget.userId,
           matchDay: widget.matchDay,
         ),
       );
-      
+
       _initialized = true;
     }
   }

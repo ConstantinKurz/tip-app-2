@@ -34,6 +34,7 @@ class TipDetailsPage extends StatefulWidget {
 
 class _TipDetailsPageState extends State<TipDetailsPage> {
   TipFormBloc? _tipFormBloc;
+  bool _statsLoaded = false; // ✅ NEU
 
   @override
   void dispose() {
@@ -56,39 +57,19 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                 builder: (context, matchState) {
                   return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
                     builder: (context, teamState) {
-                      if (tipState is TipControllerFailure) {
-                        return Center(
-                            child: Text("Tip Failure: ${tipState.tipFailure}"));
-                      }
-                      if (matchState is MatchesControllerFailure) {
-                        return Center(
-                            child: Text(
-                                "Match Failure: ${matchState.matchFailure}"));
-                      }
-                      if (teamState is TeamsControllerFailureState) {
-                        return Center(
-                            child:
-                                Text("Team Failure: ${teamState.teamFailure}"));
-                      }
-                      if (authState is AuthControllerFailure) {
-                        return Center(
-                            child:
-                                Text("Auth Failure: ${authState.authFailure}"));
-                      }
-
-                      if (tipState is TipControllerLoaded &&
+                      if (authState is AuthControllerLoaded &&
+                          tipState is TipControllerLoaded &&
                           matchState is MatchesControllerLoaded &&
-                          teamState is TeamsControllerLoaded &&
-                          authState is AuthControllerLoaded) {
-                        final teams = teamState.teams;
+                          teamState is TeamsControllerLoaded) {
+                        final userId = authState.signedInUser?.id ?? '';
                         final tips = tipState.tips;
-                        final userId = authState.signedInUser!.id;
                         final userTips = tips[userId] ?? [];
                         final tip = userTips.firstWhere(
                           (t) => t.id == widget.tipId,
                           orElse: () => Tip.empty(userId),
                         );
-                        //If tip does not exist matchId within tip is still empty. Get it from tipId.
+                        
+                        // If tip does not exist matchId within tip is still empty. Get it from tipId.
                         final splitIndex = widget.tipId.indexOf('_');
                         final matchId = widget.tipId.substring(splitIndex + 1);
                         final match = matchState.matches.firstWhere(
@@ -104,6 +85,19 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                           orElse: () => Team.empty(),
                         );
 
+                        // ✅ NEU: Lade Statistiken für dieses Match
+                        if (!_statsLoaded && match.id.isNotEmpty) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            context.read<TipControllerBloc>().add(
+                                  TipUpdateStatisticsEvent(
+                                    userId: userId,
+                                    matchDay: match.matchDay,
+                                  ),
+                                );
+                          });
+                          _statsLoaded = true;
+                        }
+
                         // Create TipFormBloc once for this match
                         _tipFormBloc ??= sl<TipFormBloc>();
 
@@ -116,17 +110,14 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   ConstrainedBox(
-                                    constraints:
-                                        const BoxConstraints(maxWidth: 700),
+                                    constraints: const BoxConstraints(maxWidth: 700),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: [
                                         const SizedBox(height: 24),
                                         Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
+                                          mainAxisAlignment: MainAxisAlignment.end,
                                           children: [
                                             IconButton(
                                               icon: const Icon(Icons.close),
@@ -136,8 +127,7 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                                   Routemaster.of(context).replace(
                                                       '/tips?scrollTo=$returnIndexString');
                                                 } else {
-                                                  Routemaster.of(context)
-                                                      .replace('/home');
+                                                  Routemaster.of(context).replace('/home');
                                                 }
                                               },
                                             ),
@@ -166,7 +156,7 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                             allTips: tipState.tips,
                                             match: match,
                                             currentUserId: userId,
-                                            teams: teams,
+                                            teams: teamState.teams,
                                           ),
                                         ),
                                       ],
@@ -182,8 +172,7 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                       // Show loading indicator while data is loading
                       return Center(
                         child: CircularProgressIndicator(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       );
                     },

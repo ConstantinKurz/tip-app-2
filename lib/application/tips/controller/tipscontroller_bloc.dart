@@ -17,19 +17,18 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   final TipRepository tipRepository;
   final ValidateJokerUsageUpdateStatUseCase validateJokerUseCase;
 
-  StreamSubscription<Either<TipFailure, dynamic>>? _tipStreamSub; // ✅ GEÄNDERT
+  StreamSubscription<Either<TipFailure, dynamic>>? _tipStreamSub;
 
   TipControllerBloc({
     required this.tipRepository,
     required this.validateJokerUseCase,
   }) : super(TipControllerInitial()) {
-    on<TipLoadForUserEvent>(_onLoadForUser); // ✅ NEU
-    on<TipAllEvent>(_onTipAllEvent); // ✅ BEHALTEN
-    on<TipUpdatedEvent>(_onTipUpdatedEvent); // ✅ NEU
+    on<TipLoadForUserEvent>(_onLoadForUser);
+    on<TipAllEvent>(_onTipAllEvent);
+    on<TipUpdatedEvent>(_onTipUpdatedEvent);
     on<TipUpdateStatisticsEvent>(_onUpdateStatistics);
   }
 
-  // ✅ NEU: Lädt nur Tips des eingeloggten Users
   Future<void> _onLoadForUser(
     TipLoadForUserEvent event,
     Emitter<TipControllerState> emit,
@@ -41,7 +40,6 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         .watchUserTips(event.userId)
         .listen(
           (tipResult) {
-            // ✅ Trigger Event statt direkt emit
             add(TipUpdatedEvent(
               failureOrTip: tipResult,
               userId: event.userId,
@@ -55,8 +53,6 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
           },
         );
   }
-
-  // ✅ NEU: Verarbeitet Updates aus dem Stream
   void _onTipUpdatedEvent(
     TipUpdatedEvent event,
     Emitter<TipControllerState> emit,
@@ -73,7 +69,6 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
 
         late Map<String, List<Tip>> tipMap;
 
-        // ✅ Prüfe ob List oder Map
         if (tips is List<Tip>) {
           tipMap = {event.userId ?? '': tips};
         } else {
@@ -88,7 +83,6 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     );
   }
 
-  // ✅ BEHALTEN: Für Admin-Dashboard
   Future<void> _onTipAllEvent(
     TipAllEvent event,
     Emitter<TipControllerState> emit,
@@ -98,7 +92,6 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
 
     _tipStreamSub = tipRepository.watchAll().listen(
       (failureOrTips) {
-        // ✅ Trigger Event statt direkt emit
         add(TipUpdatedEvent(
           failureOrTip: failureOrTips,
           userId: null,

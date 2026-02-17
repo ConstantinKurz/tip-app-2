@@ -59,8 +59,8 @@ class TipStatus extends StatelessWidget {
             ),
           );
         }
-        // ✅ InCompleteInputFailure hat Priorität (ROT)
-        else if (hasIncompleteError || (state.tipGuest == null && state.tipHome == null)) {
+        // ✅ InCompleteInputFailure oder unvollständiger Tipp (ROT)
+        else if (hasIncompleteError || state.tipGuest == null || state.tipHome == null) {
           content = const Tooltip(
             message: 'Tipp unvollständig - beide Felder erforderlich',
             child: Icon(

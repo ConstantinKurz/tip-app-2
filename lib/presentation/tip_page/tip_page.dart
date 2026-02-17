@@ -33,7 +33,8 @@ class _TipPageState extends State<TipPage> {
   List<CustomMatch> _filteredMatches = [];
   final Map<String, TipFormBloc> _tipFormBlocs = {};
   final ItemScrollController _itemScrollController = ItemScrollController();
-  final ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
   bool _hasInitialScrolled = false;
 
   @override
@@ -59,8 +60,9 @@ class _TipPageState extends State<TipPage> {
     // Finde erstes Spiel das noch läuft oder in der Zukunft liegt
     for (int i = 0; i < matches.length; i++) {
       final match = matches[i];
-      final matchEndTime = match.matchDate.add(const Duration(minutes: matchDuration));
-      
+      final matchEndTime =
+          match.matchDate.add(const Duration(minutes: matchDuration));
+
       // Spiel läuft noch oder ist in der Zukunft
       if (matchEndTime.isAfter(now)) {
         return i;
@@ -75,9 +77,9 @@ class _TipPageState extends State<TipPage> {
   void _scrollToInitialPosition(int targetIndex, int maxIndex) {
     if (_hasInitialScrolled) return;
     if (!_itemScrollController.isAttached) return;
-    
+
     final safeIndex = targetIndex.clamp(0, maxIndex);
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_itemScrollController.isAttached && mounted) {
         _itemScrollController.scrollTo(
@@ -98,10 +100,32 @@ class _TipPageState extends State<TipPage> {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     const contentMaxWidth = 700.0;
-    final horizontalMargin = (screenWidth - contentMaxWidth).clamp(16.0, double.infinity) / 2;
+    final horizontalMargin =
+        (screenWidth - contentMaxWidth).clamp(16.0, double.infinity) / 2;
 
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
+        child: ElevatedButton.icon(
+          onPressed: () {
+            Routemaster.of(context).push('/home');
+          },
+          icon: const Icon(Icons.home),
+          label: const Text('Home', overflow: TextOverflow.ellipsis),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: themeData.colorScheme.onPrimary,
+            foregroundColor: themeData.colorScheme.primary,
+            textStyle: themeData.textTheme.bodyLarge,
+            minimumSize: const Size(140, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       child: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         builder: (context, authState) {
           return BlocBuilder<TipControllerBloc, TipControllerState>(
@@ -146,7 +170,8 @@ class _TipPageState extends State<TipPage> {
                                   onPressed: () {
                                     setState(() {
                                       _filteredMatches = [];
-                                      _hasInitialScrolled = false; // Reset scroll bei neuem Filter
+                                      _hasInitialScrolled =
+                                          false; // Reset scroll bei neuem Filter
                                     });
                                   },
                                   child: const Text('Filter zurücksetzen'),
@@ -163,11 +188,13 @@ class _TipPageState extends State<TipPage> {
                           targetIndex = widget.initialScrollIndex!;
                         } else {
                           // Normaler Aufruf: Springe zum aktuellen/nächsten Spiel
-                          targetIndex = _findCurrentOrNextMatchIndex(displayedMatches);
+                          targetIndex =
+                              _findCurrentOrNextMatchIndex(displayedMatches);
                         }
 
                         // ✅ Scroll nur einmal nach Build
-                        _scrollToInitialPosition(targetIndex, displayedMatches.length - 1);
+                        _scrollToInitialPosition(
+                            targetIndex, displayedMatches.length - 1);
 
                         return Stack(
                           children: [
@@ -175,15 +202,18 @@ class _TipPageState extends State<TipPage> {
                               children: [
                                 const SizedBox(height: 16),
                                 Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: horizontalMargin),
                                   child: MatchSearchField(
                                     matches: matches,
                                     teams: teams,
-                                    hintText: "Nach Teams, Spielphase oder Matchtag suchen...",
+                                    hintText:
+                                        "Nach Teams, Spielphase oder Matchtag suchen...",
                                     onFilteredMatchesChanged: (filtered) {
                                       setState(() {
                                         _filteredMatches = filtered;
-                                        _hasInitialScrolled = false; // Reset scroll bei neuem Filter
+                                        _hasInitialScrolled =
+                                            false; // Reset scroll bei neuem Filter
                                       });
                                     },
                                   ),
@@ -194,14 +224,17 @@ class _TipPageState extends State<TipPage> {
                                     child: SizedBox(
                                       width: contentMaxWidth,
                                       child: ScrollablePositionedList.separated(
-                                        itemScrollController: _itemScrollController,
-                                        itemPositionsListener: _itemPositionsListener,
+                                        itemScrollController:
+                                            _itemScrollController,
+                                        itemPositionsListener:
+                                            _itemPositionsListener,
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 16.0,
-                                          horizontal: 16.0,
+                                          // horizontal: 16.0,
                                         ),
                                         itemCount: displayedMatches.length,
-                                        separatorBuilder: (_, __) => const SizedBox(height: 24),
+                                        separatorBuilder: (_, __) =>
+                                            const SizedBox(height: 24),
                                         itemBuilder: (context, index) {
                                           final match = displayedMatches[index];
                                           final homeTeam = teams.firstWhere(
@@ -213,16 +246,19 @@ class _TipPageState extends State<TipPage> {
                                             orElse: () => Team.empty(),
                                           );
 
-                                          final tip = (tipState.tips[userId] ?? [])
-                                              .firstWhere(
+                                          final tip =
+                                              (tipState.tips[userId] ?? [])
+                                                  .firstWhere(
                                             (t) => t.matchId == match.id,
                                             orElse: () => Tip.empty(userId),
                                           );
 
-                                          final bloc = _getTipFormBloc(match.id);
+                                          final bloc =
+                                              _getTipFormBloc(match.id);
 
                                           return InkWell(
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
                                             onTap: () {
                                               final tipId = tip.id.isNotEmpty
                                                   ? tip.id
@@ -231,7 +267,8 @@ class _TipPageState extends State<TipPage> {
                                                 '/tips-detail/$tipId?from=tip&returnIndex=$index',
                                               );
                                             },
-                                            child: BlocProvider<TipFormBloc>.value(
+                                            child:
+                                                BlocProvider<TipFormBloc>.value(
                                               value: bloc,
                                               child: _TipCardInitializer(
                                                 matchId: match.id,
@@ -249,27 +286,6 @@ class _TipPageState extends State<TipPage> {
                                   ),
                                 ),
                               ],
-                            ),
-                            Positioned(
-                              right: horizontalMargin,
-                              bottom: 16,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Routemaster.of(context).push('/home');
-                                },
-                                icon: const Icon(Icons.home),
-                                label: const Text('Home', overflow: TextOverflow.ellipsis),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: themeData.colorScheme.onPrimary,
-                                  foregroundColor: themeData.colorScheme.primary,
-                                  textStyle: themeData.textTheme.bodyLarge,
-                                  minimumSize: const Size(140, 48),
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
                             ),
                           ],
                         );
@@ -348,7 +364,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   @override
   Widget build(BuildContext context) {
     final tipState = context.watch<TipControllerBloc>().state;
-    
+
     Tip currentTip = Tip.empty(widget.userId);
     if (tipState is TipControllerLoaded) {
       final userTips = tipState.tips[widget.userId] ?? [];

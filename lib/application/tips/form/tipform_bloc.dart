@@ -69,26 +69,33 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     TipFormFieldUpdatedEvent event,
     Emitter<TipFormState> emit,
   ) async {
+    // Wenn eines der Felder null ist, aktualisiere nur den State ohne zu speichern
+    if (event.tipHome == null || event.tipGuest == null) {
+      emit(state.copyWith(
+        isSubmitting: false,
+        showValidationMessages: false,
+        tipHome: event.tipHome,
+        clearTipHome: event.tipHome == null,
+        tipGuest: event.tipGuest,
+        clearTipGuest: event.tipGuest == null,
+        joker: state.joker,
+        failureOrSuccessOption: none(), // Kein Fehler, nur leere Eingabe
+        isLoading: false,
+      ));
+      return;
+    }
+
     emit(state.copyWith(
       isSubmitting: true,
       failureOrSuccessOption: none(),
       isLoading: false
     ));
 
-    if (event.tipHome == null || event.tipGuest == null) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        showValidationMessages: true,
-        tipGuest: event.tipGuest,
-        tipHome: event.tipHome,
-        joker: state.joker,
-        failureOrSuccessOption: some(left(InCompleteInputFailure())),
-      ));
-      return;
-    }
-
-    // Joker-Validierung nur prüfen
-    if (event.joker ?? false) {
+    // Joker-Validierung NUR prüfen wenn Joker NEU gesetzt wird
+    // (nicht wenn er bereits gesetzt war und wir nur den Tipp aktualisieren)
+    final isSettingNewJoker = (event.joker ?? false) && !state.joker;
+    
+    if (isSettingNewJoker) {
       final validationResult = await validateJokerUseCase(
         userId: event.userId,
         matchDay: event.matchDay,
@@ -159,7 +166,9 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       matchId: event.matchId,
       matchDay: event.matchDay,
       tipHome: event.tipHome,
+      clearTipHome: event.tipHome == null,
       tipGuest: event.tipGuest,
+      clearTipGuest: event.tipGuest == null,
       joker: event.joker,
       isLoading: false,
     ));

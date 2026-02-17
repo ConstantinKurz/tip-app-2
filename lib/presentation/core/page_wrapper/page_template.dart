@@ -7,7 +7,16 @@ import 'package:responsive_framework/responsive_framework.dart';
 class PageTemplate extends StatelessWidget {
   final bool isAuthenticated;
   final Widget child;
-  const PageTemplate({super.key, required this.child, required this.isAuthenticated});
+  final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
+
+  const PageTemplate({
+    super.key,
+    required this.child,
+    required this.isAuthenticated,
+    this.floatingActionButton,
+    this.floatingActionButtonLocation,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +33,8 @@ class PageTemplate extends StatelessWidget {
               child: MyMenuBar(isAuthenticated: isAuthenticated),
             ),
       body: child,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
     );
   }
 }

@@ -33,7 +33,9 @@ class TipFormState {
     String? matchId,
     int? matchDay,
     int? tipHome,
+    bool clearTipHome = false, // NEU
     int? tipGuest,
+    bool clearTipGuest = false, // NEU
     bool? joker,
     bool? isSubmitting,
     Option<Either<TipFailure, Unit>>? failureOrSuccessOption,
@@ -45,8 +47,8 @@ class TipFormState {
       userId: userId ?? this.userId,
       matchId: matchId ?? this.matchId,
       matchDay: matchDay ?? this.matchDay,
-      tipHome: tipHome ?? this.tipHome,
-      tipGuest: tipGuest ?? this.tipGuest,
+      tipHome: clearTipHome ? null : (tipHome ?? this.tipHome), // GEÄNDERT
+      tipGuest: clearTipGuest ? null : (tipGuest ?? this.tipGuest), // GEÄNDERT
       joker: joker ?? this.joker,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       failureOrSuccessOption: failureOrSuccessOption ?? this.failureOrSuccessOption,

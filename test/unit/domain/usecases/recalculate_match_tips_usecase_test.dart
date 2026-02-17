@@ -7,24 +7,36 @@ import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/domain/repositories/user_repository.dart';
+import 'package:flutter_web/domain/repositories/match_repository.dart';
+import 'package:flutter_web/domain/repositories/team_repository.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 
 class MockTipRepository extends Mock implements TipRepository {}
 
 class MockUserRepository extends Mock implements UserRepository {}
 
+class MockMatchRepository extends Mock implements MatchRepository {}
+
+class MockTeamRepository extends Mock implements TeamRepository {}
+
 void main() {
   group('RecalculateMatchTipsUseCase', () {
     late MockTipRepository mockTipRepository;
     late MockUserRepository mockUserRepository;
+    late MockMatchRepository mockMatchRepository;
+    late MockTeamRepository mockTeamRepository;
     late RecalculateMatchTipsUseCase useCase;
 
     setUp(() {
       mockTipRepository = MockTipRepository();
       mockUserRepository = MockUserRepository();
+      mockMatchRepository = MockMatchRepository();
+      mockTeamRepository = MockTeamRepository();
       useCase = RecalculateMatchTipsUseCase(
         tipRepository: mockTipRepository,
         userRepository: mockUserRepository,
+        matchRepository: mockMatchRepository,
+        teamRepository: mockTeamRepository,
       );
       registerFallbackValue(<String, dynamic>{});
       registerFallbackValue(AppUser(

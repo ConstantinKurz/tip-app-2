@@ -4,7 +4,6 @@ import 'package:flutter_web/application/matches/controller/matchescontroller_blo
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
-import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
@@ -24,7 +23,7 @@ class UpcomingTipSection extends StatefulWidget {
 
 class _UpcomingTipSectionState extends State<UpcomingTipSection> {
   final Map<String, TipFormBloc> _tipFormBlocs = {};
-  final Set<int> _statsLoadedForMatchDays = {}; // ✅ NEU: Verhindere doppeltes Laden
+  final Set<int> _statsLoadedForMatchDays = {};
 
   @override
   void dispose() {
@@ -44,6 +43,8 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    const matchDuration = 120;
 
     return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
       builder: (context, matchState) {
@@ -51,94 +52,128 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
           builder: (context, teamState) {
             return BlocBuilder<TipControllerBloc, TipControllerState>(
               builder: (context, tipState) {
-                if (matchState is MatchesControllerLoaded &&
-                    teamState is TeamsControllerLoaded &&
-                    tipState is TipControllerLoaded) {
-                  final matches = matchState.matches;
-                  final teams = teamState.teams;
-                  final tips = tipState.tips;
+                if (matchState is MatchesControllerLoading ||
+                    teamState is TeamsControllerLoading ||
+                    tipState is TipControllerLoading ||
+                    tipState is TipControllerInitial) {
+                  return _buildLoadingState(context, themeData);
+                }
 
-                  // Die 3 nächsten anstehenden Spiele finden
-                  final now = DateTime.now();
-                  final upcomingMatches = matches.where((match) {
-                    final matchEndTime = match.matchDate.add(const Duration(minutes: matchDuration));
-                    return matchEndTime.isAfter(now);
-                  }).toList();
+                if (matchState is MatchesControllerFailure ||
+                    teamState is TeamsControllerFailureState ||
+                    tipState is TipControllerFailure) {
+                  return _buildErrorState(context, themeData);
+                }
 
-                  upcomingMatches.sort((a, b) => a.matchDate.compareTo(b.matchDate));
-                  final closestMatches = upcomingMatches.take(3).toList();
+                if (matchState is! MatchesControllerLoaded ||
+                    teamState is! TeamsControllerLoaded ||
+                    tipState is! TipControllerLoaded) {
+                  return _buildEmptyState(context, themeData);
+                }
 
-                  if (closestMatches.isEmpty) {
-                    return _buildEmptyState(context, themeData);
-                  }
+                final matches = matchState.matches;
+                final teams = teamState.teams;
+                final tips = tipState.tips;
 
-                  // ✅ NEU: Lade Statistiken für alle sichtbaren MatchDays
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    for (final match in closestMatches) {
-                      if (!_statsLoadedForMatchDays.contains(match.matchDay)) {
-                        context.read<TipControllerBloc>().add(
-                              TipUpdateStatisticsEvent(
-                                userId: widget.userId,
-                                matchDay: match.matchDay,
-                              ),
-                            );
-                        _statsLoadedForMatchDays.add(match.matchDay);
-                      }
+                if (matches.isEmpty || teams.isEmpty) {
+                  return _buildEmptyState(context, themeData);
+                }
+
+                final now = DateTime.now();
+                final upcomingMatches = matches
+                    .where((match) {
+                      final matchEndTime = match.matchDate
+                          .add(const Duration(minutes: matchDuration));
+                      return matchEndTime.isAfter(now);
+                    })
+                    .toList();
+
+                upcomingMatches.sort((a, b) => a.matchDate.compareTo(b.matchDate));
+                final closestMatches = upcomingMatches.take(3).toList();
+
+                if (closestMatches.isEmpty) {
+                  return _buildEmptyState(context, themeData);
+                }
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  for (final match in closestMatches) {
+                    if (!_statsLoadedForMatchDays.contains(match.matchDay)) {
+                      context.read<TipControllerBloc>().add(
+                            TipUpdateStatisticsEvent(
+                              userId: widget.userId,
+                              matchDay: match.matchDay,
+                            ),
+                          );
+                      _statsLoadedForMatchDays.add(match.matchDay);
                     }
-                  });
+                  }
+                });
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Aktuelle Spiele",
-                            style: themeData.textTheme.headlineSmall,
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Routemaster.of(context).push('/tips');
-                            },
-                            child: Text(
-                              'Alle Tipps anzeigen',
-                              style: TextStyle(
-                                color: themeData.colorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Aktuelle Spiele",
+                          style: themeData.textTheme.headlineSmall,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Routemaster.of(context).push('/tips');
+                          },
+                          child: Text(
+                            'Alle Tipps anzeigen',
+                            style: TextStyle(
+                              color: themeData.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-                      // Spiele-Cards
-                      ...closestMatches.map((match) {
-                        final homeTeam = teams.firstWhere(
-                          (team) => team.id == match.homeTeamId,
-                        );
-                        final guestTeam = teams.firstWhere(
-                          (team) => team.id == match.guestTeamId,
-                        );
+                    // ✅ Spiele-Cards mit Navigation
+                    ...closestMatches.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final match = entry.value;
 
-                        final userTips = tips[widget.userId] ?? <Tip>[];
-                        final tip = userTips.firstWhere(
-                          (t) => t.matchId == match.id,
-                          orElse: () => Tip.empty(widget.userId),
-                        );
+                      final homeTeam = teams.firstWhere(
+                        (team) => team.id == match.homeTeamId,
+                        orElse: () => teams.first,
+                      );
+                      final guestTeam = teams.firstWhere(
+                        (team) => team.id == match.guestTeamId,
+                        orElse: () => teams.first,
+                      );
 
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
+                      final userTips = tips[widget.userId] ?? [];
+                      final tip = userTips.firstWhere(
+                        (t) => t.matchId == match.id,
+                        orElse: () => Tip.empty(widget.userId),
+                      );
+
+                      // ✅ Erstelle tipId wie in tip_page.dart
+                      final tipId = tip.id.isNotEmpty
+                          ? tip.id
+                          : "${widget.userId}_${match.id}";
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: screenWidth * 0.6,
+                          ),
+                          // ✅ Navigation mit InkWell
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
                             onTap: () {
-                              final tipId = tip.id.isNotEmpty
-                                  ? tip.id
-                                  : "${widget.userId}_${match.id}";
-                              Routemaster.of(context)
-                                  .push('/tips-detail/$tipId?from=home');
+                              // Navigation zur Detail-Ansicht
+                              Routemaster.of(context).push(
+                                '/tips-detail/$tipId?from=home&returnIndex=$index',
+                              );
                             },
                             child: BlocProvider<TipFormBloc>.value(
                               value: _getTipFormBloc(match.id),
@@ -156,20 +191,57 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                               ),
                             ),
                           ),
-                        );
-                      }).toList(),
-                    ],
-                  );
-                }
-
-                return const Center(
-                  child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }).toList(),
+                  ],
                 );
               },
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context, ThemeData themeData) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Aktuelle Spiele",
+          style: themeData.textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 24),
+        const Center(
+          child: CircularProgressIndicator(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, ThemeData themeData) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Aktuelle Spiele",
+          style: themeData.textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.red),
+          ),
+          child: const Text(
+            '❌ Fehler beim Laden der Spiele',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ],
     );
   }
 
@@ -181,30 +253,19 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
           "Aktuelle Spiele",
           style: themeData.textTheme.headlineSmall,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: themeData.colorScheme.surfaceVariant.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Column(
-              children: [
-                Icon(
-                  Icons.sports_soccer,
-                  size: 48,
-                  color: themeData.colorScheme.onSurface.withOpacity(0.6),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Keine Spiele verfügbar',
-                  style: themeData.textTheme.bodyLarge?.copyWith(
-                    color: themeData.colorScheme.onSurface.withOpacity(0.8),
-                  ),
-                ),
-              ],
+            color: themeData.colorScheme.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: themeData.colorScheme.outline.withOpacity(0.2),
             ),
+          ),
+          child: Text(
+            'Keine kommenden Spiele',
+            style: themeData.textTheme.bodyLarge,
           ),
         ),
       ],
@@ -212,7 +273,6 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
   }
 }
 
-/// Wrapper widget that initializes TipFormBloc only once
 class _TipCardInitializer extends StatefulWidget {
   final String matchId;
   final String userId;
@@ -220,11 +280,12 @@ class _TipCardInitializer extends StatefulWidget {
   final Widget child;
 
   const _TipCardInitializer({
+    Key? key,
     required this.matchId,
     required this.userId,
     required this.matchDay,
     required this.child,
-  });
+  }) : super(key: key);
 
   @override
   State<_TipCardInitializer> createState() => _TipCardInitializerState();

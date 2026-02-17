@@ -55,9 +55,11 @@ void main() {
           home: Scaffold(
             body: TipScoreField(
               controller: controller,
+              otherController: controller,
               scoreType: 'home',
               userId: 'user-1',
               matchId: 'match-1',
+              matchDay: 1,
             ),
           ),
         ),

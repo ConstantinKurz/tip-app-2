@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
+import 'package:flutter_web/domain/entities/match_day_statistics.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
@@ -10,19 +11,20 @@ import 'package:flutter_web/core/failures/tip_failures.dart';
 
 class MockTipRepository extends Mock implements TipRepository {}
 
-class MockValidateJokerUsageUsecase extends Mock implements ValidateJokerUsageUseCase {
+class MockValidateJokerUsageUsecase extends Mock implements ValidateJokerUsageUpdateStatUseCase {}
+
+class MockMatchDayStatistics extends Fake implements MatchDayStatistics {
   @override
-  Future<Either<TipFailure, JokerValidationResult>> call({
-    required String userId,
-    required int matchDay,
-  }) async {
-    return right(JokerValidationResult(
-      isAvailable: true,
-      used: 0,
-      total: 3,
-      matchDay: matchDay,
-    ));
-  }
+  final bool isAvailable = true;
+  
+  @override
+  final int used = 0;
+  
+  @override
+  final int total = 3;
+  
+  @override
+  final int matchDay = 0;
 }
 
 class FakeTip extends Fake implements Tip {}
@@ -40,6 +42,11 @@ void main() {
     setUp(() {
       mockTipRepository = MockTipRepository();
       mockValidateJokerUsageUsecase = MockValidateJokerUsageUsecase();
+      
+      when(() => mockValidateJokerUsageUsecase(
+        userId: any(named: 'userId'),
+        matchDay: any(named: 'matchDay'),
+      )).thenAnswer((_) async => right(MockMatchDayStatistics()));
 
       tipFormBloc = TipFormBloc(tipRepository: mockTipRepository, validateJokerUseCase: mockValidateJokerUsageUsecase);
     });

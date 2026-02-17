@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
@@ -11,15 +12,23 @@ import 'package:flutter_web/core/failures/tip_failures.dart';
 
 class MockTipRepository extends Mock implements TipRepository {}
 
+class MockValidateJokerUsageUsecase extends Mock
+    implements ValidateJokerUsageUpdateStatUseCase {}
+
 void main() {
   group('TipControllerBloc', () {
     late TipControllerBloc tipControllerBloc;
     late MockTipRepository mockTipRepository;
-    late StreamController<Either<TipFailure, Map<String, List<Tip>>>> streamController;
+    late MockValidateJokerUsageUsecase mockValidateJokerUsageUsecase;
+    late StreamController<Either<TipFailure, Map<String, List<Tip>>>>
+        streamController;
 
     setUp(() {
       mockTipRepository = MockTipRepository();
-      tipControllerBloc = TipControllerBloc(tipRepository: mockTipRepository);
+      mockValidateJokerUsageUsecase = MockValidateJokerUsageUsecase();
+      tipControllerBloc = TipControllerBloc(
+          tipRepository: mockTipRepository,
+          validateJokerUseCase: mockValidateJokerUsageUsecase);
     });
 
     tearDown(() {
@@ -34,7 +43,8 @@ void main() {
       blocTest<TipControllerBloc, TipControllerState>(
         'emits [Loading] when tips are being watched',
         build: () {
-          streamController = StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
+          streamController =
+              StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
           when(() => mockTipRepository.watchAll())
               .thenAnswer((_) => streamController.stream);
           return tipControllerBloc;
@@ -49,7 +59,8 @@ void main() {
       blocTest<TipControllerBloc, TipControllerState>(
         'emits [Loading, Loaded] when tips are successfully loaded',
         build: () {
-          streamController = StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
+          streamController =
+              StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
           when(() => mockTipRepository.watchAll())
               .thenAnswer((_) => streamController.stream);
           return tipControllerBloc;
@@ -57,7 +68,7 @@ void main() {
         act: (bloc) async {
           bloc.add(TipAllEvent());
           await Future.delayed(Duration(milliseconds: 10));
-          
+
           final Map<String, List<Tip>> tipMap = {
             'user_1': [
               Tip(
@@ -94,7 +105,7 @@ void main() {
               ),
             ],
           };
-          
+
           streamController.add(right(tipMap));
           await streamController.close();
         },
@@ -102,9 +113,12 @@ void main() {
           isA<TipControllerLoading>(),
           isA<TipControllerLoaded>()
               .having((state) => state.tips.length, 'number of users', 2)
-              .having((state) => state.tips['user_1']?.length, 'user_1 tips count', 2)
-              .having((state) => state.tips['user_2']?.length, 'user_2 tips count', 1)
-              .having((state) => state.tips['user_1']?.any((tip) => tip.joker), 'has joker tip', true),
+              .having((state) => state.tips['user_1']?.length,
+                  'user_1 tips count', 2)
+              .having((state) => state.tips['user_2']?.length,
+                  'user_2 tips count', 1)
+              .having((state) => state.tips['user_1']?.any((tip) => tip.joker),
+                  'has joker tip', true),
         ],
         verify: (_) {
           verify(() => mockTipRepository.watchAll()).called(1);
@@ -114,7 +128,8 @@ void main() {
       blocTest<TipControllerBloc, TipControllerState>(
         'emits [Loading, Failure] when tips loading fails',
         build: () {
-          streamController = StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
+          streamController =
+              StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
           when(() => mockTipRepository.watchAll())
               .thenAnswer((_) => streamController.stream);
           return tipControllerBloc;
@@ -127,8 +142,8 @@ void main() {
         },
         expect: () => [
           isA<TipControllerLoading>(),
-          isA<TipControllerFailure>()
-              .having((state) => state.tipFailure, 'failure type', isA<UnexpectedFailure>()),
+          isA<TipControllerFailure>().having((state) => state.tipFailure,
+              'failure type', isA<UnexpectedFailure>()),
         ],
         verify: (_) {
           verify(() => mockTipRepository.watchAll()).called(1);
@@ -138,7 +153,8 @@ void main() {
       blocTest<TipControllerBloc, TipControllerState>(
         'handles empty tips map correctly',
         build: () {
-          streamController = StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
+          streamController =
+              StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
           when(() => mockTipRepository.watchAll())
               .thenAnswer((_) => streamController.stream);
           return tipControllerBloc;
@@ -159,7 +175,8 @@ void main() {
       blocTest<TipControllerBloc, TipControllerState>(
         'handles permission failure correctly',
         build: () {
-          streamController = StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
+          streamController =
+              StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
           when(() => mockTipRepository.watchAll())
               .thenAnswer((_) => streamController.stream);
           return tipControllerBloc;
@@ -172,8 +189,8 @@ void main() {
         },
         expect: () => [
           isA<TipControllerLoading>(),
-          isA<TipControllerFailure>()
-              .having((state) => state.tipFailure, 'failure type', isA<InsufficientPermisssons>()),
+          isA<TipControllerFailure>().having((state) => state.tipFailure,
+              'failure type', isA<InsufficientPermisssons>()),
         ],
       );
     });
@@ -182,7 +199,7 @@ void main() {
       blocTest<TipControllerBloc, TipControllerState>(
         'emits [Loading] when user tips are requested',
         build: () => tipControllerBloc,
-        act: (bloc) => bloc.add(UserTipEvent()),
+        act: (bloc) => bloc.add(TipUpdatedEvent(failureOrTip: right(Tip.empty('user_1')))),
         expect: () => [isA<TipControllerLoading>()],
       );
     });
@@ -211,9 +228,12 @@ void main() {
         expect: () => [
           isA<TipControllerLoaded>()
               .having((state) => state.tips.length, 'users count', 1)
-              .having((state) => state.tips['user_updated']?.first.id, 'tip id', 'updated_tip')
-              .having((state) => state.tips['user_updated']?.first.tipHome, 'home score', 4)
-              .having((state) => state.tips['user_updated']?.first.joker, 'is joker', true),
+              .having((state) => state.tips['user_updated']?.first.id, 'tip id',
+                  'updated_tip')
+              .having((state) => state.tips['user_updated']?.first.tipHome,
+                  'home score', 4)
+              .having((state) => state.tips['user_updated']?.first.joker,
+                  'is joker', true),
         ],
       );
 
@@ -224,20 +244,21 @@ void main() {
           bloc.add(TipUpdatedEvent(failureOrTip: left(NotFoundFailure())));
         },
         expect: () => [
-          isA<TipControllerFailure>()
-              .having((state) => state.tipFailure, 'failure type', isA<NotFoundFailure>()),
+          isA<TipControllerFailure>().having((state) => state.tipFailure,
+              'failure type', isA<NotFoundFailure>()),
         ],
       );
     });
 
     test('bloc properly closes and cancels subscriptions', () async {
-      streamController = StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
+      streamController =
+          StreamController<Either<TipFailure, Map<String, List<Tip>>>>();
       when(() => mockTipRepository.watchAll())
           .thenAnswer((_) => streamController.stream);
-          
+
       tipControllerBloc.add(TipAllEvent());
       await tipControllerBloc.close();
-      
+
       expect(tipControllerBloc.isClosed, true);
       await streamController.close();
     });

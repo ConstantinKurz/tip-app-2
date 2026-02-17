@@ -60,7 +60,6 @@ void main() {
         createTestApp(
           TipCardHeader(
             match: testMatch,
-            state: state,
             tip: testTip,
           ),
         ),
@@ -103,7 +102,6 @@ void main() {
         createTestApp(
           TipCardHeader(
             match: testMatch,
-            state: state,
             tip: tipWithoutPoints,
           ),
         ),
@@ -130,7 +128,6 @@ void main() {
         createTestApp(
           TipCardHeader(
             match: groupStageMatch,
-            state: state,
             tip: testTip,
           ),
         ),
@@ -150,7 +147,6 @@ void main() {
         createTestApp(
           TipCardHeader(
             match: knockoutMatch,
-            state: state,
             tip: testTip,
           ),
         ),
@@ -176,7 +172,6 @@ void main() {
         createTestApp(
           TipCardHeader(
             match: testMatch,
-            state: state,
             tip: testTip,
           ),
         ),
@@ -198,7 +193,6 @@ void main() {
             width: 200, // Small width to force overflow
             child: TipCardHeader(
               match: longNameMatch,
-              state: state,
               tip: testTip,
             ),
           ),
@@ -218,7 +212,6 @@ void main() {
         createTestApp(
           TipCardHeader(
             match: testMatch,
-            state: state,
             tip: testTip,
           ),
         ),
@@ -252,7 +245,6 @@ void main() {
         createTestApp(
           TipCardHeader(
             match: eveningMatch,
-            state: state,
             tip: testTip,
           ),
         ),

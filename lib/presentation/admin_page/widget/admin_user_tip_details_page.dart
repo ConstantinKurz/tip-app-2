@@ -343,6 +343,7 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
       homeTeam: widget.homeTeam,
       guestTeam: widget.guestTeam,
       tip: widget.tip,
+      isAdmin: true,
     );
   }
 }

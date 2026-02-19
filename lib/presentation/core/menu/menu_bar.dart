@@ -4,6 +4,8 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/core/utils/clear_data.dart';
 import 'package:flutter_web/core/utils/setup_tournament.dart';
 import 'package:flutter_web/core/utils/simulate_tournament.dart';
+import 'package:flutter_web/core/utils/simulate_group_stage.dart';
+import 'package:flutter_web/core/utils/simulate_knockout_stage.dart';
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
 import 'package:flutter_web/presentation/core/buttons/signin_button.dart';
 import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
@@ -62,18 +64,35 @@ class MyMenuBar extends StatelessWidget {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.play_circle),
-                tooltip: "Simulate",
+                icon: const Icon(Icons.group_work),
+                tooltip: "Simulate Group Stage",
                 onPressed: () async {
                   try {
-                    await simulateTournamentResults();
+                    await simulateGroupStageResults();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content: Text("✅ Testdaten erfolgreich geladen")),
+                          content: Text("✅ Gruppenphase simuliert")),
                     );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("❌ Fehler beim Laden: $e")),
+                      SnackBar(content: Text("❌ Fehler: $e")),
+                    );
+                  }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.play_arrow_sharp),
+                tooltip: "Simulate Knockout Stage",
+                onPressed: () async {
+                  try {
+                    await simulateKnockoutStageResults();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("✅ K.O.-Phase simuliert")),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("❌ Fehler: $e")),
                     );
                   }
                 },

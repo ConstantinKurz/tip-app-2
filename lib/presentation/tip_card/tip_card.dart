@@ -16,6 +16,7 @@ class TipCard extends StatefulWidget {
   final Team guestTeam;
   final Tip tip;
   final Widget? footer;
+  final bool isAdmin;
 
   const TipCard({
     Key? key,
@@ -25,6 +26,7 @@ class TipCard extends StatefulWidget {
     required this.guestTeam,
     required this.tip,
     this.footer,
+    this.isAdmin = false,
   }) : super(key: key);
 
   @override
@@ -144,7 +146,7 @@ class _TipCardState extends State<TipCard> {
                 userId: widget.userId,
                 matchId: widget.match.id,
                 tip: widget.tip,
-                readOnly: hasResult,
+                readOnly: hasResult && !widget.isAdmin,
               ),
               if (widget.footer != null) ...[
                 const SizedBox(height: 16),

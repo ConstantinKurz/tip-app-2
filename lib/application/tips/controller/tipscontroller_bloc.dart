@@ -111,8 +111,18 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     Emitter<TipControllerState> emit,
   ) async {
     final currentState = state;
-    if (currentState is! TipControllerLoaded) return;
 
+    final phase = MatchPhase.fromMatchDay(event.matchDay);
+    final matchDaysInPhase = phase.getMatchDaysForPhase();
+
+    // Wenn bereits alle Stats für diese Phase existieren -> nichts tun
+    if (currentState is TipControllerLoaded) {
+      final currentStats = currentState.matchDayStatistics;
+      final allExist = matchDaysInPhase.every((d) => currentStats.containsKey(d));
+      if (allExist) return;
+    }
+
+    // Einmalig laden (auch wenn Bloc noch nicht geladen ist)
     final statsResult = await validateJokerUseCase(
       userId: event.userId,
       matchDay: event.matchDay,
@@ -122,10 +132,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       (_) => null,
       (stats) {
         final updatedStats = Map<int, MatchDayStatistics>.from(
-          currentState.matchDayStatistics,
+          currentState is TipControllerLoaded ? currentState.matchDayStatistics : {},
         );
-        final phase = MatchPhase.fromMatchDay(event.matchDay);
-        final matchDaysInPhase = phase.getMatchDaysForPhase();
 
         for (final matchDayInPhase in matchDaysInPhase) {
           if (event.matchDay == matchDayInPhase) {
@@ -145,7 +153,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
           }
         }
 
-        emit(currentState.copyWith(
+        emit(TipControllerLoaded(
+          tips: currentState is TipControllerLoaded ? currentState.tips : {},
           matchDayStatistics: updatedStats,
         ));
       },

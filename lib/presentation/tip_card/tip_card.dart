@@ -99,6 +99,7 @@ class _TipCardState extends State<TipCard> {
                     TipUpdateStatisticsEvent(
                       userId: widget.userId,
                       matchDay: widget.match.matchDay,
+                      forceRefresh: true, // Stats neu laden nach erfolgreichem Tipp
                     ),
                   );
             },

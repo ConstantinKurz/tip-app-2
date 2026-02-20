@@ -118,8 +118,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     final phase = MatchPhase.fromMatchDay(event.matchDay);
     final matchDaysInPhase = phase.getMatchDaysForPhase();
 
-    // Wenn bereits alle Stats für diese Phase existieren -> nichts tun
-    if (currentState is TipControllerLoaded) {
+    // Wenn bereits alle Stats für diese Phase existieren UND kein forceRefresh -> nichts tun
+    if (!event.forceRefresh && currentState is TipControllerLoaded) {
       final currentStats = currentState.matchDayStatistics;
       final allExist = matchDaysInPhase.every((d) => currentStats.containsKey(d));
       if (allExist) return;
@@ -139,49 +139,61 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         matchDay: event.matchDay,
       );
 
-      statsResult.fold(
-        (_) {
-          // Bei Fehler: Entferne aus Loading-Set
-          _loadingMatchDays.remove(event.matchDay);
-        },
-        (stats) {
-          // Hole aktuellen State NACH dem async Call (wichtig!)
-          final latestState = state;
-          
-          final previousStats = latestState is TipControllerLoaded
-              ? latestState.matchDayStatistics
-              : <int, MatchDayStatistics>{};
+      _loadingMatchDays.remove(event.matchDay);
 
-          // Prüfe nochmal ob Stats inzwischen existieren
-          final allExistNow = matchDaysInPhase.every((d) => previousStats.containsKey(d));
-          if (allExistNow) {
-            _loadingMatchDays.remove(event.matchDay);
-            return;
-          }
-
-          final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
-
-          for (final matchDayInPhase in matchDaysInPhase) {
-            if (!updatedStats.containsKey(matchDayInPhase)) {
-              if (event.matchDay == matchDayInPhase) {
-                updatedStats[matchDayInPhase] = stats;
-              } else {
-                updatedStats[matchDayInPhase] = stats.copyWith(
-                  matchDay: matchDayInPhase,
-                );
-              }
-            }
-          }
-
-          // Entferne aus Loading-Set
-          _loadingMatchDays.remove(event.matchDay);
-
-          emit(TipControllerLoaded(
-            tips: latestState is TipControllerLoaded ? latestState.tips : {},
-            matchDayStatistics: updatedStats,
-          ));
-        },
+      // Extrahiere den Wert aus Either BEVOR wir emit aufrufen
+      final MatchDayStatistics? stats = statsResult.fold(
+        (failure) => null,
+        (s) => s,
       );
+
+      // Wenn Stats null sind (Fehler), abbrechen
+      if (stats == null) {
+        return;
+      }
+
+      // Aktuellen State holen
+      final latestState = state;
+      
+      final Map<String, List<Tip>> currentTips;
+      final Map<int, MatchDayStatistics> previousStats;
+      
+      if (latestState is TipControllerLoaded) {
+        currentTips = latestState.tips;
+        previousStats = latestState.matchDayStatistics;
+      } else {
+        currentTips = {};
+        previousStats = {};
+      }
+
+      // Nochmal prüfen ob inzwischen geladen (nur wenn kein forceRefresh)
+      if (!event.forceRefresh) {
+        final allExistNow = matchDaysInPhase.every((d) => previousStats.containsKey(d));
+        if (allExistNow) {
+          return;
+        }
+      }
+
+      final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
+
+      for (final matchDayInPhase in matchDaysInPhase) {
+        if (event.forceRefresh || !updatedStats.containsKey(matchDayInPhase)) {
+          if (event.matchDay == matchDayInPhase) {
+            updatedStats[matchDayInPhase] = stats;
+          } else {
+            updatedStats[matchDayInPhase] = stats.copyWith(
+              matchDay: matchDayInPhase,
+            );
+          }
+        }
+      }
+
+      // Emit NACH dem fold, nicht innerhalb
+      emit(TipControllerLoaded(
+        tips: currentTips,
+        matchDayStatistics: updatedStats,
+      ));
+      
     } catch (_) {
       _loadingMatchDays.remove(event.matchDay);
     }

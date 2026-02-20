@@ -25,9 +25,11 @@ class TipUpdatedEvent extends TipControllerEvent { // ✅ NEU
 class TipUpdateStatisticsEvent extends TipControllerEvent {
   final String userId;
   final int matchDay;
+  final bool forceRefresh;
 
   TipUpdateStatisticsEvent({
     required this.userId,
     required this.matchDay,
+    this.forceRefresh = false,
   });
 }

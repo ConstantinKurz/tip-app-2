@@ -24,15 +24,17 @@ class TipCardHeader extends StatelessWidget {
     // ✅ NEU: Hole Stats aus TipControllerBloc, nicht TipFormBloc
     return BlocBuilder<TipControllerBloc, TipControllerState>(
       buildWhen: (previous, current) {
-        // Nur rebuild wenn Stats sich ändern
-        final prevStats = (previous is TipControllerLoaded)
-            ? previous.matchDayStatistics[match.matchDay]
-            : null;
-        final currStats = (current is TipControllerLoaded)
-            ? current.matchDayStatistics[match.matchDay]
-            : null;
-
-        return prevStats != currStats;
+        // Immer rebuild bei State-Typ-Wechsel
+        if (previous.runtimeType != current.runtimeType) return true;
+        
+        // Bei Loaded-States: Nur rebuild wenn Stats für DIESEN matchDay sich ändern
+        if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+          final prevStats = previous.matchDayStatistics[match.matchDay];
+          final currStats = current.matchDayStatistics[match.matchDay];
+          return prevStats != currStats;
+        }
+        
+        return true;
       },
       builder: (context, tipState) {
         final stats = (tipState is TipControllerLoaded)

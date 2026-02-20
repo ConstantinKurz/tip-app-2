@@ -56,15 +56,14 @@ class AppTheme {
       fontFamily: "Rubik",
       fontSize: 16,
       fontStyle: FontStyle.italic,
-      fontWeight: FontWeight.w500,);
+      fontWeight: FontWeight.w500);
 
- static const TextStyle _darkMenuText = TextStyle(
+  static const TextStyle _darkMenuText = TextStyle(
       color: _darkTextColorPrimary,
       fontFamily: "Rubik",
       fontSize: 12,
       fontStyle: FontStyle.italic,
-      fontWeight: FontWeight.w400,
-      );
+      fontWeight: FontWeight.w400);
 
   static final InputDecorationTheme _inputDecorationTheme =
       InputDecorationTheme(
@@ -86,7 +85,7 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
           color: _appbarColorLight,
           iconTheme: IconThemeData(color: _iconColor)),
-      bottomAppBarTheme: const BottomAppBarTheme(color: _appbarColorLight),
+      bottomAppBarTheme: const BottomAppBarThemeData(color: _appbarColorLight),
       colorScheme: ColorScheme.light(
           primary: _lightPrimaryColor,
           onPrimary: _lightOnPrimaryColor,
@@ -100,7 +99,7 @@ class AppTheme {
       appBarTheme: AppBarTheme(
           color: _appbarColorDark,
           iconTheme: const IconThemeData(color: _iconColor)),
-      bottomAppBarTheme: BottomAppBarTheme(color: _appbarColorDark),
+      bottomAppBarTheme: BottomAppBarThemeData(color: _appbarColorDark),
       colorScheme: ColorScheme.dark(
         primary: _darkPrimaryColor,
         secondary: _accentColorDark,

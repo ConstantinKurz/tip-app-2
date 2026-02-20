@@ -68,7 +68,7 @@ class _MatchListState extends State<MatchList> {
           children: [
             Row(
               children: [
-                Text('Matches', style: themeData.textTheme.headline6),
+                Text('Matches', style: themeData.textTheme.headlineLarge),
                 const Spacer(),
                 // Suchleiste
                 Container(

@@ -51,7 +51,7 @@ class _TeamListState extends State<TeamList> {
           children: [
             Row(
               children: [
-                Text('Teams', style: themeData.textTheme.headline6),
+                Text('Teams', style: themeData.textTheme.headlineLarge),
                 const Spacer(),
                 Container(
                   decoration: BoxDecoration(

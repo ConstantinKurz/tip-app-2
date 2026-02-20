@@ -55,7 +55,7 @@ class _UserListState extends State<UserList> {
           children: [
             Row(
               children: [
-                Text('Tipper', style: themeData.textTheme.headline6),
+                Text('Tipper', style: themeData.textTheme.headlineLarge),
                 const Spacer(),
                 // Suchleiste
                 Container(

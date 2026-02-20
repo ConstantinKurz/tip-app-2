@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
@@ -20,7 +19,19 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
-  final CarouselController _carouselController = CarouselController();
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,44 +60,33 @@ class _AdminPageState extends State<AdminPage> {
                             IconButton(
                               icon: const Icon(Icons.arrow_back_ios_new),
                               onPressed: () {
-                                _carouselController.previousPage(
+                                _pageController.previousPage(
                                   duration: const Duration(milliseconds: 200),
                                   curve: Curves.ease,
                                 );
                               },
                             ),
                             Expanded(
-                              child: CarouselSlider(
-                                carouselController: _carouselController,
-                                options: CarouselOptions(
-                                  scrollPhysics:
-                                      const NeverScrollableScrollPhysics(),
-                                  viewportFraction: 1.0,
-                                  height: double.infinity,
-                                  initialPage: 0,
-                                  enableInfiniteScroll: false,
-                                  enlargeCenterPage: false,
-                                ),
-                                items: [
+                              child: PageView(
+                                controller: _pageController,
+                                children: [
+                                  UserList(
+                                    users: authState.users,
+                                    matches: matchState.matches,
+                                    teams: teamState.teams,
+                                  ),
                                   MatchList(
                                     matches: matchState.matches,
                                     teams: teamState.teams,
                                   ),
-                                  UserList(
-                                    matches: matchState.matches,
-                                    teams: teamState.teams,
-                                    users: authState.users,
-                                  ),
-                                  TeamList(
-                                    teams: teamState.teams,
-                                  ),
+                                  TeamList(teams: teamState.teams),
                                 ],
                               ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.arrow_forward_ios),
                               onPressed: () {
-                                _carouselController.nextPage(
+                                _pageController.nextPage(
                                   duration: const Duration(milliseconds: 200),
                                   curve: Curves.ease,
                                 );

@@ -84,11 +84,35 @@ void main() {
               .having((state) => state.userId, 'userId', 'user_123')
               .having((state) => state.matchId, 'matchId', 'match_456')
               .having((state) => state.matchDay, 'matchDay', 1)
+              .having((state) => state.isLoading, 'isLoading', true)
               .having((state) => state.tipHome, 'tipHome', isNull)
               .having((state) => state.tipGuest, 'tipGuest', isNull)
               .having((state) => state.joker, 'joker', false),
-          isA<TipFormState>()  // Second emit with joker validation
-              .having((state) => state.userId, 'userId', 'user_123'),
+        ],
+      );
+    });
+
+    group('TipFormExternalUpdateEvent', () {
+      blocTest<TipFormBloc, TipFormState>(
+        'updates form state with external tip data',
+        build: () => tipFormBloc,
+        act: (bloc) {
+          bloc.add(TipFormExternalUpdateEvent(
+            matchId: 'match_456',
+            matchDay: 1,
+            tipHome: 2,
+            tipGuest: 1,
+            joker: true,
+          ));
+        },
+        expect: () => [
+          isA<TipFormState>()
+              .having((state) => state.matchId, 'matchId', 'match_456')
+              .having((state) => state.matchDay, 'matchDay', 1)
+              .having((state) => state.tipHome, 'tipHome', 2)
+              .having((state) => state.tipGuest, 'tipGuest', 1)
+              .having((state) => state.joker, 'joker', true)
+              .having((state) => state.isLoading, 'isLoading', false),
         ],
       );
     });

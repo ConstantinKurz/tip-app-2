@@ -18,6 +18,9 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   final ValidateJokerUsageUpdateStatUseCase validateJokerUseCase;
 
   StreamSubscription<Either<TipFailure, dynamic>>? _tipStreamSub;
+  
+  // Tracking welche MatchDays gerade geladen werden (verhindert parallele Requests)
+  final Set<int> _loadingMatchDays = {};
 
   TipControllerBloc({
     required this.tipRepository,
@@ -122,48 +125,72 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       if (allExist) return;
     }
 
-    // Einmalig laden (auch wenn Bloc noch nicht geladen ist)
-    final statsResult = await validateJokerUseCase(
-      userId: event.userId,
-      matchDay: event.matchDay,
-    );
+    // Prüfe ob dieser MatchDay bereits geladen wird (verhindert parallele Requests)
+    if (_loadingMatchDays.contains(event.matchDay)) {
+      return;
+    }
 
-    statsResult.fold(
-      (_) => null,
-      (stats) {
-        final updatedStats = Map<int, MatchDayStatistics>.from(
-          currentState is TipControllerLoaded ? currentState.matchDayStatistics : {},
-        );
+    // Markiere als "wird geladen"
+    _loadingMatchDays.add(event.matchDay);
 
-        for (final matchDayInPhase in matchDaysInPhase) {
-          if (event.matchDay == matchDayInPhase) {
-            updatedStats[matchDayInPhase] = stats;
-          } else {
-            final existingStat = updatedStats[matchDayInPhase];
-            if (existingStat != null) {
-              updatedStats[matchDayInPhase] = existingStat.copyWith(
-                jokersUsed: stats.jokersUsed,
-                jokersAvailable: stats.jokersAvailable,
-              );
-            } else {
-              updatedStats[matchDayInPhase] = stats.copyWith(
-                matchDay: matchDayInPhase,
-              );
+    try {
+      final statsResult = await validateJokerUseCase(
+        userId: event.userId,
+        matchDay: event.matchDay,
+      );
+
+      statsResult.fold(
+        (_) {
+          // Bei Fehler: Entferne aus Loading-Set
+          _loadingMatchDays.remove(event.matchDay);
+        },
+        (stats) {
+          // Hole aktuellen State NACH dem async Call (wichtig!)
+          final latestState = state;
+          
+          final previousStats = latestState is TipControllerLoaded
+              ? latestState.matchDayStatistics
+              : <int, MatchDayStatistics>{};
+
+          // Prüfe nochmal ob Stats inzwischen existieren
+          final allExistNow = matchDaysInPhase.every((d) => previousStats.containsKey(d));
+          if (allExistNow) {
+            _loadingMatchDays.remove(event.matchDay);
+            return;
+          }
+
+          final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
+
+          for (final matchDayInPhase in matchDaysInPhase) {
+            if (!updatedStats.containsKey(matchDayInPhase)) {
+              if (event.matchDay == matchDayInPhase) {
+                updatedStats[matchDayInPhase] = stats;
+              } else {
+                updatedStats[matchDayInPhase] = stats.copyWith(
+                  matchDay: matchDayInPhase,
+                );
+              }
             }
           }
-        }
 
-        emit(TipControllerLoaded(
-          tips: currentState is TipControllerLoaded ? currentState.tips : {},
-          matchDayStatistics: updatedStats,
-        ));
-      },
-    );
+          // Entferne aus Loading-Set
+          _loadingMatchDays.remove(event.matchDay);
+
+          emit(TipControllerLoaded(
+            tips: latestState is TipControllerLoaded ? latestState.tips : {},
+            matchDayStatistics: updatedStats,
+          ));
+        },
+      );
+    } catch (_) {
+      _loadingMatchDays.remove(event.matchDay);
+    }
   }
 
   @override
   Future<void> close() async {
     await _tipStreamSub?.cancel();
+    _loadingMatchDays.clear();
     return super.close();
   }
 }

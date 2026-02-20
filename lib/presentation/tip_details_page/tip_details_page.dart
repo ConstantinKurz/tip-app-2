@@ -211,18 +211,65 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {
+      _initialized = true;
+
       final bloc = context.read<TipFormBloc>();
+      final controllerBloc = context.read<TipControllerBloc>();
+      final tipState = controllerBloc.state;
+
       bloc.add(TipFormInitializedEvent(
         matchId: widget.matchId,
         userId: widget.userId,
         matchDay: widget.matchDay,
       ));
-      _initialized = true;
+
+      // Tip-Daten aus TipControllerBloc an TipFormBloc übergeben
+      if (tipState is TipControllerLoaded) {
+        final userTips = tipState.tips[widget.userId] ?? [];
+        final tip = userTips.firstWhere(
+          (t) => t.matchId == widget.matchId,
+          orElse: () => Tip.empty(widget.userId),
+        );
+
+        bloc.add(TipFormExternalUpdateEvent(
+          matchId: widget.matchId,
+          matchDay: widget.matchDay,
+          tipHome: tip.tipHome,
+          tipGuest: tip.tipGuest,
+          joker: tip.joker,
+        ));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return BlocListener<TipControllerBloc, TipControllerState>(
+      listenWhen: (previous, current) {
+        if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+          return previous.tips != current.tips;
+        }
+        return current is TipControllerLoaded;
+      },
+      listener: (context, tipState) {
+        if (tipState is TipControllerLoaded) {
+          final formBloc = context.read<TipFormBloc>();
+          final userTips = tipState.tips[widget.userId] ?? [];
+          final tip = userTips.firstWhere(
+            (t) => t.matchId == widget.matchId,
+            orElse: () => Tip.empty(widget.userId),
+          );
+
+          formBloc.add(TipFormExternalUpdateEvent(
+            matchId: widget.matchId,
+            matchDay: widget.matchDay,
+            tipHome: tip.tipHome,
+            tipGuest: tip.tipGuest,
+            joker: tip.joker,
+          ));
+        }
+      },
+      child: widget.child,
+    );
   }
 }

@@ -60,3 +60,21 @@ class TipFormStreamUpdatedEvent extends TipFormEvent {
     required this.joker,
   });
 }
+
+/// Event für externe Updates vom TipControllerBloc
+/// Vermeidet separate Firebase-Streams pro TipCard
+class TipFormExternalUpdateEvent extends TipFormEvent {
+  final String matchId;
+  final int matchDay;
+  final int? tipHome;
+  final int? tipGuest;
+  final bool joker;
+
+  TipFormExternalUpdateEvent({
+    required this.matchId,
+    required this.matchDay,
+    this.tipHome,
+    this.tipGuest,
+    this.joker = false,
+  });
+}

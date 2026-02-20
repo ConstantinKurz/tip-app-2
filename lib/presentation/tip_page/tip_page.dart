@@ -337,9 +337,13 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {
+      _initialized = true; // Vor dem Dispatch setzen um Mehrfachausführung zu verhindern
+
       final formBloc = context.read<TipFormBloc>();
       final controllerBloc = context.read<TipControllerBloc>();
+      final tipState = controllerBloc.state;
 
+      // Initialisiere TipFormBloc nur wenn noch nicht für dieses Match
       if (formBloc.state.matchId != widget.matchId) {
         formBloc.add(
           TipFormInitializedEvent(
@@ -350,37 +354,100 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
         );
       }
 
-      controllerBloc.add(
-        TipUpdateStatisticsEvent(
-          userId: widget.userId,
-          matchDay: widget.matchDay,
-        ),
-      );
+      // Stats nur laden wenn nicht bereits vorhanden
+      if (tipState is TipControllerLoaded) {
+        final hasStats = tipState.matchDayStatistics.containsKey(widget.matchDay);
+        if (!hasStats) {
+          controllerBloc.add(
+            TipUpdateStatisticsEvent(
+              userId: widget.userId,
+              matchDay: widget.matchDay,
+            ),
+          );
+        }
 
-      _initialized = true;
+        // Tip-Daten aus TipControllerBloc an TipFormBloc übergeben
+        final userTips = tipState.tips[widget.userId] ?? [];
+        final tip = userTips.firstWhere(
+          (t) => t.matchId == widget.matchId,
+          orElse: () => Tip.empty(widget.userId),
+        );
+
+        formBloc.add(TipFormExternalUpdateEvent(
+          matchId: widget.matchId,
+          matchDay: widget.matchDay,
+          tipHome: tip.tipHome,
+          tipGuest: tip.tipGuest,
+          joker: tip.joker,
+        ));
+      } else {
+        // Falls noch nicht geladen, Stats anfordern
+        controllerBloc.add(
+          TipUpdateStatisticsEvent(
+            userId: widget.userId,
+            matchDay: widget.matchDay,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final tipState = context.watch<TipControllerBloc>().state;
+    return BlocListener<TipControllerBloc, TipControllerState>(
+      listenWhen: (previous, current) {
+        // Nur reagieren wenn sich Tips ändern
+        if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+          return previous.tips != current.tips;
+        }
+        return current is TipControllerLoaded;
+      },
+      listener: (context, tipState) {
+        if (tipState is TipControllerLoaded) {
+          final formBloc = context.read<TipFormBloc>();
+          final userTips = tipState.tips[widget.userId] ?? [];
+          final tip = userTips.firstWhere(
+            (t) => t.matchId == widget.matchId,
+            orElse: () => Tip.empty(widget.userId),
+          );
 
-    Tip currentTip = Tip.empty(widget.userId);
-    if (tipState is TipControllerLoaded) {
-      final userTips = tipState.tips[widget.userId] ?? [];
-      currentTip = userTips.firstWhere(
-        (t) => t.matchId == widget.matchId,
-        orElse: () => Tip.empty(widget.userId),
-      );
-    }
+          formBloc.add(TipFormExternalUpdateEvent(
+            matchId: widget.matchId,
+            matchDay: widget.matchDay,
+            tipHome: tip.tipHome,
+            tipGuest: tip.tipGuest,
+            joker: tip.joker,
+          ));
+        }
+      },
+      child: BlocBuilder<TipControllerBloc, TipControllerState>(
+        buildWhen: (previous, current) {
+          // Nur rebuilden wenn Tips sich ändern
+          if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+            return previous.tips != current.tips;
+          }
+          return previous.runtimeType != current.runtimeType;
+        },
+        builder: (context, tipState) {
+          Tip currentTip = Tip.empty(widget.userId);
+          if (tipState is TipControllerLoaded) {
+            final userTips = tipState.tips[widget.userId] ?? [];
+            currentTip = userTips.firstWhere(
+              (t) => t.matchId == widget.matchId,
+              orElse: () => Tip.empty(widget.userId),
+            );
+          }
 
-    return TipCard(
-      key: ValueKey(widget.matchId),
-      userId: widget.userId,
-      match: widget.match,
-      homeTeam: widget.homeTeam,
-      guestTeam: widget.guestTeam,
-      tip: currentTip,
+          return TipCard(
+            key: ValueKey(widget.matchId),
+            userId: widget.userId,
+            match: widget.match,
+            homeTeam: widget.homeTeam,
+            guestTeam: widget.guestTeam,
+            tip: currentTip,
+          );
+        },
+      ),
     );
   }
 }

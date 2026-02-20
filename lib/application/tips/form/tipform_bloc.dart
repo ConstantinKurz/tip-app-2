@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match_day_statistics.dart';
@@ -15,7 +14,8 @@ part 'tipform_state.dart';
 class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
   final TipRepository tipRepository;
   final ValidateJokerUsageUpdateStatUseCase validateJokerUseCase;
-  StreamSubscription<Either<TipFailure, List<Tip>>>? _userTipsSubscription;
+  // Stream entfernt - wir nutzen externe Daten vom TipControllerBloc
+  // StreamSubscription<Either<TipFailure, List<Tip>>>? _userTipsSubscription;
 
   TipFormBloc({
     required this.tipRepository,
@@ -24,45 +24,42 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     on<TipFormInitializedEvent>(_onInitialized);
     on<TipFormFieldUpdatedEvent>(_onFieldUpdated);
     on<TipFormStreamUpdatedEvent>(_onStreamUpdated);
+    on<TipFormExternalUpdateEvent>(_onExternalUpdate);
+  }
+
+  /// Externe Updates vom TipControllerBloc verarbeiten
+  /// Vermeidet separate Firebase-Streams pro TipCard
+  Future<void> _onExternalUpdate(
+    TipFormExternalUpdateEvent event,
+    Emitter<TipFormState> emit,
+  ) async {
+    // Nur updaten wenn es für dieses Match relevant ist
+    if (state.matchId.isNotEmpty && state.matchId != event.matchId) return;
+
+    emit(state.copyWith(
+      matchId: event.matchId,
+      matchDay: event.matchDay,
+      tipHome: event.tipHome,
+      clearTipHome: event.tipHome == null,
+      tipGuest: event.tipGuest,
+      clearTipGuest: event.tipGuest == null,
+      joker: event.joker,
+      isLoading: false,
+    ));
   }
 
   Future<void> _onInitialized(
     TipFormInitializedEvent event,
     Emitter<TipFormState> emit,
   ) async {
-    // ✅ Nutze Stream statt Future - reduziert Firebase Reads
-    await _userTipsSubscription?.cancel();
-
-    _userTipsSubscription = tipRepository
-        .watchUserTips(event.userId)
-        .listen(
-          (tipResult) {
-            tipResult.fold(
-              (_) {
-                add(TipFormStreamUpdatedEvent(
-                  userId: event.userId,
-                  matchId: event.matchId,
-                  matchDay: event.matchDay,
-                  tipHome: null,
-                  tipGuest: null,
-                  joker: false,
-                ));
-              },
-              (tips) {
-                final tip = tips.firstWhereOrNull((t) => t.matchId == event.matchId);
-
-                add(TipFormStreamUpdatedEvent(
-                  userId: event.userId,
-                  matchId: event.matchId,
-                  matchDay: event.matchDay,
-                  tipHome: tip?.tipHome,
-                  tipGuest: tip?.tipGuest,
-                  joker: tip?.joker ?? false,
-                ));
-              },
-            );
-          },
-        );
+    // Nur State initialisieren - kein eigener Stream mehr
+    // Der TipControllerBloc hat bereits alle Tips geladen
+    emit(state.copyWith(
+      userId: event.userId,
+      matchId: event.matchId,
+      matchDay: event.matchDay,
+      isLoading: true,
+    ));
   }
 
   Future<void> _onFieldUpdated(
@@ -176,7 +173,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
 
   @override
   Future<void> close() async {
-    await _userTipsSubscription?.cancel();
+    // Stream wurde entfernt - nichts zu canceln
     return super.close();
   }
 }

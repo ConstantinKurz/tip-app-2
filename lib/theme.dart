@@ -85,7 +85,7 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
           color: _appbarColorLight,
           iconTheme: IconThemeData(color: _iconColor)),
-      bottomAppBarTheme: const BottomAppBarThemeData(color: _appbarColorLight),
+      bottomAppBarTheme: const BottomAppBarTheme(color: _appbarColorLight),
       colorScheme: ColorScheme.light(
           primary: _lightPrimaryColor,
           onPrimary: _lightOnPrimaryColor,
@@ -99,7 +99,7 @@ class AppTheme {
       appBarTheme: AppBarTheme(
           color: _appbarColorDark,
           iconTheme: const IconThemeData(color: _iconColor)),
-      bottomAppBarTheme: BottomAppBarThemeData(color: _appbarColorDark),
+      bottomAppBarTheme: BottomAppBarTheme(color: _appbarColorDark),
       colorScheme: ColorScheme.dark(
         primary: _darkPrimaryColor,
         secondary: _accentColorDark,

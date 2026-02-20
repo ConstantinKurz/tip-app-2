@@ -53,4 +53,22 @@ class Tip {
       points: points ?? this.points
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Tip) return false;
+    return id == other.id &&
+        userId == other.userId &&
+        matchId == other.matchId &&
+        tipHome == other.tipHome &&
+        tipGuest == other.tipGuest &&
+        joker == other.joker &&
+        points == other.points;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id, userId, matchId, tipHome, tipGuest, joker, points,
+  );
 }

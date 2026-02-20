@@ -51,6 +51,16 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
         return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
           builder: (context, teamState) {
             return BlocBuilder<TipControllerBloc, TipControllerState>(
+              // Nur rebuilden wenn sich Tips ändern oder State-Typ wechselt
+              buildWhen: (previous, current) {
+                // Bei State-Typ-Wechsel immer rebuilden
+                if (previous.runtimeType != current.runtimeType) return true;
+                // Bei Loaded-States nur rebuilden wenn sich Tips ändern (nicht Stats)
+                if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+                  return previous.tips != current.tips;
+                }
+                return true;
+              },
               builder: (context, tipState) {
                 if (matchState is MatchesControllerLoading ||
                     teamState is TeamsControllerLoading ||
@@ -298,18 +308,66 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {
+      _initialized = true; // Vor dem Dispatch setzen um Mehrfachausführung zu verhindern
+
       final bloc = context.read<TipFormBloc>();
+      final controllerBloc = context.read<TipControllerBloc>();
+      final tipState = controllerBloc.state;
+
       bloc.add(TipFormInitializedEvent(
         matchId: widget.matchId,
         userId: widget.userId,
         matchDay: widget.matchDay,
       ));
-      _initialized = true;
+
+      // Tip-Daten aus TipControllerBloc an TipFormBloc übergeben
+      if (tipState is TipControllerLoaded) {
+        final userTips = tipState.tips[widget.userId] ?? [];
+        final tip = userTips.firstWhere(
+          (t) => t.matchId == widget.matchId,
+          orElse: () => Tip.empty(widget.userId),
+        );
+
+        bloc.add(TipFormExternalUpdateEvent(
+          matchId: widget.matchId,
+          matchDay: widget.matchDay,
+          tipHome: tip.tipHome,
+          tipGuest: tip.tipGuest,
+          joker: tip.joker,
+        ));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return BlocListener<TipControllerBloc, TipControllerState>(
+      listenWhen: (previous, current) {
+        // Nur reagieren wenn sich Tips ändern
+        if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+          return previous.tips != current.tips;
+        }
+        return current is TipControllerLoaded;
+      },
+      listener: (context, tipState) {
+        if (tipState is TipControllerLoaded) {
+          final formBloc = context.read<TipFormBloc>();
+          final userTips = tipState.tips[widget.userId] ?? [];
+          final tip = userTips.firstWhere(
+            (t) => t.matchId == widget.matchId,
+            orElse: () => Tip.empty(widget.userId),
+          );
+
+          formBloc.add(TipFormExternalUpdateEvent(
+            matchId: widget.matchId,
+            matchDay: widget.matchDay,
+            tipHome: tip.tipHome,
+            tipGuest: tip.tipGuest,
+            joker: tip.joker,
+          ));
+        }
+      },
+      child: widget.child,
+    );
   }
 }

@@ -1,5 +1,4 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-// TODO: change constantin email in firesstore and add new admin field.
 // change code
 class AppUser {
   final String id;

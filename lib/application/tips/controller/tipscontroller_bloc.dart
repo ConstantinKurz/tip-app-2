@@ -4,7 +4,6 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match_day_statistics.dart';
-import 'package:flutter_web/domain/entities/match_phase.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
@@ -115,14 +114,11 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   ) async {
     final currentState = state;
 
-    final phase = MatchPhase.fromMatchDay(event.matchDay);
-    final matchDaysInPhase = phase.getMatchDaysForPhase();
-
-    // Wenn bereits alle Stats für diese Phase existieren UND kein forceRefresh -> nichts tun
+    // ✅ FIX: Prüfe nur diesen einzelnen matchDay, nicht die ganze Phase
+    // Wenn Stats für DIESEN matchDay existieren UND kein forceRefresh -> nichts tun
     if (!event.forceRefresh && currentState is TipControllerLoaded) {
       final currentStats = currentState.matchDayStatistics;
-      final allExist = matchDaysInPhase.every((d) => currentStats.containsKey(d));
-      if (allExist) return;
+      if (currentStats.containsKey(event.matchDay)) return;
     }
 
     // Prüfe ob dieser MatchDay bereits geladen wird (verhindert parallele Requests)
@@ -166,27 +162,10 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         previousStats = {};
       }
 
-      // Nochmal prüfen ob inzwischen geladen (nur wenn kein forceRefresh)
-      if (!event.forceRefresh) {
-        final allExistNow = matchDaysInPhase.every((d) => previousStats.containsKey(d));
-        if (allExistNow) {
-          return;
-        }
-      }
-
       final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
-
-      for (final matchDayInPhase in matchDaysInPhase) {
-        if (event.forceRefresh || !updatedStats.containsKey(matchDayInPhase)) {
-          if (event.matchDay == matchDayInPhase) {
-            updatedStats[matchDayInPhase] = stats;
-          } else {
-            updatedStats[matchDayInPhase] = stats.copyWith(
-              matchDay: matchDayInPhase,
-            );
-          }
-        }
-      }
+      
+      // ✅ FIX: Speichere Stats NUR für diesen matchDay, nicht für die ganze Phase!
+      updatedStats[event.matchDay] = stats;
 
       // Emit NACH dem fold, nicht innerhalb
       emit(TipControllerLoaded(

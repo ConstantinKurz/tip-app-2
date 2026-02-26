@@ -30,6 +30,12 @@ abstract class TipRepository {
     required int matchDay,
   });
   
+  /// ✅ NEU: Gibt die Anzahl verwendeter Joker in mehreren matchDays zurück
+  Future<Either<TipFailure, int>> getJokersUsedInMatchDays({
+    required String userId,
+    required List<int> matchDays,
+  });
+  
   /// Validiert ob Joker noch verfügbar ist
   Future<Either<TipFailure, bool>> canUseJokerInMatchDay({
     required String userId,

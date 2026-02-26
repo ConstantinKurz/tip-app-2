@@ -24,19 +24,31 @@ class ValidateJokerUsageUpdateStatUseCase {
     required int matchDay,
   }) async {
     final phase = MatchPhase.fromMatchDay(matchDay);
-    final maxJokers = phase.maxJokers;
     
+    // ✅ Für Joker: Nutze Phase-Logik (7+8 zusammen für Halbfinale/Finale)
+    final matchDaysForJokers = phase.getMatchDaysForJokerPhase();
+    
+    // ✅ Spezialfall: Halbfinale + Finale teilen sich 2 Joker
+    int maxJokers;
+    if (matchDay == 7 || matchDay == 8) {
+      maxJokers = 2; // Beide zusammen haben 2 Joker
+    } else {
+      maxJokers = phase.maxJokers;
+    }
+
+    // ✅ Joker: Zähle für die ganze Phase (7+8 zusammen)
     final jokersResult = await tipRepository.getJokersUsedInMatchDay(
       userId: userId,
       matchDay: matchDay,
     );
 
+    // ✅ Tipped Games: Zähle NUR für diesen einzelnen matchDay
     final tippedGamesResult = await tipRepository.getTippedGamesInMatchDay(
       userId: userId,
-      matchDay: matchDay,
+      matchDay: matchDay, // ← Nur dieser matchDay!
     );
 
-    // Hole Gesamtanzahl der Spiele im Spieltag
+    // Hole Gesamtanzahl der Spiele im EINZELNEN Spieltag
     final allMatchesResult = await matchRepository.getAllMatches();
     final totalGamesInMatchDay = allMatchesResult.fold(
       (_) => 0,
@@ -46,15 +58,15 @@ class ValidateJokerUsageUpdateStatUseCase {
     return tippedGamesResult.fold(
       (failure) => left(failure),
       (tippedGames) => jokersResult.fold(
-        (failure)  {
+        (failure) {
           return left(failure);
         },
         (usedJokers) => right(MatchDayStatistics(
           matchDay: matchDay,
-          tippedGames: tippedGames,
-          totalGames: totalGamesInMatchDay,
-          jokersUsed: usedJokers,
-          jokersAvailable: maxJokers,
+          tippedGames: tippedGames,        // ← Nur für DIESEN matchDay
+          totalGames: totalGamesInMatchDay, // ← Nur für DIESEN matchDay
+          jokersUsed: usedJokers,          // ← Für die ganze Phase (7+8)
+          jokersAvailable: maxJokers,      // ← Phase-Limit
         )),
       ),
     );

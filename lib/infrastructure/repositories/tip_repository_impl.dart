@@ -304,4 +304,43 @@ class TipRepositoryImpl implements TipRepository {
       return left(UnexpectedFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<TipFailure, int>> getJokersUsedInMatchDays({
+    required String userId,
+    required List<int> matchDays,
+  }) async {
+    try {
+      final querySnapshot = await tipsCollection
+          .where('userId', isEqualTo: userId)
+          .where('joker', isEqualTo: true)
+          .get();
+
+      int jokerCount = 0;
+      for (final doc in querySnapshot.docs) {
+        final tipData = doc.data() as Map<String, dynamic>;
+        final tipMatchId = tipData['matchId'] as String?;
+
+        if (tipMatchId != null) {
+          final matchDoc = await firebaseFirestore
+              .collection('matches')
+              .doc(tipMatchId)
+              .get();
+
+          if (matchDoc.exists) {
+            final matchData = matchDoc.data() as Map<String, dynamic>;
+            final docMatchDay = matchData['matchDay'] as int?;
+
+            // ✅ Zähle wenn matchDay in der Liste ist
+            if (docMatchDay != null && matchDays.contains(docMatchDay)) {
+              jokerCount++;
+            }
+          }
+        }
+      }
+      return right(jokerCount);
+    } catch (e) {
+      return left(UnexpectedFailure(message: e.toString()));
+    }
+  }
 }

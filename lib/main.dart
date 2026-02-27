@@ -23,7 +23,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:routemaster/routemaster.dart';
 import 'package:url_strategy/url_strategy.dart';
-//TODO: tipp statistik für finale halbfinale nicht richtig. die keys in matchphase sind nicht korrekt. ranking wird oft refreshed.
+//TODO:ranking wird oft refreshed.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(

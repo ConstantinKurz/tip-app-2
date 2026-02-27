@@ -114,65 +114,61 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   ) async {
     final currentState = state;
 
-    // ✅ FIX: Prüfe nur diesen einzelnen matchDay, nicht die ganze Phase
-    // Wenn Stats für DIESEN matchDay existieren UND kein forceRefresh -> nichts tun
+    // Prüfe nur diesen einzelnen matchDay, nicht die ganze Phase
     if (!event.forceRefresh && currentState is TipControllerLoaded) {
       final currentStats = currentState.matchDayStatistics;
       if (currentStats.containsKey(event.matchDay)) return;
     }
 
-    // Prüfe ob dieser MatchDay bereits geladen wird (verhindert parallele Requests)
     if (_loadingMatchDays.contains(event.matchDay)) {
       return;
     }
-
-    // Markiere als "wird geladen"
     _loadingMatchDays.add(event.matchDay);
 
     try {
+      // Wenn Halbfinale oder Finale: beide Statistiken parallel laden und setzen
+      if (event.matchDay == 7 || event.matchDay == 8) {
+        final stats7Future = validateJokerUseCase(userId: event.userId, matchDay: 7);
+        final stats8Future = validateJokerUseCase(userId: event.userId, matchDay: 8);
+        final results = await Future.wait([stats7Future, stats8Future]);
+        _loadingMatchDays.remove(7);
+        _loadingMatchDays.remove(8);
+
+        final stats7 = results[0].fold((_) => null, (s) => s);
+        final stats8 = results[1].fold((_) => null, (s) => s);
+
+        if (stats7 == null && stats8 == null) return;
+
+        final latestState = state;
+        final Map<String, List<Tip>> currentTips = latestState is TipControllerLoaded ? latestState.tips : {};
+        final Map<int, MatchDayStatistics> previousStats = latestState is TipControllerLoaded ? latestState.matchDayStatistics : {};
+        final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
+        if (stats7 != null) updatedStats[7] = stats7;
+        if (stats8 != null) updatedStats[8] = stats8;
+        emit(TipControllerLoaded(
+          tips: currentTips,
+          matchDayStatistics: updatedStats,
+        ));
+        return;
+      }
+
+      // Sonst wie gehabt für einzelne Tage
       final statsResult = await validateJokerUseCase(
         userId: event.userId,
         matchDay: event.matchDay,
       );
-
       _loadingMatchDays.remove(event.matchDay);
-
-      // Extrahiere den Wert aus Either BEVOR wir emit aufrufen
-      final MatchDayStatistics? stats = statsResult.fold(
-        (failure) => null,
-        (s) => s,
-      );
-
-      // Wenn Stats null sind (Fehler), abbrechen
-      if (stats == null) {
-        return;
-      }
-
-      // Aktuellen State holen
+      final MatchDayStatistics? stats = statsResult.fold((failure) => null, (s) => s);
+      if (stats == null) return;
       final latestState = state;
-      
-      final Map<String, List<Tip>> currentTips;
-      final Map<int, MatchDayStatistics> previousStats;
-      
-      if (latestState is TipControllerLoaded) {
-        currentTips = latestState.tips;
-        previousStats = latestState.matchDayStatistics;
-      } else {
-        currentTips = {};
-        previousStats = {};
-      }
-
+      final Map<String, List<Tip>> currentTips = latestState is TipControllerLoaded ? latestState.tips : {};
+      final Map<int, MatchDayStatistics> previousStats = latestState is TipControllerLoaded ? latestState.matchDayStatistics : {};
       final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
-      
-      // ✅ FIX: Speichere Stats NUR für diesen matchDay, nicht für die ganze Phase!
       updatedStats[event.matchDay] = stats;
-
-      // Emit NACH dem fold, nicht innerhalb
       emit(TipControllerLoaded(
         tips: currentTips,
         matchDayStatistics: updatedStats,
       ));
-      
     } catch (_) {
       _loadingMatchDays.remove(event.matchDay);
     }

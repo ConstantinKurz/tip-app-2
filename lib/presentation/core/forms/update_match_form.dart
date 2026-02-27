@@ -91,12 +91,15 @@ class UpdateMatchForm extends StatelessWidget {
                   Expanded(
                     child: DropdownButtonFormField<Team>(
                       decoration: const InputDecoration(labelText: 'Home Team'),
-                      value: teams.firstWhere((t) => t.id == match.homeTeamId,
-                          orElse: () => Team.empty()),
+                      value: teams.isEmpty
+                          ? null
+                          : (teams.any((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
+                              ? teams.firstWhere((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
+                              : null),
                       items: teams.map((team) {
                         return DropdownMenuItem<Team>(
                           value: team,
-                          child: Text(team.name),
+                          child: Text(team.name, overflow: TextOverflow.ellipsis),
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -109,12 +112,15 @@ class UpdateMatchForm extends StatelessWidget {
                   Expanded(
                     child: DropdownButtonFormField<Team>(
                       decoration: const InputDecoration(labelText: 'Gast Team'),
-                      value: teams.firstWhere((t) => t.id == match.guestTeamId,
-                          orElse: () => Team.empty()),
+                      value: teams.isEmpty
+                          ? null
+                          : (teams.any((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
+                              ? teams.firstWhere((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
+                              : null),
                       items: teams.map((team) {
                         return DropdownMenuItem<Team>(
                           value: team,
-                          child: Text(team.name),
+                          child: Text(team.name, overflow: TextOverflow.ellipsis),
                         );
                       }).toList(),
                       onChanged: (value) {

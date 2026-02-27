@@ -15,13 +15,12 @@ class TipRecalculationService {
   /// Startet den Listener für Match-Änderungen
   /// Horcht auf watchAllMatches() Stream und reagiert auf neue Ergebnisse
   void startListening() {
-    print(
-        '🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
+    print('🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
 
     matchRepository.watchAllMatches().listen(
-      (failureOrMatches) {
-        failureOrMatches.fold(
-          (failure) {
+      (failureOrMatches) async {
+        await failureOrMatches.fold(
+          (failure) async {
             print('❌ Fehler beim Überwachen von Matches: $failure');
           },
           (matches) async {
@@ -37,6 +36,9 @@ class TipRecalculationService {
               for (final match in matchesWithResults) {
                 await _recalculateForMatch(match);
               }
+
+              // ✅ Ranking nur EINMAL nach allen Updates!
+              await recalculateMatchTipsUseCase.updateAllUserRankings();
             }
           },
         );

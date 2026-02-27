@@ -68,9 +68,6 @@ class RecalculateMatchTipsUseCase {
       // Aktualisiere Score für alle betroffenen User
       await _updateUserScores(affectedUsers);
 
-      // Aktualisiere Rankings für ALLE User
-      await _updateAllUserRankings();
-
       return right(unit);
     } catch (e) {
       return left(ServerFailure(message: e.toString()));
@@ -176,7 +173,7 @@ class RecalculateMatchTipsUseCase {
   }
 
   /// Aktualisiert Rankings für alle User mit Tiebreaker-Logik
-  Future<void> _updateAllUserRankings() async {
+  Future<void> updateAllUserRankings() async {
     try {
       final allUsersResult = await userRepository.getAllUsers();
       

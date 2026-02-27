@@ -64,8 +64,6 @@ class MatchesFromInitialState extends MatchesformState {
           matchFailureOrSuccessOption: none(),
           homeTeamId: null,
           guestTeamId: null,
-          matchDate: DateTime.now(),
-          matchTime: TimeOfDay.now(), 
           homeScore: null,
           guestScore: null
         );

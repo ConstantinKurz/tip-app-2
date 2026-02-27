@@ -39,6 +39,8 @@ class UpdateMatchForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+
+    // Setze die Controller-Werte auf das gespeicherte Match-Datum
     homeScoreController.text = match.homeScore?.toString() ?? '';
     guestScoreController.text = match.guestScore?.toString() ?? '';
 
@@ -77,6 +79,10 @@ class UpdateMatchForm extends StatelessWidget {
         );
       },
       builder: (context, state) {
+        // Nutze das gespeicherte Datum, falls im State nicht gesetzt
+        final DateTime effectiveDate = state.matchDate ?? match.matchDate;
+        final TimeOfDay effectiveTime = state.matchTime ??
+            TimeOfDay.fromDateTime(match.matchDate);
 
         return Form(
           autovalidateMode: state.showValidationMessages
@@ -198,7 +204,7 @@ class UpdateMatchForm extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomDatePickerField(
-                      initialDate: state.matchDate,
+                      initialDate: effectiveDate,
                       onDateChanged: (DateTime? date) {
                         context
                             .read<MatchesformBloc>()
@@ -209,7 +215,7 @@ class UpdateMatchForm extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: CustomTimePickerField(
-                      initialTime: state.matchTime,
+                      initialTime: effectiveTime,
                       onTimeChanged: (TimeOfDay? time) {
                         context
                             .read<MatchesformBloc>()
@@ -248,12 +254,15 @@ class UpdateMatchForm extends StatelessWidget {
                     hoverColor: primaryDark,
                     callback: () {
                       if (formKey.currentState!.validate()) {
+                        // Fallback: Verwende gespeichertes Datum/Zeit, falls state null ist
+                        final DateTime safeDate = state.matchDate ?? match.matchDate;
+                        final TimeOfDay safeTime = state.matchTime ?? TimeOfDay(hour: match.matchDate.hour, minute: match.matchDate.minute);
                         DateTime combinedDateTime = DateTime(
-                          state.matchDate!.year,
-                          state.matchDate!.month,
-                          state.matchDate!.day,
-                          state.matchTime!.hour,
-                          state.matchTime!.minute,
+                          safeDate.year,
+                          safeDate.month,
+                          safeDate.day,
+                          safeTime.hour,
+                          safeTime.minute,
                         );
 
                         final CustomMatch updatedMatch = CustomMatch(

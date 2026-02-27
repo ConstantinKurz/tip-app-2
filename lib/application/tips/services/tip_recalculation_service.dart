@@ -7,6 +7,9 @@ class TipRecalculationService {
   final MatchRepository matchRepository;
   final RecalculateMatchTipsUseCase recalculateMatchTipsUseCase;
 
+  // Map zum Speichern des letzten Match-Status
+  final Map<String, CustomMatch> _lastMatchesById = {};
+
   TipRecalculationService({
     required this.matchRepository,
     required this.recalculateMatchTipsUseCase,
@@ -24,20 +27,27 @@ class TipRecalculationService {
             print('❌ Fehler beim Überwachen von Matches: $failure');
           },
           (matches) async {
-            // Filtere nur Matches mit neuen Ergebnissen
             final matchesWithResults =
                 matches.where((m) => m.hasResult).toList();
 
-            if (matchesWithResults.isNotEmpty) {
-              print(
-                  '🔄 ${matchesWithResults.length} Matches mit Ergebnissen gefunden');
+            // Filter: Nur Matches mit Ergebnis-Änderung
+            final changedMatches = <CustomMatch>[];
+            for (final match in matchesWithResults) {
+              final lastMatch = _lastMatchesById[match.id];
+              if (lastMatch == null ||
+                  lastMatch.homeScore != match.homeScore ||
+                  lastMatch.guestScore != match.guestScore) {
+                changedMatches.add(match);
+              }
+              // Update Map mit aktuellem Match
+              _lastMatchesById[match.id] = match;
+            }
 
-              // Neuberechne Punkte für jedes Match mit Ergebnis
-              for (final match in matchesWithResults) {
+            if (changedMatches.isNotEmpty) {
+              print('🔄 ${changedMatches.length} Matches mit Ergebnis-Änderung gefunden');
+              for (final match in changedMatches) {
                 await _recalculateForMatch(match);
               }
-
-              // ✅ Ranking nur EINMAL nach allen Updates!
               await recalculateMatchTipsUseCase.updateAllUserRankings();
             }
           },

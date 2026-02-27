@@ -24,6 +24,13 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:routemaster/routemaster.dart';
 import 'package:url_strategy/url_strategy.dart';
 //TODO:ranking wird oft refreshed.
+// Champion-Logik optimieren
+// Aktuell: Für jeden User mit Champion-Tipp werden alle Matches geladen.
+// Ziel: Finale-Match nur einmal laden und im Speicher halten.
+// Maßnahme:
+// Lade das Finale-Match einmal und gib es an alle Score-Updates weiter.
+// AUch die Cards anschauen da stimmt was nicht es werden ca 500 request geschickt.
+// Beim update eines Matches werden 300 reqeusts geschickt.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(

@@ -156,27 +156,29 @@ class TipRepositoryImpl implements TipRepository {
           .where('joker', isEqualTo: true)
           .get();
 
-      // Zähle Joker in ALLEN matchDays dieser Phase
-      int jokerCount = 0;
+      //Sammle alle matchIds und lade in einem Batch
+      final matchIds = <String>[];
       for (final doc in querySnapshot.docs) {
         final tipData = doc.data() as Map<String, dynamic>;
         final tipMatchId = tipData['matchId'] as String?;
-
         if (tipMatchId != null) {
-          final matchDoc = await firebaseFirestore
-              .collection('matches')
-              .doc(tipMatchId)
-              .get();
+          matchIds.add(tipMatchId);
+        }
+      }
 
-          if (matchDoc.exists) {
-            final matchData = matchDoc.data() as Map<String, dynamic>;
-            final docMatchDay = matchData['matchDay'] as int?;
+      if (matchIds.isEmpty) {
+        return right(0);
+      }
 
-            // ✅ Prüfe ob matchDay in dieser Phase ist
-            if (docMatchDay != null && matchDaysInPhase.contains(docMatchDay)) {
-              jokerCount++;
-            }
-          }
+      // ✅ Lade alle Matches in Batches (Firestore limit: 10 per whereIn)
+      final matchDayMap = await _loadMatchDaysForMatchIds(matchIds);
+
+      // Zähle Joker in ALLEN matchDays dieser Phase
+      int jokerCount = 0;
+      for (final matchId in matchIds) {
+        final docMatchDay = matchDayMap[matchId];
+        if (docMatchDay != null && matchDaysInPhase.contains(docMatchDay)) {
+          jokerCount++;
         }
       }
 
@@ -184,6 +186,31 @@ class TipRepositoryImpl implements TipRepository {
     } catch (e) {
       return left(ServerFailure(message: e.toString()));
     }
+  }
+
+  /// ✅ Hilfsmethode: Lädt matchDays für mehrere matchIds in Batches
+  Future<Map<String, int>> _loadMatchDaysForMatchIds(List<String> matchIds) async {
+    final result = <String, int>{};
+    
+    // Firestore erlaubt max 10 Elemente pro whereIn Query
+    for (var i = 0; i < matchIds.length; i += 10) {
+      final batch = matchIds.sublist(i, i + 10 > matchIds.length ? matchIds.length : i + 10);
+      
+      final querySnapshot = await firebaseFirestore
+          .collection('matches')
+          .where(FieldPath.documentId, whereIn: batch)
+          .get();
+      
+      for (final doc in querySnapshot.docs) {
+        final matchData = doc.data();
+        final docMatchDay = matchData['matchDay'] as int?;
+        if (docMatchDay != null) {
+          result[doc.id] = docMatchDay;
+        }
+      }
+    }
+    
+    return result;
   }
 
   @override
@@ -265,8 +292,8 @@ class TipRepositoryImpl implements TipRepository {
           .where('tipHome', isNull: false)
           .get();
 
-      int tippedGamesCount = 0;
-      // Iterate through the tips and check the matchDay for each one
+      // ✅ OPTIMIERT: Sammle alle matchIds und filtere bei gültigen Tips
+      final matchIdsWithValidTips = <String>[];
       for (final doc in querySnapshot.docs) {
         final tipData = doc.data() as Map<String, dynamic>;
 
@@ -276,23 +303,27 @@ class TipRepositoryImpl implements TipRepository {
         }
 
         final tipMatchId = tipData['matchId'] as String?;
-
         if (tipMatchId != null) {
-          final matchDoc = await firebaseFirestore
-              .collection('matches')
-              .doc(tipMatchId)
-              .get();
-
-          if (matchDoc.exists) {
-            final matchData = matchDoc.data() as Map<String, dynamic>;
-            final docMatchDay = matchData['matchDay'] as int?;
-
-            if (docMatchDay == matchDay) {
-              tippedGamesCount++;
-            }
-          }
+          matchIdsWithValidTips.add(tipMatchId);
         }
       }
+
+      if (matchIdsWithValidTips.isEmpty) {
+        return right(0);
+      }
+
+      // ✅ Lade alle Matches in Batches
+      final matchDayMap = await _loadMatchDaysForMatchIds(matchIdsWithValidTips);
+
+      // Zähle nur Tips für den angegebenen matchDay
+      int tippedGamesCount = 0;
+      for (final matchId in matchIdsWithValidTips) {
+        final docMatchDay = matchDayMap[matchId];
+        if (docMatchDay == matchDay) {
+          tippedGamesCount++;
+        }
+      }
+
       return right(tippedGamesCount);
     } on FirebaseException catch (e) {
       if (e.code.contains('permission-denied')) {
@@ -316,28 +347,32 @@ class TipRepositoryImpl implements TipRepository {
           .where('joker', isEqualTo: true)
           .get();
 
-      int jokerCount = 0;
+      // ✅ OPTIMIERT: Sammle alle matchIds
+      final matchIds = <String>[];
       for (final doc in querySnapshot.docs) {
         final tipData = doc.data() as Map<String, dynamic>;
         final tipMatchId = tipData['matchId'] as String?;
-
         if (tipMatchId != null) {
-          final matchDoc = await firebaseFirestore
-              .collection('matches')
-              .doc(tipMatchId)
-              .get();
-
-          if (matchDoc.exists) {
-            final matchData = matchDoc.data() as Map<String, dynamic>;
-            final docMatchDay = matchData['matchDay'] as int?;
-
-            // ✅ Zähle wenn matchDay in der Liste ist
-            if (docMatchDay != null && matchDays.contains(docMatchDay)) {
-              jokerCount++;
-            }
-          }
+          matchIds.add(tipMatchId);
         }
       }
+
+      if (matchIds.isEmpty) {
+        return right(0);
+      }
+
+      // ✅ Lade alle Matches in Batches
+      final matchDayMap = await _loadMatchDaysForMatchIds(matchIds);
+
+      // Zähle wenn matchDay in der Liste ist
+      int jokerCount = 0;
+      for (final matchId in matchIds) {
+        final docMatchDay = matchDayMap[matchId];
+        if (docMatchDay != null && matchDays.contains(docMatchDay)) {
+          jokerCount++;
+        }
+      }
+
       return right(jokerCount);
     } catch (e) {
       return left(UnexpectedFailure(message: e.toString()));

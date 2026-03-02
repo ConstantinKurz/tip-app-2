@@ -24,10 +24,7 @@ class ValidateJokerUsageUpdateStatUseCase {
     required int matchDay,
   }) async {
     final phase = MatchPhase.fromMatchDay(matchDay);
-    
-    // ✅ Für Joker: Nutze Phase-Logik (7+8 zusammen für Halbfinale/Finale)
-    final matchDaysForJokers = phase.getMatchDaysForJokerPhase();
-    
+      
     // ✅ Spezialfall: Halbfinale + Finale teilen sich 2 Joker
     int maxJokers;
     if (matchDay == 7 || matchDay == 8) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/usecases/recalculate_match_tips_usecase.dart';
@@ -9,6 +10,11 @@ class TipRecalculationService {
 
   // Map zum Speichern des letzten Match-Status
   final Map<String, CustomMatch> _lastMatchesById = {};
+  
+  // ✅ Debounce Timer für Batch-Updates
+  Timer? _debounceTimer;
+  final List<CustomMatch> _pendingMatches = [];
+  static const _debounceDuration = Duration(milliseconds: 500);
 
   TipRecalculationService({
     required this.matchRepository,
@@ -44,11 +50,9 @@ class TipRecalculationService {
             }
 
             if (changedMatches.isNotEmpty) {
-              print('🔄 ${changedMatches.length} Matches mit Ergebnis-Änderung gefunden');
-              for (final match in changedMatches) {
-                await _recalculateForMatch(match);
-              }
-              await recalculateMatchTipsUseCase.updateAllUserRankings();
+              // ✅ Sammle Änderungen und debounce
+              _pendingMatches.addAll(changedMatches);
+              _scheduleProcessing();
             }
           },
         );
@@ -57,6 +61,27 @@ class TipRecalculationService {
         print('❌ Stream-Fehler in TipRecalculationService: $e');
       },
     );
+  }
+
+  /// ✅ Debounced Verarbeitung der Matches
+  void _scheduleProcessing() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_debounceDuration, () async {
+      if (_pendingMatches.isEmpty) return;
+
+      // Kopiere und leere die Liste
+      final matchesToProcess = List<CustomMatch>.from(_pendingMatches);
+      _pendingMatches.clear();
+
+      print('🔄 ${matchesToProcess.length} Matches mit Ergebnis-Änderung werden verarbeitet...');
+      // Update Punkte für Matches
+      for (final match in matchesToProcess) {
+        await _recalculateForMatch(match);
+      }
+      // Dann rufe ranking update auf.
+      // ✅ Ranking nur EINMAL nach allen Updates!
+      await recalculateMatchTipsUseCase.updateAllUserRankings();
+    });
   }
 
   /// Neuberechnet Punkte für ein einzelnes Match

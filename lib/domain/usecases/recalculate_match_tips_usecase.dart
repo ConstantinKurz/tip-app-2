@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/team.dart';
+
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/repositories/team_repository.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
@@ -14,12 +16,64 @@ class RecalculateMatchTipsUseCase {
   final MatchRepository matchRepository;
   final TeamRepository teamRepository;
 
+  // ✅ Cache für Finale-Match und Champion-Team (werden nur einmal geladen)
+  CustomMatch? _cachedFinalMatch;
+  Team? _cachedChampionTeam;
+  String? _cachedChampionId;
+  List<CustomMatch>? _cachedAllMatches;
+
   RecalculateMatchTipsUseCase({
     required this.tipRepository,
     required this.userRepository,
     required this.matchRepository,
     required this.teamRepository,
   });
+
+  /// Lädt alle benötigten Daten einmal und cached sie
+  Future<void> _loadSharedData() async {
+    if (_cachedAllMatches != null) return; // Bereits geladen
+
+    final allMatchesResult = await matchRepository.getAllMatches();
+    await allMatchesResult.fold(
+      (failure) async {
+        print('❌ Fehler beim Laden aller Matches: $failure');
+      },
+      (allMatches) async {
+        _cachedAllMatches = allMatches;
+
+        // Finde das Finale-Match (matchDay 8)
+        _cachedFinalMatch = allMatches.cast<CustomMatch?>().firstWhere(
+              (m) => m != null && m.matchDay == 8 && m.hasResult,
+              orElse: () => null,
+            );
+
+        if (_cachedFinalMatch != null) {
+          // Der Sieger des Finals ist der Weltmeister
+          _cachedChampionId =
+              (_cachedFinalMatch!.homeScore ?? 0) > (_cachedFinalMatch!.guestScore ?? 0)
+                  ? _cachedFinalMatch!.homeTeamId
+                  : _cachedFinalMatch!.guestTeamId;
+
+          // Lade Champion-Team einmal
+          final championTeamResult = await teamRepository.getById(_cachedChampionId!);
+          championTeamResult.fold(
+            (failure) {},
+            (team) {
+              _cachedChampionTeam = team;
+            },
+          );
+        }
+      },
+    );
+  }
+
+  /// Löscht den Cache (z.B. nach einem Batch-Update)
+  void clearCache() {
+    _cachedFinalMatch = null;
+    _cachedChampionTeam = null;
+    _cachedChampionId = null;
+    _cachedAllMatches = null;
+  }
 
   /// Berechnet Punkte für alle Tips eines Matches neu
   /// und aktualisiert User-Scores
@@ -31,6 +85,9 @@ class RecalculateMatchTipsUseCase {
     }
 
     try {
+      // ✅ Lade shared data einmal (cached)
+      await _loadSharedData();
+
       // Hole alle Tips für dieses Match
       final allTips = await tipRepository.getTipsForMatch(match.id);
       final affectedUsers = <String>{};
@@ -65,7 +122,7 @@ class RecalculateMatchTipsUseCase {
         },
       );
 
-      // Aktualisiere Score für alle betroffenen User
+      // ✅ Aktualisiere Score für alle betroffenen User (mit gecachten Daten)
       await _updateUserScores(affectedUsers);
 
       return right(unit);
@@ -74,7 +131,7 @@ class RecalculateMatchTipsUseCase {
     }
   }
 
-  /// Berechnet Gesamtpunkte für User neu
+  /// Berechnet Statistiken für User neu - OPTIMIERT mit Cache
   Future<void> _updateUserScores(Set<String> userIds) async {
     if (userIds.isEmpty) return;
 
@@ -103,54 +160,20 @@ class RecalculateMatchTipsUseCase {
               }
             }
 
-            // ✅ Hole User und prüfe Champion-Tipp
+            // ✅ Hole User
             final userResult = await userRepository.getUserById(userId);
             await userResult.fold(
               (failure) async {
                 print('❌ Fehler beim Laden des Users: $failure');
               },
               (user) async {
-                // ✅ Neue Logik: Prüfe ob User den richtigen Champion getippt hat
-                if (user.championId.isNotEmpty) {
-                  // Hole den tatsächlichen Weltmeister (z.B. aus Match mit höchster Phase)
-                  final allMatchesResult = await matchRepository.getAllMatches();
-                  
-                  await allMatchesResult.fold(
-                    (failure) async {},
-                    (allMatches) async {
-                      // Finde das Finale-Match (matchDay 8)
-                      final finalMatch = allMatches
-                          .cast<CustomMatch?>()
-                          .firstWhere(
-                            (m) => m != null && m.matchDay == 8 && m.hasResult,
-                            orElse: () => null,
-                          );
-                      
-                      if (finalMatch != null) {
-                        // Der Sieger des Finals ist der Weltmeister
-                        final actualChampionId = 
-                            (finalMatch.homeScore ?? 0) > (finalMatch.guestScore ?? 0)
-                                ? finalMatch.homeTeamId
-                                : finalMatch.guestTeamId;
-                        
-                        // ✅ Wenn User den richtigen Champion getippt hat
-                        if (user.championId == actualChampionId) {
-                          // Hole die win_points des Champions
-                          final championTeamResult = 
-                              await teamRepository.getById(actualChampionId);
-                          
-                          await championTeamResult.fold(
-                            (failure) async {},
-                            (championTeam) async {
-                              // ✅ Addiere die win_points des Champions
-                              totalScore += championTeam.winPoints;
-                              print('✅ Champion bonus: +${championTeam.winPoints} Punkte für $userId');
-                            },
-                          );
-                        }
-                      }
-                    },
-                  );
+                // ✅ Champion-Bonus mit gecachten Daten (KEIN getAllMatches() mehr!)
+                if (user.championId.isNotEmpty &&
+                    _cachedChampionId != null &&
+                    _cachedChampionTeam != null &&
+                    user.championId == _cachedChampionId) {
+                  totalScore += _cachedChampionTeam!.winPoints;
+                  print('✅ Champion bonus: +${_cachedChampionTeam!.winPoints} Punkte für $userId');
                 }
 
                 // Update User mit neuen Scores
@@ -172,7 +195,7 @@ class RecalculateMatchTipsUseCase {
     }
   }
 
-  /// Aktualisiert Rankings für alle User mit Tiebreaker-Logik
+  /// Aktualisiert Rankings für alle User mit Tiebreaker-Logik - OPTIMIERT
   Future<void> updateAllUserRankings() async {
     try {
       final allUsersResult = await userRepository.getAllUsers();
@@ -201,20 +224,28 @@ class RecalculateMatchTipsUseCase {
               return a.name.compareTo(b.name);
             });
 
-          // Vergebe neue Ranks
+          // ✅ Sammle nur User mit geändertem Rang
+          final usersToUpdate = [];
           for (int i = 0; i < sortedUsers.length; i++) {
             final user = sortedUsers[i];
             final newRank = i + 1;
 
             if (user.rank != newRank) {
-              final updatedUser = user.copyWith(rank: newRank);
-              await userRepository.updateUser(updatedUser);
+              usersToUpdate.add(user.copyWith(rank: newRank));
             }
           }
 
-          print('✅ Rankings für ${sortedUsers.length} User aktualisiert');
+          // ✅ Update nur geänderte User
+          for (final user in usersToUpdate) {
+            await userRepository.updateUser(user);
+          }
+
+          print('✅ Rankings für ${usersToUpdate.length}/${sortedUsers.length} User aktualisiert');
         },
       );
+
+      // ✅ Cache leeren nach Ranking-Update
+      clearCache();
     } catch (e) {
       print('❌ Fehler beim Ranking-Update: $e');
     }

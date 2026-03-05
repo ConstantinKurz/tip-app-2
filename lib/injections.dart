@@ -9,7 +9,7 @@ import 'package:flutter_web/application/teams/controller/teams_controller_bloc.d
 import 'package:flutter_web/application/teams/form/teamsform_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
-import 'package:flutter_web/application/tips/services/tip_recalculation_service.dart';
+import 'package:flutter_web/domain/services/tip_recalculation_service.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/repositories/team_repository.dart';
 import 'package:flutter_web/domain/repositories/user_repository.dart';

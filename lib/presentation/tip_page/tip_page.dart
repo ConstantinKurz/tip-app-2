@@ -422,9 +422,25 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
       },
       child: BlocBuilder<TipControllerBloc, TipControllerState>(
         buildWhen: (previous, current) {
-          // Nur rebuilden wenn Tips sich ändern
+          // ✅ FIX: Rebuild wenn sich der Tip für dieses Match ändert (inkl. Punkte)
           if (previous is TipControllerLoaded && current is TipControllerLoaded) {
-            return previous.tips != current.tips;
+            final prevUserTips = previous.tips[widget.userId] ?? [];
+            final currUserTips = current.tips[widget.userId] ?? [];
+            
+            final prevTip = prevUserTips.firstWhere(
+              (t) => t.matchId == widget.matchId,
+              orElse: () => Tip.empty(widget.userId),
+            );
+            final currTip = currUserTips.firstWhere(
+              (t) => t.matchId == widget.matchId,
+              orElse: () => Tip.empty(widget.userId),
+            );
+            
+            // Rebuild wenn sich Punkte oder andere Tip-Daten ändern
+            return prevTip.points != currTip.points ||
+                   prevTip.tipHome != currTip.tipHome ||
+                   prevTip.tipGuest != currTip.tipGuest ||
+                   prevTip.joker != currTip.joker;
           }
           return previous.runtimeType != current.runtimeType;
         },
@@ -438,8 +454,9 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
             );
           }
 
+          // ✅ FIX: Key mit Punkten für Force-Rebuild bei Punkte-Änderung
           return TipCard(
-            key: ValueKey(widget.matchId),
+            key: ValueKey('${widget.matchId}_${currentTip.points}'),
             userId: widget.userId,
             match: widget.match,
             homeTeam: widget.homeTeam,

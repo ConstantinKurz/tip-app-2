@@ -83,10 +83,10 @@ class MatchesformBloc extends Bloc<MatchesformEvent, MatchesformState> {
         ));
       },
       (_) async {
-        // Wenn Match Ergebnis hat → Punkte + User-Score neuberechnen
-        if (event.match!.hasResult) {
-          await recalculateMatchTipsUseCase(match: event.match!);
-        }
+        // // Wenn Match Ergebnis hat → Punkte + User-Score neuberechnen
+        // if (event.match!.hasResult) {
+        //   await recalculateMatchTipsUseCase(match: event.match!);
+        // }
 
         emit(state.copyWith(
           isSubmitting: false,

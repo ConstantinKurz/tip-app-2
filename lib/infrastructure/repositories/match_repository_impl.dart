@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/exception_mapping.dart';
 import 'package:flutter_web/core/failures/match_failures.dart';
+import 'package:flutter_web/core/utils/firestore_logger.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/infrastructure/models/match_model.dart';
@@ -14,7 +15,15 @@ class MatchRepositoryImpl implements MatchRepository {
 
   @override
   Stream<Either<MatchFailure, List<CustomMatch>>> watchAllMatches() async* {
+    print('🎯 [MatchRepository] watchAllMatches STREAM STARTED');
+    FirestoreLogger.logRead('matches', 'watchAllMatches (STREAM)');
+    
+    int eventCount = 0;
+    
     yield* matchesCollection.orderBy('matchDate').snapshots().map<Either<MatchFailure, List<CustomMatch>>>((snapshot) {
+      eventCount++;
+      FirestoreLogger.logRead('matches', 'watchAllMatches (EVENT #$eventCount)', docId: '[${snapshot.docs.length} docs]');
+      print('📥 [MatchRepository] watchAllMatches EVENT #$eventCount: ${snapshot.docs.length} matches');
       try {
         final matches = snapshot.docs
             .map((doc) => MatchModel.fromFirestore(doc).toDomain())
@@ -77,7 +86,11 @@ class MatchRepositoryImpl implements MatchRepository {
   @override
   Future<Either<MatchFailure, List<CustomMatch>>> getAllMatches() async {
     try {
+      FirestoreLogger.logRead('matches', 'getAllMatches');
+      print('📥 [MatchRepository] getAllMatches called');
       final snapshot = await matchesCollection.get();
+      FirestoreLogger.logRead('matches', 'getAllMatches (RESULT)', docId: '[${snapshot.docs.length} docs]');
+      print('✅ [MatchRepository] getAllMatches: ${snapshot.docs.length} matches');
       final matches = snapshot.docs
           .map((doc) => MatchModel.fromFirestore(doc).toDomain())
           .toList();
@@ -112,6 +125,8 @@ class MatchRepositoryImpl implements MatchRepository {
   @override
   Future<Either<MatchFailure, CustomMatch>> getMatchById(String matchId) async {
     try {
+      FirestoreLogger.logRead('matches', 'getMatchById', docId: matchId);
+      print('📥 [MatchRepository] getMatchById: $matchId');
       final doc = await matchesCollection.doc(matchId).get();
       if (doc.exists) {
         return right(MatchModel.fromFirestore(doc).toDomain());

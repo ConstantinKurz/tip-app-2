@@ -4,6 +4,7 @@ import 'package:faker/faker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
 import 'package:flutter_web/core/failures/exception_mapping.dart';
+import 'package:flutter_web/core/utils/firestore_logger.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/domain/repositories/auth_repository.dart';
 import 'package:flutter_web/infrastructure/models/user_model.dart';
@@ -86,6 +87,8 @@ class AuthRepositoryImpl implements AuthRepository {
     if (user == null) {
       return none();
     } else {
+      FirestoreLogger.logRead('users', 'getSignedInUser', docId: user.uid);
+      print('📥 [AuthRepository] getSignedInUser: ${user.uid}');
       final userDoc = await usersCollection.doc(user.uid).get();
       if (userDoc.exists) {
         return some(UserModel.fromFirestore(userDoc).toDomain());
@@ -113,8 +116,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers() async* {
+    print('🎯 [AuthRepository] watchAllUsers STREAM STARTED');
+    FirestoreLogger.logRead('users', 'watchAllUsers (STREAM)');
+    
+    int eventCount = 0;
+    
     yield* usersCollection.orderBy('rank').snapshots()
         .map<Either<AuthFailure, List<AppUser>>>((snapshot) {
+      eventCount++;
+      FirestoreLogger.logRead('users', 'watchAllUsers (EVENT #$eventCount)', docId: '[${snapshot.docs.length} docs]');
+      print('📥 [AuthRepository] watchAllUsers EVENT #$eventCount: ${snapshot.docs.length} users');
       try {
         final users = snapshot.docs
             .map((doc) => UserModel.fromFirestore(doc).toDomain())
@@ -210,10 +221,13 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
   Future<Either<AuthFailure, List<AppUser>>> getAllUsers() async {
     try {
+      FirestoreLogger.logRead('users', 'getAllUsers');
+      print('📥 [AuthRepository] getAllUsers called');
       final snapshot = await usersCollection.get();
+      FirestoreLogger.logRead('users', 'getAllUsers (RESULT)', docId: '[${snapshot.docs.length} docs]');
+      print('✅ [AuthRepository] getAllUsers: ${snapshot.docs.length} users');
       final users = snapshot.docs
           .map((doc) => UserModel.fromFirestore(doc).toDomain())
           .toList();

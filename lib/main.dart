@@ -6,7 +6,8 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
-import 'package:flutter_web/application/tips/services/tip_recalculation_service.dart';
+import 'package:flutter_web/core/utils/firestore_logger.dart';
+import 'package:flutter_web/domain/services/tip_recalculation_service.dart';
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
@@ -39,13 +40,20 @@ void main() async {
   setPathUrlStrategy();
   await di.init();
 
+  // ✅ NEU: Logger initialisieren
+  await FirestoreLogger.initialize();
+
   //await setupTournament();
+
+  // ✅ Reset Firestore Logger beim Start
+  FirestoreLogger.reset();
 
   // ✨ TipRecalculationService starten
   final recalculationService = di.sl<TipRecalculationService>();
   recalculationService.startListening();
 
   print('🚀 App gestartet - Neuberechnung Service aktiv');
+  print('📊 Firestore Logging aktiv - Nutze FirestoreLogger.printSummary() für Statistiken');
 
   runApp(const MyApp());
 }
@@ -61,6 +69,10 @@ class AppRoutes {
   static const dashboard = '/dashboard';
   static const adminUserTips = '/admin/user-tips/:userId';
 }
+
+// ✅ FIX: Flag verhindert mehrfaches Dispatchen von Tip-Events
+bool _tipBlocInitialized = false;
+String? _tipBlocInitializedForUser;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -101,16 +113,27 @@ class MyApp extends StatelessWidget {
           }
 
           // ✅ Initialisiere TipControllerBloc basierend auf User-Rolle
-          if (isAuthenticated && userId != null) {
+          // ✅ FIX: Dispatch nur EINMAL pro User
+          if (isAuthenticated && userId != null && 
+              (!_tipBlocInitialized || _tipBlocInitializedForUser != userId)) {
+            _tipBlocInitialized = true;
+            _tipBlocInitializedForUser = userId;
+            
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (isAdmin) {
-                // Admin sieht ALLE Tips
-                context.read<TipControllerBloc>().add(TipAllEvent());
+              final tipBloc = context.read<TipControllerBloc>();
+              
+              // ✅ FIX: Nur dispatchen wenn nicht bereits im korrekten State
+              if (tipBloc.state is! TipControllerLoaded && 
+                  tipBloc.state is! TipControllerLoading) {
+                if (isAdmin) {
+                  print('👑 [Main] Admin: Dispatching TipAllEvent (ONE TIME)');
+                  tipBloc.add(TipAllEvent());
+                } else {
+                  print('👤 [Main] User: Dispatching TipLoadForUserEvent (ONE TIME)');
+                  tipBloc.add(TipLoadForUserEvent(userId: userId!));
+                }
               } else {
-                // Normale User sehen nur ihre eigenen Tips (98% weniger Reads)
-                context.read<TipControllerBloc>().add(
-                  TipLoadForUserEvent(userId: userId!),
-                );
+                print('⏭️ [Main] SKIPPED: TipControllerBloc already initialized');
               }
             });
           }

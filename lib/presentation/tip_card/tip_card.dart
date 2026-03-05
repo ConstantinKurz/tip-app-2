@@ -107,11 +107,13 @@ class _TipCardState extends State<TipCard> {
         );
       },
       buildWhen: (previous, current) {
-        // Rebuild wenn sich relevante Felder ändern
+        // ✅ FIX: Auch rebuilden wenn sich tipHome/tipGuest ändern (für Punkte-Anzeige)
         return previous.joker != current.joker ||
             previous.isLoading != current.isLoading ||
             previous.isSubmitting != current.isSubmitting ||
-            previous.matchId != current.matchId;
+            previous.matchId != current.matchId ||
+            previous.tipHome != current.tipHome ||
+            previous.tipGuest != current.tipGuest;
       },
       builder: (context, formState) {
         return Container(

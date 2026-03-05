@@ -20,6 +20,12 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   
   // Tracking welche MatchDays gerade geladen werden (verhindert parallele Requests)
   final Set<int> _loadingMatchDays = {};
+  
+  // ✅ Event Counter für Debugging
+  int _eventCount = 0;
+  
+  // ✅ FIX: Flag verhindert mehrfache Stream-Starts
+  bool _isStreamActive = false;
 
   TipControllerBloc({
     required this.tipRepository,
@@ -31,10 +37,32 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     on<TipUpdateStatisticsEvent>(_onUpdateStatistics);
   }
 
+  @override
+  void onEvent(TipControllerEvent event) {
+    _eventCount++;
+    print('📨 [TipControllerBloc] EVENT #$_eventCount: ${event.runtimeType}');
+    if (event is TipUpdateStatisticsEvent) {
+      print('   └─ matchDay: ${event.matchDay}, userId: ${event.userId}, forceRefresh: ${event.forceRefresh}');
+    } else if (event is TipLoadForUserEvent) {
+      print('   └─ userId: ${event.userId}');
+    }
+    super.onEvent(event);
+  }
+
+  @override
+  void onTransition(Transition<TipControllerEvent, TipControllerState> transition) {
+    print('🔄 [TipControllerBloc] TRANSITION:');
+    print('   Event: ${transition.event.runtimeType}');
+    print('   From: ${transition.currentState.runtimeType}');
+    print('   To: ${transition.nextState.runtimeType}');
+    super.onTransition(transition);
+  }
+
   Future<void> _onLoadForUser(
     TipLoadForUserEvent event,
     Emitter<TipControllerState> emit,
   ) async {
+    print('👤 [TipControllerBloc] _onLoadForUser: ${event.userId}');
     emit(TipControllerLoading());
     await _tipStreamSub?.cancel();
 
@@ -42,12 +70,14 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         .watchUserTips(event.userId)
         .listen(
           (tipResult) {
+            print('📥 [TipControllerBloc] Stream event received for user: ${event.userId}');
             add(TipUpdatedEvent(
               failureOrTip: tipResult,
               userId: event.userId,
             ));
           },
           onError: (_) {
+            print('❌ [TipControllerBloc] Stream error for user: ${event.userId}');
             add(TipUpdatedEvent(
               failureOrTip: left(UnexpectedFailure()),
               userId: event.userId,
@@ -89,6 +119,14 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     TipAllEvent event,
     Emitter<TipControllerState> emit,
   ) async {
+    // ✅ FIX: Verhindere Stream-Neustart wenn bereits aktiv
+    if (_isStreamActive && state is TipControllerLoaded) {
+      print('⏭️  [TipControllerBloc] _onTipAllEvent SKIPPED: Stream already active');
+      return;
+    }
+    
+    print('🎯 [TipControllerBloc] _onTipAllEvent: Starting watchAll stream');
+    _isStreamActive = true;
     emit(TipControllerLoading());
     await _tipStreamSub?.cancel();
 
@@ -114,16 +152,28 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   ) async {
     final currentState = state;
 
+    print('📊 [TipControllerBloc] _onUpdateStatistics START:');
+    print('   matchDay: ${event.matchDay}');
+    print('   userId: ${event.userId}');
+    print('   forceRefresh: ${event.forceRefresh}');
+    print('   currentState: ${currentState.runtimeType}');
+
     // Prüfe nur diesen einzelnen matchDay, nicht die ganze Phase
     if (!event.forceRefresh && currentState is TipControllerLoaded) {
       final currentStats = currentState.matchDayStatistics;
-      if (currentStats.containsKey(event.matchDay)) return;
+      if (currentStats.containsKey(event.matchDay)) {
+        print('   ⏭️  SKIPPED: Stats already loaded for matchDay ${event.matchDay}');
+        return;
+      }
     }
 
     if (_loadingMatchDays.contains(event.matchDay)) {
+      print('   ⏭️  SKIPPED: Already loading matchDay ${event.matchDay}');
       return;
     }
+    
     _loadingMatchDays.add(event.matchDay);
+    print('   ✅ Loading stats for matchDay ${event.matchDay}');
 
     try {
       // Wenn Halbfinale oder Finale: beide Statistiken parallel laden und setzen

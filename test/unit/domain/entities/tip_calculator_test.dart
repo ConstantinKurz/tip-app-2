@@ -16,6 +16,18 @@ void main() {
         );
         expect(points, 6);
       });
+  
+      test('Komplett richtig gibt 6 Punkte', () {
+        final points = TipCalculator.calculatePoints(
+          tipHome: 2,
+          tipGuest: 3,
+          actualHome: 2,
+          actualGuest: 3,
+          phase: MatchPhase.groupStage,
+          hasJoker: false,
+        );
+        expect(points, 6);
+      });
 
       test('Richtige Tendenz + Tordifferenz gibt 5 Punkte', () {
         final points = TipCalculator.calculatePoints(
@@ -23,6 +35,18 @@ void main() {
           tipGuest: 2,
           actualHome: 1,
           actualGuest: 0,
+          phase: MatchPhase.groupStage,
+          hasJoker: false,
+        );
+        expect(points, 5);
+      });
+
+      test('Richtige Tendenz + Tordifferenz gibt 5 Punkte', () {
+        final points = TipCalculator.calculatePoints(
+          tipHome: 2,
+          tipGuest: 3,
+          actualHome: 0,
+          actualGuest: 1,
           phase: MatchPhase.groupStage,
           hasJoker: false,
         );
@@ -64,6 +88,19 @@ void main() {
         );
         expect(points, 1);
       });
+
+      test('Nur Toranzahl eines Teams gibt 1 Punkt', () {
+        final points = TipCalculator.calculatePoints(
+          tipHome: 3,
+          tipGuest: 2,
+          actualHome: 3,
+          actualGuest: 4,
+          phase: MatchPhase.groupStage,
+          hasJoker: false,
+        );
+        expect(points, 1);
+      });
+
 
       test('Komplett falsch gibt 0 Punkte', () {
         final points = TipCalculator.calculatePoints(
@@ -109,7 +146,7 @@ void main() {
           tipGuest: 1,
           actualHome: 2,
           actualGuest: 1,
-          phase: MatchPhase.quarterFinal,
+          phase: MatchPhase.roundOf8,
           hasJoker: false,
         );
         expect(points, 12); // 6 * 2 = 12
@@ -159,7 +196,7 @@ void main() {
           tipGuest: 1,
           actualHome: 2,
           actualGuest: 1,
-          phase: MatchPhase.quarterFinal,
+          phase: MatchPhase.roundOf8,
           hasJoker: true,
         );
         expect(points, 24); // 6 * 2 * 2 = 24
@@ -185,18 +222,18 @@ void main() {
       });
 
       test('16tel hat 4 Joker und Multiplikator 1', () {
-        expect(MatchPhase.roundOf16.maxJokers, 4);
-        expect(MatchPhase.roundOf16.pointMultiplier, 1);
+        expect(MatchPhase.roundOf16.maxJokers, 1);
+        expect(MatchPhase.roundOf16.pointMultiplier, 4);
       });
 
       test('Achtelfinale hat 2 Joker und Multiplikator 2', () {
-        expect(MatchPhase.quarterFinal.maxJokers, 2);
-        expect(MatchPhase.quarterFinal.pointMultiplier, 2);
+        expect(MatchPhase.roundOf8.maxJokers, 2);
+        expect(MatchPhase.roundOf8.pointMultiplier, 2);
       });
 
       test('Viertelfinale hat 1 Joker und Multiplikator 3', () {
-        expect(MatchPhase.semiFinal.maxJokers, 1);
-        expect(MatchPhase.semiFinal.pointMultiplier, 3);
+        expect(MatchPhase.quarterFinal.maxJokers, 1);
+        expect(MatchPhase.quarterFinal.pointMultiplier, 3);
       });
 
       test('Finale hat 2 Joker und Multiplikator 3', () {

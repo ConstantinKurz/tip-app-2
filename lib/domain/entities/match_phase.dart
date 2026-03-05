@@ -2,10 +2,10 @@
 
 /// Spielphasen der WM 2026 mit entsprechenden Regeln
 enum MatchPhase {
-  groupStage('Vorrunde', 1, 3),
-  roundOf16('16tel-Finale', 1, 4),
+  groupStage('Vorrunde', 1, 5),
+  roundOf16('16tel-Finale', 1,4),
   roundOf8('8tel-Finale', 2, 2),
-  quarterFinal('Viertel-Finale', 3, 2),
+  quarterFinal('Viertel-Finale', 3, 1),
   semiFinal('Halbfinale', 3, 2),
   finalStage('Finale', 3, 2);
 

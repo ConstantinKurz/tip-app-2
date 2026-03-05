@@ -21,17 +21,24 @@ class TipCardHeader extends StatelessWidget {
     final dateString = _formatDate(match.matchDate);
     final stageName = match.getStageName;
 
-    // ✅ NEU: Hole Stats aus TipControllerBloc, nicht TipFormBloc
+    // ✅ NEU: Hole Stats UND aktuelle Punkte aus TipControllerBloc
     return BlocBuilder<TipControllerBloc, TipControllerState>(
       buildWhen: (previous, current) {
         // Immer rebuild bei State-Typ-Wechsel
         if (previous.runtimeType != current.runtimeType) return true;
         
-        // Bei Loaded-States: Nur rebuild wenn Stats für DIESEN matchDay sich ändern
+        // Bei Loaded-States: Rebuild wenn Stats ODER Punkte sich ändern
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
           final prevStats = previous.matchDayStatistics[match.matchDay];
           final currStats = current.matchDayStatistics[match.matchDay];
-          return prevStats != currStats;
+          
+          // ✅ FIX: Auch prüfen ob sich die Punkte für diesen Tip geändert haben
+          final prevTips = previous.tips[tip.userId] ?? [];
+          final currTips = current.tips[tip.userId] ?? [];
+          final prevTip = prevTips.firstWhere((t) => t.matchId == match.id, orElse: () => tip);
+          final currTip = currTips.firstWhere((t) => t.matchId == match.id, orElse: () => tip);
+          
+          return prevStats != currStats || prevTip.points != currTip.points;
         }
         
         return true;
@@ -40,6 +47,16 @@ class TipCardHeader extends StatelessWidget {
         final stats = (tipState is TipControllerLoaded)
             ? tipState.matchDayStatistics[match.matchDay]
             : null;
+        
+        // ✅ FIX: Hole aktuellen Tip mit Punkten aus dem State
+        Tip currentTip = tip;
+        if (tipState is TipControllerLoaded) {
+          final userTips = tipState.tips[tip.userId] ?? [];
+          currentTip = userTips.firstWhere(
+            (t) => t.matchId == match.id,
+            orElse: () => tip,
+          );
+        }
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -84,13 +101,14 @@ class TipCardHeader extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Tooltip(
-                    message: match.hasResult && tip.points != null
+                    // ✅ FIX: Verwende currentTip statt tip für aktuelle Punkte
+                    message: match.hasResult && currentTip.points != null
                         ? '${TipCalculator.getPointsDescription(
-                            tipHome: tip.tipHome ?? 0,
-                            tipGuest: tip.tipGuest ?? 0,
+                            tipHome: currentTip.tipHome ?? 0,
+                            tipGuest: currentTip.tipGuest ?? 0,
                             actualHome: match.homeScore ?? 0,
                             actualGuest: match.guestScore ?? 0,
-                          )}\nMultiplikator: x${match.phase.pointMultiplier}${tip.joker ? '\nJoker: x2' : ''}'
+                          )}\nMultiplikator: x${match.phase.pointMultiplier}${currentTip.joker ? '\nJoker: x2' : ''}'
                         : 'Punkte nach Spielende',
                     child: Text.rich(
                       TextSpan(
@@ -100,8 +118,9 @@ class TipCardHeader extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                         children: [
+                          // ✅ FIX: Zeige aktuelle Punkte aus currentTip
                           TextSpan(
-                            text: tip.points != null ? '${tip.points}' : '0',
+                            text: currentTip.points != null ? '${currentTip.points}' : '0',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),

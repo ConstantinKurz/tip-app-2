@@ -15,8 +15,8 @@ class SignUpForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-    late String _email;
-    late String _password;
+    late String email;
+    late String password;
 
     String? validateEmail(String? input) {
       const emailRegex =
@@ -25,7 +25,7 @@ class SignUpForm extends StatelessWidget {
       if (input == null || input.isEmpty) {
         return "please enter email";
       } else if (RegExp(emailRegex).hasMatch(input)) {
-        _email = input;
+        email = input;
         return null;
       } else {
         return "invalid email format";
@@ -49,7 +49,7 @@ class SignUpForm extends StatelessWidget {
       if (input == null || input.isEmpty) {
         return "please enter password";
       } else if (input.length >= 6) {
-        _password = input;
+        password = input;
         return null;
       } else {
         return "short password";
@@ -131,7 +131,7 @@ class SignUpForm extends StatelessWidget {
                     if (formKey.currentState!.validate()) {
                       BlocProvider.of<SignupformBloc>(context).add(
                           RegisterWithEmailAndPasswordPressed(
-                              email: _email, password: _password));
+                              email: email, password: password));
                     } else {
                       BlocProvider.of<SignupformBloc>(context).add(
                           RegisterWithEmailAndPasswordPressed(

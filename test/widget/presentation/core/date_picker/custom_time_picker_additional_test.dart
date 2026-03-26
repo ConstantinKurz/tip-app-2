@@ -5,7 +5,7 @@ import 'package:flutter_web/presentation/core/date_picker/custom_time_picker.dar
 void main() {
   group('CustomTimePickerField Widget Additional', () {
     testWidgets('renders colon separator', (tester) async {
-      final initialTime = TimeOfDay(hour: 8, minute: 15);
+      const initialTime = TimeOfDay(hour: 8, minute: 15);
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

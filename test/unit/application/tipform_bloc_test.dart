@@ -436,7 +436,7 @@ void main() {
             joker: false,
           ));
           
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           
           // Second update
           bloc.add(TipFormFieldUpdatedEvent(
@@ -448,7 +448,7 @@ void main() {
             joker: false,  // Changed to false to avoid extra joker validation state
           ));
         },
-        wait: Duration(milliseconds: 100),
+        wait: const Duration(milliseconds: 100),
         expect: () => [
           isA<TipFormState>().having((state) => state.isSubmitting, 'first isSubmitting', true),
           isA<TipFormState>().having((state) => state.tipHome, 'first tipHome', 1),

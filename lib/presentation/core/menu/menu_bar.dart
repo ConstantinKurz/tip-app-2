@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/core/utils/clear_data.dart';
 import 'package:flutter_web/core/utils/setup_tournament.dart';
-import 'package:flutter_web/core/utils/simulate_tournament.dart';
 import 'package:flutter_web/core/utils/simulate_group_stage.dart';
 import 'package:flutter_web/core/utils/simulate_knockout_stage.dart';
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';

@@ -61,7 +61,7 @@ void main() {
           
           bloc.add(MatchesAllEvent());
           
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(right([
             CustomMatch(
               id: 'match_1',
@@ -76,7 +76,7 @@ void main() {
               id: 'match_2',
               homeTeamId: 'team_home_2',
               guestTeamId: 'team_away_2',
-              matchDate: DateTime.now().add(Duration(days: 1)),
+              matchDate: DateTime.now().add(const Duration(days: 1)),
               matchDay: 1,
               homeScore: 2,
               guestScore: 1,
@@ -150,7 +150,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(MatchesAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(right([]));
           await streamController.close();
         },
@@ -213,7 +213,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(MatchesAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(right([
             // Group stage match
             CustomMatch(
@@ -257,7 +257,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(MatchesAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(right([
             CustomMatch(
               id: 'scored_match',

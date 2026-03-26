@@ -97,7 +97,7 @@ class UpdateMatchForm extends StatelessWidget {
                   Expanded(
                     child: DropdownButtonFormField<Team>(
                       decoration: const InputDecoration(labelText: 'Home Team'),
-                      value: teams.isEmpty
+                      initialValue: teams.isEmpty
                           ? null
                           : (teams.any((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
                               ? teams.firstWhere((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
@@ -118,7 +118,7 @@ class UpdateMatchForm extends StatelessWidget {
                   Expanded(
                     child: DropdownButtonFormField<Team>(
                       decoration: const InputDecoration(labelText: 'Gast Team'),
-                      value: teams.isEmpty
+                      initialValue: teams.isEmpty
                           ? null
                           : (teams.any((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
                               ? teams.firstWhere((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
@@ -228,7 +228,7 @@ class UpdateMatchForm extends StatelessWidget {
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 decoration: const InputDecoration(labelText: 'Match Tag'),
-                value: match.matchDay,
+                initialValue: match.matchDay,
                 items: List.generate(8, (index) => index +1).map((value) {
                   return DropdownMenuItem<int>(
                     value: value,

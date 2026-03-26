@@ -8,7 +8,6 @@ import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/repositories/auth_repository.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/infrastructure/models/tip_model.dart';
-import 'package:rxdart/rxdart.dart';
 
 class TipRepositoryImpl implements TipRepository {
   final FirebaseFirestore firebaseFirestore;

@@ -169,7 +169,7 @@ void main() {
     group('Data Validation', () {
       test('should handle valid match dates', () {
         final pastDate = DateTime(2023, 12, 31);
-        final futureDate = DateTime.now().add(Duration(days: 365));
+        final futureDate = DateTime.now().add(const Duration(days: 365));
         final currentDate = DateTime.now();
 
         final pastMatch = CustomMatch(

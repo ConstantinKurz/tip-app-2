@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';

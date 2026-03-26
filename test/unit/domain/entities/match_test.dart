@@ -244,7 +244,7 @@ void main() {
 
     group('getStageName method', () {
       late CustomMatch match;
-      late CustomMatch match_ko;
+      late CustomMatch matchKo;
 
       setUp(() {
         match = CustomMatch(
@@ -257,7 +257,7 @@ void main() {
           guestScore: null,
         );
 
-        match_ko = CustomMatch(
+        matchKo = CustomMatch(
           id: 'stage_test',
           homeTeamId: 'team1',
           guestTeamId: 'team2',
@@ -276,7 +276,7 @@ void main() {
 
       test('should return correct knockout stage names', () {
         // Act & Assert
-        expect(match_ko.getStageName, 'Halbfinale');
+        expect(matchKo.getStageName, 'Halbfinale');
       });
     });
 

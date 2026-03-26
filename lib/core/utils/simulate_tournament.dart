@@ -22,7 +22,7 @@ Future<void> simulateTournamentResults() async {
 
   // Hole alle Matches
   final matchesResult = await matchRepository.getAllMatches();
-  final matches = await matchesResult.fold(
+  final matches = matchesResult.fold(
     (failure) {
       print('❌ Fehler beim Laden der Matches: $failure');
       return <CustomMatch>[];

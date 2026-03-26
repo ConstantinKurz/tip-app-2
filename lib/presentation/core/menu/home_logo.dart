@@ -24,8 +24,8 @@ class HomeLogo extends StatelessWidget {
               fontSize: 24,
               fontWeight: _isActive(context) ? FontWeight.w900 : FontWeight.bold,
               color: _isActive(context) 
-                  ? Theme.of(context).colorScheme.onBackground
-                  : Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
+                  ? Theme.of(context).colorScheme.onSurface
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
               overflow: TextOverflow.ellipsis,
             ),
           ),

@@ -42,9 +42,6 @@ void main() async {
 
   // ✅ NEU: Logger initialisieren
   await FirestoreLogger.initialize();
-
-  //await setupTournament();
-
   // ✅ Reset Firestore Logger beim Start
   FirestoreLogger.reset();
 

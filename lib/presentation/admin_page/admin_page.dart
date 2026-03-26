@@ -12,7 +12,7 @@ class AdminPage extends StatefulWidget {
   static String adminPagePath = "/admin";
   final bool isAuthenticated;
 
-  AdminPage({Key? key, required this.isAuthenticated}) : super(key: key);
+  const AdminPage({Key? key, required this.isAuthenticated}) : super(key: key);
 
   @override
   _AdminPageState createState() => _AdminPageState();

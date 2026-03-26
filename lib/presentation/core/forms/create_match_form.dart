@@ -63,7 +63,7 @@ class CreateMatchForm extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               DropdownButtonFormField<Team>(
-                value: state.homeTeamId == null
+                initialValue: state.homeTeamId == null
                     ? null
                     : teams.firstWhere((t) => t.id == state.homeTeamId,
                         orElse: () => Team.empty()),
@@ -81,7 +81,7 @@ class CreateMatchForm extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<Team>(
-                value: state.guestTeamId == null
+                initialValue: state.guestTeamId == null
                     ? null
                     : teams.firstWhere((t) => t.id == state.guestTeamId,
                         orElse: () => Team.empty()),
@@ -127,7 +127,7 @@ class CreateMatchForm extends StatelessWidget {
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 validator: validateMatchDay,
-                value: state.matchDay,
+                initialValue: state.matchDay,
                 decoration: const InputDecoration(labelText: 'Match Tag'),
                 items: List.generate(8, (i) => i + 1) // 1 bis 8, je nach Turnierstruktur
                     .map((day) => DropdownMenuItem(

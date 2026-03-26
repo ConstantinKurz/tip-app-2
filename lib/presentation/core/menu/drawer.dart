@@ -11,7 +11,7 @@ class CustomDrawer extends StatelessWidget {
     return Container(
       color: primaryDark,
       child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           child: Stack(
             children: [
               SingleChildScrollView(

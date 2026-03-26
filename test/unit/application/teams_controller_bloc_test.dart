@@ -56,7 +56,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TeamsControllerAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           
           final teams = [
             Team(id: 'team_1', name: 'Germany', flagCode: 'de', winPoints: 0, champion: false),
@@ -90,7 +90,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TeamsControllerAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(left(UnexpectedFailure()));
           await streamController.close();
         },
@@ -114,7 +114,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TeamsControllerAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(right(<Team>[]));
           await streamController.close();
         },
@@ -135,7 +135,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TeamsControllerAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(left(InsufficientPermisssons()));
           await streamController.close();
         },
@@ -190,7 +190,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TeamsControllerAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           
           final teams = [
             Team(id: 'eu_team_1', name: 'Germany', flagCode: 'de', winPoints: 0, champion: false),
@@ -221,7 +221,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TeamsControllerAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           
           final teams = [
             Team(id: 'long_name_team', name: 'Bosnia and Herzegovina', flagCode: 'ba', winPoints: 0, champion: false),

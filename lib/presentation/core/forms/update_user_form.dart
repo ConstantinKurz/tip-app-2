@@ -207,7 +207,7 @@ class UpdateUserForm extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: teams.any((t) => t.id == state.championId)
+                  initialValue: teams.any((t) => t.id == state.championId)
                       ? state.championId
                       : null,
                   decoration: const InputDecoration(labelText: 'Champion'),

@@ -67,7 +67,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TipAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
 
           final Map<String, List<Tip>> tipMap = {
             'user_1': [
@@ -136,7 +136,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TipAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(left(UnexpectedFailure()));
           await streamController.close();
         },
@@ -161,7 +161,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TipAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(right(<String, List<Tip>>{}));
           await streamController.close();
         },
@@ -183,7 +183,7 @@ void main() {
         },
         act: (bloc) async {
           bloc.add(TipAllEvent());
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           streamController.add(left(InsufficientPermisssons()));
           await streamController.close();
         },

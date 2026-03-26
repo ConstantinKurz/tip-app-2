@@ -271,13 +271,13 @@ void main() {
             email: 'test1@example.com',
             password: 'password1',
           ));
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           bloc.add(SignInWithEmailAndPasswordPressed(
             email: 'test2@example.com',
             password: 'password2',
           ));
         },
-        wait: Duration(milliseconds: 100),
+        wait: const Duration(milliseconds: 100),
         expect: () => [
           isA<SignupformState>().having((state) => state.isSubmitting, 'first isSubmitting', true),
           isA<SignupformState>().having((state) => state.isSubmitting, 'first completed', false),
@@ -325,17 +325,17 @@ void main() {
           when(() => mockAuthRepository.sendPasswordResetEmail(
                 email: any(named: 'email'),
               )).thenAnswer((_) async {
-            await Future.delayed(Duration(milliseconds: 30));
+            await Future.delayed(const Duration(milliseconds: 30));
             return right(unit);
           });
           return signupformBloc;
         },
         act: (bloc) async {
           bloc.add(SendPasswordResetEvent(email: 'concurrent1@example.com'));
-          await Future.delayed(Duration(milliseconds: 50));
+          await Future.delayed(const Duration(milliseconds: 50));
           bloc.add(SendPasswordResetEvent(email: 'concurrent2@example.com'));
         },
-        wait: Duration(milliseconds: 200),
+        wait: const Duration(milliseconds: 200),
         expect: () => [
           isA<SignupformState>().having((state) => state.sendingResetEmail, 'first sending', true),
           isA<SignupformState>().having((state) => state.sendingResetEmail, 'first complete', false),

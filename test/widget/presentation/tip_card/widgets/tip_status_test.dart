@@ -18,7 +18,7 @@ void main() {
 
     testWidgets('should show loading indicator when state is TipFormInitialState', (tester) async {
       // Arrange
-      final state = TipFormInitialState();
+      const state = TipFormInitialState();
       when(() => mockTipFormBloc.state).thenReturn(state);
       when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(state));
 
@@ -26,7 +26,7 @@ void main() {
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
           value: mockTipFormBloc,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
               body: TipStatus(),
             ),
@@ -60,7 +60,7 @@ void main() {
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
           value: mockTipFormBloc,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
               body: TipStatus(),
             ),
@@ -94,7 +94,7 @@ void main() {
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
           value: mockTipFormBloc,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
               body: TipStatus(),
             ),
@@ -133,7 +133,7 @@ void main() {
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
           value: mockTipFormBloc,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
               body: TipStatus(),
             ),
@@ -172,7 +172,7 @@ void main() {
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
           value: mockTipFormBloc,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
               body: TipStatus(),
             ),
@@ -211,7 +211,7 @@ void main() {
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
           value: mockTipFormBloc,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
               body: TipStatus(),
             ),
@@ -229,7 +229,7 @@ void main() {
 
     testWidgets('should animate between states smoothly', (tester) async {
       // Arrange
-      final initialState = TipFormInitialState();
+      const initialState = TipFormInitialState();
       when(() => mockTipFormBloc.state).thenReturn(initialState);
       when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(initialState));
 
@@ -237,7 +237,7 @@ void main() {
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
           value: mockTipFormBloc,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
               body: TipStatus(),
             ),
@@ -265,7 +265,7 @@ void main() {
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
           value: mockTipFormBloc,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
               body: TipStatus(),
             ),

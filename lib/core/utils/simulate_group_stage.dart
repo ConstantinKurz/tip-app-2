@@ -156,7 +156,7 @@ Future<void> _createGroupStageTips(
       }
     }
 
-    print('👤 User $userId: ${jokerBudget} Joker verfügbar');
+    print('👤 User $userId: $jokerBudget Joker verfügbar');
 
     for (final match in matches) {
       final tipId = '${userId}_${match.id}';

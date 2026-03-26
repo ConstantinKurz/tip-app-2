@@ -18,12 +18,12 @@ void main() {
 
   setUp(() {
     mockTipFormBloc = MockTipFormBloc();
-    when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(TipFormInitialState()));
+    when(() => mockTipFormBloc.stream).thenAnswer((_) => Stream.value(const TipFormInitialState()));
   });
 
   group('TipCardInput Widget', () {
     testWidgets('renders TipCardInput and text fields', (tester) async {
-      when(() => mockTipFormBloc.state).thenReturn(TipFormInitialState());
+      when(() => mockTipFormBloc.state).thenReturn(const TipFormInitialState());
 
       await tester.pumpWidget(
         BlocProvider<TipFormBloc>.value(
@@ -31,7 +31,7 @@ void main() {
           child: MaterialApp(
             home: Scaffold(
               body: TipCardTippingInput(
-                state: TipFormInitialState(),
+                state: const TipFormInitialState(),
                 userId: 'testUser',
                 matchId: 'testMatch',
                 homeController: TextEditingController(text: '1'),

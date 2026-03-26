@@ -14,7 +14,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:flutter_web/main.dart';
 
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}

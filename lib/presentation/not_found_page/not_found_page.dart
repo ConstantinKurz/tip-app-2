@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/presentation/core/buttons/call_to_action.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:routemaster/routemaster.dart';

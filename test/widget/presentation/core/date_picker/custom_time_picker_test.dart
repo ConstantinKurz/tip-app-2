@@ -5,7 +5,7 @@ import 'package:flutter_web/presentation/core/date_picker/custom_time_picker.dar
 void main() {
   group('CustomTimePickerField Widget Tests', () {
     testWidgets('should display initial time when provided', (WidgetTester tester) async {
-      final initialTime = const TimeOfDay(hour: 14, minute: 30);
+      const initialTime = TimeOfDay(hour: 14, minute: 30);
 
       await tester.pumpWidget(
         MaterialApp(

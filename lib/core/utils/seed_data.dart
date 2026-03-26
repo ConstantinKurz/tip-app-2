@@ -158,7 +158,7 @@ Future<void> seedTestDataTwentyUsers() async {
         'joker': random.nextBool() && random.nextDouble() < 0.05, // 5% Chance auf Joker
         'points': hasResult ? random.nextInt(6) + 1 : null, // Punkte nur für vergangene Spiele
         'tipDate': hasResult 
-            ? Timestamp.fromDate((match['kickOff'] as Timestamp).toDate().subtract(Duration(hours: 1)))
+            ? Timestamp.fromDate((match['kickOff'] as Timestamp).toDate().subtract(const Duration(hours: 1)))
             : Timestamp.now(),
         'tipGuest': random.nextInt(4),
         'tipHome': random.nextInt(4),

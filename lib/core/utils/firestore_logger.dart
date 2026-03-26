@@ -1,30 +1,15 @@
-import 'dart:io';
+import 'dart:convert';
+import 'package:web/web.dart' as web;
 
 class FirestoreLogger {
   static int _readCount = 0;
   static final Map<String, int> _readsByCollection = {};
   static final List<String> _readLog = [];
-  static File? _logFile;
+  static const String _storageKey = 'firestore_logs';
 
-  // ✅ NEU: Initialisiere Log-Datei beim Start
   static Future<void> initialize() async {
-    try {
-      // Nutze Project-Root statt App Documents
-      final projectRoot = Directory.current;
-      final logsDir = Directory('${projectRoot.path}/logs');
-
-      if (!logsDir.existsSync()) {
-        logsDir.createSync(recursive: true);
-      }
-
-      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      _logFile = File('${logsDir.path}/firestore_$timestamp.log');
-
-      await _logFile!.writeAsString('🔍 Firestore Logger started at ${DateTime.now()}\n');
-      print('📝 Log-Datei erstellt: ${_logFile!.path}');
-    } catch (e) {
-      print('❌ Fehler beim Erstellen der Log-Datei: $e');
-    }
+    print('📝 Firestore Logger initialized');
+    _loadFromLocalStorage();
   }
 
   static Future<void> logRead(
@@ -41,62 +26,86 @@ class FirestoreLogger {
 
     _readLog.add(logEntry);
     print('🔍 $logEntry');
+    
+    // ✅ Speichere in Local Storage
+    _saveToLocalStorage();
 
-    // ✅ NEU: Schreibe in lokale Datei
-    try {
-      if (_logFile != null) {
-        await _logFile!.writeAsString('$logEntry\n', mode: FileMode.append);
-      }
-    } catch (e) {
-      print('❌ Fehler beim Schreiben in Log-Datei: $e');
-    }
-
-    // Zeige Summary alle 50 Reads
     if (_readCount % 50 == 0) {
       await printSummary();
     }
   }
 
-  static Future<void> printSummary() async {
-    final summary = '''
-📊 === FIRESTORE READ SUMMARY ===
-Total Reads: $_readCount
-
-Reads by Collection:
-${_readsByCollection.entries.map((e) => '  ${e.key}: ${e.value} reads').join('\n')}
-================================
-''';
-
-    print(summary);
-
-    // ✅ NEU: Schreibe auch in Datei
+  /// Speichert Logs in Local Storage
+  static void _saveToLocalStorage() {
     try {
-      if (_logFile != null) {
-        await _logFile!.writeAsString('$summary\n', mode: FileMode.append);
+      final data = {
+        'readCount': _readCount,
+        'readsByCollection': _readsByCollection,
+        'readLog': _readLog,
+      };
+      final jsonString = jsonEncode(data);
+      web.window.localStorage.setItem(_storageKey, jsonString);
+    } catch (e) {
+      print('⚠️ Fehler beim Speichern: $e');
+    }
+  }
+
+  /// Lädt Logs aus Local Storage
+  static void _loadFromLocalStorage() {
+    try {
+      final stored = web.window.localStorage.getItem(_storageKey);
+      if (stored != null) {
+        final decoded = jsonDecode(stored) as Map<String, dynamic>;
+        _readCount = decoded['readCount'] ?? 0;
+        _readsByCollection.clear();
+        (decoded['readsByCollection'] as Map<String, dynamic>).forEach((k, v) {
+          _readsByCollection[k] = v as int;
+        });
+        _readLog.clear();
+        _readLog.addAll((decoded['readLog'] as List).cast<String>());
       }
     } catch (e) {
-      print('❌ Fehler beim Schreiben in Log-Datei: $e');
+      print('⚠️ Fehler beim Laden: $e');
     }
+  }
+
+  static Future<void> printSummary() async {
+    final summary = '''
+╔════════════════════════════════════════╗
+║  📊 === FIRESTORE READ SUMMARY ===     ║
+║  Total Reads: $_readCount              ║
+║                                        ║
+║  Reads by Collection:                  ║
+${_readsByCollection.entries.map((e) => '║    ${e.key}: ${e.value} reads').join('\n')}
+║                                        ║
+╚════════════════════════════════════════╝
+''';
+    print(summary);
+  }
+
+  /// Exportiert Logs als Download
+  static void exportLogsAsFile() {
+    final logContent = _readLog.join('\n');
+    
+    // Konvertiere zu Base64 data URL
+    final base64Content = base64Encode(utf8.encode(logContent));
+    final dataUrl = 'data:text/plain;base64,$base64Content';
+    
+    final anchor = web.HTMLAnchorElement()
+      ..href = dataUrl
+      ..download = 'firestore_logs_${DateTime.now().toIso8601String()}.txt';
+    
+    anchor.click();
+    print('✅ Logs als .txt exportiert');
   }
 
   static Future<void> reset() async {
     _readCount = 0;
     _readsByCollection.clear();
     _readLog.clear();
+    web.window.localStorage.removeItem(_storageKey);
     print('🔄 Firestore Logger Reset');
-
-    try {
-      if (_logFile != null) {
-        await _logFile!.writeAsString('🔄 Logger Reset at ${DateTime.now()}\n',
-            mode: FileMode.append);
-      }
-    } catch (e) {
-      print('❌ Fehler beim Schreiben in Log-Datei: $e');
-    }
   }
 
-  static File? get logFile => _logFile;
   static List<String> getLog() => List.from(_readLog);
-  static int get totalReads => _readCount;
-  static Map<String, int> get readsByCollection => Map.from(_readsByCollection);
 }

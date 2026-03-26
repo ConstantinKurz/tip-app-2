@@ -187,7 +187,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                 const SizedBox(height: 8),
                 
                 DropdownButtonFormField<String>(
-                  value: widget.teams.any((t) => t.id == (state.championId ?? widget.user.championId))
+                  initialValue: widget.teams.any((t) => t.id == (state.championId ?? widget.user.championId))
                       ? (state.championId ?? widget.user.championId)
                       : null,
                   decoration: InputDecoration(

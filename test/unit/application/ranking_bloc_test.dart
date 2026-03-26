@@ -129,7 +129,7 @@ void main() {
         ranking1.add(ToggleRankingViewEvent());
         
         // Wait a moment for the event to process
-        Future.delayed(Duration(milliseconds: 10)).then((_) {
+        Future.delayed(const Duration(milliseconds: 10)).then((_) {
           expect(ranking1.state.expanded, true);
           expect(ranking2.state.expanded, false);
         });
@@ -147,7 +147,7 @@ void main() {
         }
         
         // Wait for all events to process
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
         
         // Should end up in expected state (100 toggles = back to false)
         expect(rankingBloc.state.expanded, false);

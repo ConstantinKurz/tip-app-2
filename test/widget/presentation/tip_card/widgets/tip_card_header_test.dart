@@ -121,7 +121,7 @@ void main() {
     testWidgets('should handle different match days correctly', (tester) async {
       // Arrange
       final groupStageMatch = testMatch.copyWith(matchDay: 2);
-      final state = TipFormInitialState();
+      const state = TipFormInitialState();
 
       // Act
       await tester.pumpWidget(
@@ -140,7 +140,7 @@ void main() {
     testWidgets('should handle knockout stage matches correctly', (tester) async {
       // Arrange
       final knockoutMatch = testMatch.copyWith(matchDay: 4);
-      final state = TipFormInitialState();
+      const state = TipFormInitialState();
 
       // Act
       await tester.pumpWidget(
@@ -184,7 +184,7 @@ void main() {
     testWidgets('should handle text overflow correctly', (tester) async {
       // Arrange
       final longNameMatch = testMatch.copyWith(matchDay: 1);
-      final state = TipFormInitialState();
+      const state = TipFormInitialState();
 
       // Act
       await tester.pumpWidget(
@@ -205,7 +205,7 @@ void main() {
 
     testWidgets('should apply correct theme styling', (tester) async {
       // Arrange
-      final state = TipFormInitialState();
+      const state = TipFormInitialState();
 
       // Act
       await tester.pumpWidget(
@@ -238,7 +238,7 @@ void main() {
       final eveningMatch = testMatch.copyWith(
         matchDate: DateTime(2024, 6, 14, 21, 0),
       );
-      final state = TipFormInitialState();
+      const state = TipFormInitialState();
 
       // Act
       await tester.pumpWidget(

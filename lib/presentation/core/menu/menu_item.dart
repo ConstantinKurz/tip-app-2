@@ -54,7 +54,7 @@ class MenuItem extends StatelessWidget {
               fontSize: 18,
               fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
               color:
-                  isActive ? themeData.colorScheme.onBackground : themeData.colorScheme.onBackground.withOpacity(0.7), 
+                  isActive ? themeData.colorScheme.onSurface : themeData.colorScheme.onSurface.withOpacity(0.7), 
             ),
           ),
         ),

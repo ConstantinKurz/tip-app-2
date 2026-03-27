@@ -4,6 +4,7 @@ import 'package:flutter_web/application/matches/controller/matchescontroller_blo
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
+import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
@@ -152,11 +153,11 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
 
                       final homeTeam = teams.firstWhere(
                         (team) => team.id == match.homeTeamId,
-                        orElse: () => teams.first,
+                        orElse: () => Team.empty(),
                       );
                       final guestTeam = teams.firstWhere(
                         (team) => team.id == match.guestTeamId,
-                        orElse: () => teams.first,
+                        orElse: () => Team.empty(),
                       );
 
                       final userTips = tips[widget.userId] ?? [];

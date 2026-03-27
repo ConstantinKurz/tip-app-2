@@ -39,18 +39,35 @@ class ValidateJokerUsageUpdateStatUseCase {
       matchDay: matchDay,
     );
 
-    // ✅ Tipped Games: Zähle NUR für diesen einzelnen matchDay
-    final tippedGamesResult = await tipRepository.getTippedGamesInMatchDay(
-      userId: userId,
-      matchDay: matchDay, // ← Nur dieser matchDay!
-    );
+    // ✅ NEU: Für Vorrunde (matchDay 1-3) aggregierte Statistik über alle Spieltage
+    final bool isGroupStage = phase == MatchPhase.groupStage;
+    final matchDaysForTips = isGroupStage ? [1, 2, 3] : [matchDay];
+    
+    // Tipped Games: Für Vorrunde über alle 3 Spieltage, sonst nur einzelner matchDay
+    final Either<TipFailure, int> tippedGamesResult;
+    if (isGroupStage) {
+      tippedGamesResult = await tipRepository.getTippedGamesInMatchDays(
+        userId: userId,
+        matchDays: matchDaysForTips,
+      );
+    } else {
+      tippedGamesResult = await tipRepository.getTippedGamesInMatchDay(
+        userId: userId,
+        matchDay: matchDay,
+      );
+    }
 
-    // Hole Gesamtanzahl der Spiele im EINZELNEN Spieltag
-    final allMatchesResult = await matchRepository.getAllMatches();
-    final totalGamesInMatchDay = allMatchesResult.fold(
-      (_) => 0,
-      (matches) => matches.where((m) => m.matchDay == matchDay).length,
-    );
+    // ✅ NEU: Für Vorrunde ist totalGames = maxTips (20), sonst tatsächliche Spielanzahl
+    int totalGamesForPhase;
+    if (isGroupStage && phase.maxTips != null) {
+      totalGamesForPhase = phase.maxTips!;
+    } else {
+      final allMatchesResult = await matchRepository.getAllMatches();
+      totalGamesForPhase = allMatchesResult.fold(
+        (_) => 0,
+        (matches) => matches.where((m) => m.matchDay == matchDay).length,
+      );
+    }
 
     return tippedGamesResult.fold(
       (failure) => left(failure),
@@ -60,10 +77,10 @@ class ValidateJokerUsageUpdateStatUseCase {
         },
         (usedJokers) => right(MatchDayStatistics(
           matchDay: matchDay,
-          tippedGames: tippedGames,        // ← Nur für DIESEN matchDay
-          totalGames: totalGamesInMatchDay, // ← Nur für DIESEN matchDay
-          jokersUsed: usedJokers,          // ← Für die ganze Phase (7+8)
-          jokersAvailable: maxJokers,      // ← Phase-Limit
+          tippedGames: tippedGames,         // ← Für Vorrunde: über alle 3 Spieltage
+          totalGames: totalGamesForPhase,   // ← Für Vorrunde: maxTips (20)
+          jokersUsed: usedJokers,
+          jokersAvailable: maxJokers,
         )),
       ),
     );

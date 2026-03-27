@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match_day_statistics.dart';
+import 'package:flutter_web/domain/entities/match_phase.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
 import '../../../domain/entities/tip.dart';
@@ -25,6 +26,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     on<TipFormFieldUpdatedEvent>(_onFieldUpdated);
     on<TipFormStreamUpdatedEvent>(_onStreamUpdated);
     on<TipFormExternalUpdateEvent>(_onExternalUpdate);
+    on<TipFormDeleteEvent>(_onDeleteTip);
   }
 
   /// Externe Updates vom TipControllerBloc verarbeiten
@@ -87,6 +89,40 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       failureOrSuccessOption: none(),
       isLoading: false
     ));
+
+    // ✅ NEU: Tipp-Limit-Validierung für Vorrunde (nur bei NEUEM Tipp)
+    final isNewTip = state.tipHome == null && state.tipGuest == null;
+    final phase = MatchPhase.fromMatchDay(event.matchDay);
+    
+    if (isNewTip && phase.hasTipLimit) {
+      final matchDaysForPhase = phase == MatchPhase.groupStage ? [1, 2, 3] : [event.matchDay];
+      final tippedGamesResult = await tipRepository.getTippedGamesInMatchDays(
+        userId: event.userId,
+        matchDays: matchDaysForPhase,
+      );
+      
+      final tipLimitReached = tippedGamesResult.fold(
+        (_) => false,
+        (tippedGames) => tippedGames >= phase.maxTips!,
+      );
+      
+      if (tipLimitReached) {
+        final tippedGames = tippedGamesResult.getOrElse(() => 0);
+        emit(state.copyWith(
+          isSubmitting: false,
+          showValidationMessages: true,
+          isTipLimitReached: true,
+          failureOrSuccessOption: some(
+            left(TipLimitReachedFailure(
+              used: tippedGames,
+              limit: phase.maxTips!,
+              matchDay: event.matchDay,
+            )),
+          ),
+        ));
+        return;
+      }
+    }
 
     // Joker-Validierung NUR prüfen wenn Joker NEU gesetzt wird
     // (nicht wenn er bereits gesetzt war und wir nur den Tipp aktualisieren)
@@ -169,6 +205,43 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       joker: event.joker,
       isLoading: false,
     ));
+  }
+
+  /// Handler für das Löschen eines Tipps
+  Future<void> _onDeleteTip(
+    TipFormDeleteEvent event,
+    Emitter<TipFormState> emit,
+  ) async {
+    emit(state.copyWith(
+      isSubmitting: true,
+      failureOrSuccessOption: none(),
+    ));
+
+    final result = await tipRepository.deleteTipById(event.tipId);
+
+    result.fold(
+      (failure) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          showValidationMessages: true,
+          failureOrSuccessOption: some(left(failure)),
+        ));
+      },
+      (_) {
+        // Erfolg: State zurücksetzen (Tipp gelöscht)
+        emit(state.copyWith(
+          isSubmitting: false,
+          showValidationMessages: false,
+          tipHome: null,
+          clearTipHome: true,
+          tipGuest: null,
+          clearTipGuest: true,
+          joker: false,
+          isTipLimitReached: false,
+          failureOrSuccessOption: some(right(unit)),
+        ));
+      },
+    );
   }
 
   @override

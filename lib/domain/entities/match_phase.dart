@@ -2,14 +2,14 @@
 
 /// Spielphasen der WM 2026 mit entsprechenden Regeln
 enum MatchPhase {
-  groupStage('Vorrunde', 1, 5),
-  roundOf16('16tel-Finale', 1,4),
-  roundOf8('8tel-Finale', 2, 2),
-  quarterFinal('Viertel-Finale', 3, 1),
-  semiFinal('Halbfinale', 3, 2),
-  finalStage('Finale', 3, 2);
+  groupStage('Vorrunde', 1, 5, 20),
+  roundOf16('16tel-Finale', 1, 4, null),
+  roundOf8('8tel-Finale', 2, 2, null),
+  quarterFinal('Viertel-Finale', 3, 1, null),
+  semiFinal('Halbfinale', 3, 2, null),
+  finalStage('Finale', 3, 2, null);
 
-  const MatchPhase(this.displayName, this.pointMultiplier, this.maxJokers);
+  const MatchPhase(this.displayName, this.pointMultiplier, this.maxJokers, this.maxTips);
 
   /// Anzeigename der Phase
   final String displayName;
@@ -19,6 +19,13 @@ enum MatchPhase {
 
   /// Maximale Anzahl an Jokern in dieser Phase
   final int maxJokers;
+
+  /// Maximale Anzahl an Tipps in dieser Phase (null = unbegrenzt)
+  /// Vorrunde: 20 Tipps erlaubt (obwohl mehr Spiele existieren)
+  final int? maxTips;
+
+  /// Prüft ob ein Tipp-Limit für diese Phase existiert
+  bool get hasTipLimit => maxTips != null;
 
   /// Bestimmt die Phase basierend auf dem matchDay
   static MatchPhase fromMatchDay(int matchDay) {

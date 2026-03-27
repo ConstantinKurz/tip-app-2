@@ -40,8 +40,10 @@ class _TipCardState extends State<TipCard> {
   @override
   void initState() {
     super.initState();
-    _homeController = TextEditingController(text: widget.tip.tipHome?.toString() ?? '');
-    _guestController = TextEditingController(text: widget.tip.tipGuest?.toString() ?? '');
+    _homeController =
+        TextEditingController(text: widget.tip.tipHome?.toString() ?? '');
+    _guestController =
+        TextEditingController(text: widget.tip.tipGuest?.toString() ?? '');
   }
 
   @override
@@ -56,11 +58,11 @@ class _TipCardState extends State<TipCard> {
     // Nur updaten wenn die Werte sich wirklich geändert haben
     final newHomeValue = state.tipHome?.toString() ?? '';
     final newGuestValue = state.tipGuest?.toString() ?? '';
-    
+
     if (_homeController.text != newHomeValue) {
       _homeController.text = newHomeValue;
     }
-    
+
     if (_guestController.text != newGuestValue) {
       _guestController.text = newGuestValue;
     }
@@ -69,7 +71,8 @@ class _TipCardState extends State<TipCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasResult = widget.match.homeScore != null && widget.match.guestScore != null;
+    final hasResult =
+        widget.match.homeScore != null && widget.match.guestScore != null;
 
     return BlocConsumer<TipFormBloc, TipFormState>(
       listenWhen: (previous, current) =>
@@ -99,7 +102,8 @@ class _TipCardState extends State<TipCard> {
                     TipUpdateStatisticsEvent(
                       userId: widget.userId,
                       matchDay: widget.match.matchDay,
-                      forceRefresh: true, // Stats neu laden nach erfolgreichem Tipp
+                      forceRefresh:
+                          true, // Stats neu laden nach erfolgreichem Tipp
                     ),
                   );
             },
@@ -133,6 +137,21 @@ class _TipCardState extends State<TipCard> {
               TipCardHeader(
                 match: widget.match,
                 tip: widget.tip,
+                // Delete-Button nur anzeigen wenn Tipp existiert UND Spiel noch nicht angefangen
+                onDelete: (formState.tipHome != null &&
+                        formState.tipGuest != null &&
+                        widget.match.matchDate.isAfter(DateTime.now()))
+                    ? () {
+                        final tipId = '${widget.userId}_${widget.match.id}';
+                        context.read<TipFormBloc>().add(
+                              TipFormDeleteEvent(
+                                tipId: tipId,
+                                userId: widget.userId,
+                                matchDay: widget.match.matchDay,
+                              ),
+                            );
+                      }
+                    : null,
               ),
               const SizedBox(height: 12),
               TipCardMatchInfo(
@@ -143,14 +162,14 @@ class _TipCardState extends State<TipCard> {
               ),
               const SizedBox(height: 16),
               TipCardTippingInput(
-                homeController: _homeController,
-                guestController: _guestController,
-                state: formState,
-                userId: widget.userId,
-                matchId: widget.match.id,
-                tip: widget.tip,
-                readOnly: hasResult && !widget.isAdmin,
-              ),
+                  homeController: _homeController,
+                  guestController: _guestController,
+                  state: formState,
+                  userId: widget.userId,
+                  matchId: widget.match.id,
+                  tip: widget.tip,
+                  readOnly: widget.match.matchDate.isBefore(DateTime.now()) ||
+                      widget.match.matchDate.isAtSameMomentAs(DateTime.now())),
               if (widget.footer != null) ...[
                 const SizedBox(height: 16),
                 widget.footer!,

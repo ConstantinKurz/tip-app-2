@@ -78,3 +78,16 @@ class TipFormExternalUpdateEvent extends TipFormEvent {
     this.joker = false,
   });
 }
+
+/// Event zum Löschen eines Tipps
+class TipFormDeleteEvent extends TipFormEvent {
+  final String tipId;
+  final String userId;
+  final int matchDay;
+
+  TipFormDeleteEvent({
+    required this.tipId,
+    required this.userId,
+    required this.matchDay,
+  });
+}

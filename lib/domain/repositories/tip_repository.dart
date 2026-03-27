@@ -47,4 +47,14 @@ abstract class TipRepository {
     required String userId,
     required int matchDay,
   });
+  
+  /// Gibt die Anzahl der getippten Spiele über mehrere Spieltage zurück
+  /// Verwendet für aggregierte Statistik (z.B. Vorrunde matchDay 1-3)
+  Future<Either<TipFailure, int>> getTippedGamesInMatchDays({
+    required String userId,
+    required List<int> matchDays,
+  });
+  
+  /// Löscht einen Tipp anhand seiner ID
+  Future<Either<TipFailure, Unit>> deleteTipById(String tipId);
 }

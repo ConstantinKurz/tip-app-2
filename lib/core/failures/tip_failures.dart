@@ -38,3 +38,21 @@ class JokerLimitReachedFailure extends TipFailure {
     return 'Joker-Limit erreicht in ${phase.displayName}: $used/$limit verwendet';
   }
 }
+
+class TipLimitReachedFailure extends TipFailure {
+  final int used;
+  final int limit;
+  final int matchDay;
+  
+  TipLimitReachedFailure({
+    required this.used,
+    required this.limit,
+    required this.matchDay,
+  });
+  
+  @override
+  String toString() {
+    final phase = MatchPhase.fromMatchDay(matchDay);
+    return 'Tipp-Limit erreicht in ${phase.displayName}: $used/$limit Tipps verwendet';
+  }
+}

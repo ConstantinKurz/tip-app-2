@@ -176,6 +176,37 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     print('   ✅ Loading stats for matchDay ${event.matchDay}');
 
     try {
+      // ✅ NEU: Vorrunde (matchDay 1-3) teilen sich das 20-Tipp-Limit
+      // Alle drei Tage bekommen die gleichen aggregierten Statistiken
+      if (event.matchDay >= 1 && event.matchDay <= 3) {
+        final stats1Future = validateJokerUseCase(userId: event.userId, matchDay: 1);
+        final stats2Future = validateJokerUseCase(userId: event.userId, matchDay: 2);
+        final stats3Future = validateJokerUseCase(userId: event.userId, matchDay: 3);
+        final results = await Future.wait([stats1Future, stats2Future, stats3Future]);
+        _loadingMatchDays.remove(1);
+        _loadingMatchDays.remove(2);
+        _loadingMatchDays.remove(3);
+
+        final stats1 = results[0].fold((_) => null, (s) => s);
+        final stats2 = results[1].fold((_) => null, (s) => s);
+        final stats3 = results[2].fold((_) => null, (s) => s);
+
+        if (stats1 == null && stats2 == null && stats3 == null) return;
+
+        final latestState = state;
+        final Map<String, List<Tip>> currentTips = latestState is TipControllerLoaded ? latestState.tips : {};
+        final Map<int, MatchDayStatistics> previousStats = latestState is TipControllerLoaded ? latestState.matchDayStatistics : {};
+        final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
+        if (stats1 != null) updatedStats[1] = stats1;
+        if (stats2 != null) updatedStats[2] = stats2;
+        if (stats3 != null) updatedStats[3] = stats3;
+        emit(TipControllerLoaded(
+          tips: currentTips,
+          matchDayStatistics: updatedStats,
+        ));
+        return;
+      }
+
       // Wenn Halbfinale oder Finale: beide Statistiken parallel laden und setzen
       if (event.matchDay == 7 || event.matchDay == 8) {
         final stats7Future = validateJokerUseCase(userId: event.userId, matchDay: 7);

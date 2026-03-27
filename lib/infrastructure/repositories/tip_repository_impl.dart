@@ -403,4 +403,78 @@ class TipRepositoryImpl implements TipRepository {
       return left(UnexpectedFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<TipFailure, int>> getTippedGamesInMatchDays({
+    required String userId,
+    required List<int> matchDays,
+  }) async {
+    FirestoreLogger.logRead('tips', 'getTippedGamesInMatchDays', docId: 'user=$userId, matchDays=$matchDays');
+    print('🎮 [TipRepository] getTippedGamesInMatchDays: user=$userId, matchDays=$matchDays');
+    
+    try {
+      // Hole alle Tips des Users mit gültigen Werten
+      final querySnapshot = await tipsCollection
+          .where('userId', isEqualTo: userId)
+          .where('tipHome', isNull: false)
+          .get();
+
+      // Sammle matchIds von gültigen Tips (tipHome UND tipGuest nicht null)
+      final matchIdsWithValidTips = <String>[];
+      for (final doc in querySnapshot.docs) {
+        final tipData = doc.data() as Map<String, dynamic>;
+        
+        // Client-side Filter für tipGuest (Firestore erlaubt keine zwei inequality Filter)
+        if (tipData['tipGuest'] == null) {
+          continue;
+        }
+
+        final tipMatchId = tipData['matchId'] as String?;
+        if (tipMatchId != null) {
+          matchIdsWithValidTips.add(tipMatchId);
+        }
+      }
+
+      if (matchIdsWithValidTips.isEmpty) {
+        return right(0);
+      }
+
+      // Lade alle Matches in Batches um matchDay zu ermitteln
+      final matchDayMap = await _loadMatchDaysForMatchIds(matchIdsWithValidTips);
+
+      // Zähle nur Tips für die angegebenen matchDays
+      int tippedGamesCount = 0;
+      for (final matchId in matchIdsWithValidTips) {
+        final docMatchDay = matchDayMap[matchId];
+        if (docMatchDay != null && matchDays.contains(docMatchDay)) {
+          tippedGamesCount++;
+        }
+      }
+
+      return right(tippedGamesCount);
+    } on FirebaseException catch (e) {
+      if (e.code.contains('permission-denied')) {
+        return left(InsufficientPermisssons());
+      } else {
+        return left(UnexpectedFailure());
+      }
+    } catch (e) {
+      return left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<TipFailure, Unit>> deleteTipById(String tipId) async {
+    try {
+      await tipsCollection.doc(tipId).delete();
+      return right(unit);
+    } catch (e) {
+      return left(mapFirebaseError<TipFailure>(
+        e,
+        insufficientPermissions: InsufficientPermisssons(),
+        unexpected: UnexpectedFailure(),
+        notFound: NotFoundFailure(),
+      ));
+    }
+  }
 }

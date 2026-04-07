@@ -4,6 +4,7 @@ import 'package:flutter_web/application/signupform/signupform_bloc.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 import 'package:flutter_web/constants.dart';
+import 'package:responsive_framework/responsive_wrapper.dart';
 
 class PasswordResetDialog extends StatefulWidget {
   const PasswordResetDialog({super.key});
@@ -48,6 +49,9 @@ class _PasswordResetDialogState extends State<PasswordResetDialog> {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final isDesktop = ResponsiveWrapper.of(context).isLargerThan(TABLET);
+    final dialogWidth = isDesktop ? screenWidth * 0.3 : screenWidth * 0.9;
+    final dialogHeight = isDesktop ? screenHeight * 0.5 : screenHeight * 0.6;
 
     return BlocConsumer<SignupformBloc, SignupformState>(
       listener: (context, state) {
@@ -87,8 +91,8 @@ class _PasswordResetDialogState extends State<PasswordResetDialog> {
             child: Material(
               color: Colors.transparent,
               child: Container(
-                width: screenWidth * 0.3,
-                height: screenHeight * 0.5,
+                width: dialogWidth,
+                height: dialogHeight,
                 decoration: BoxDecoration(
                   color: themeData.scaffoldBackgroundColor,
                   border: Border.all(color: Colors.white),
@@ -101,9 +105,12 @@ class _PasswordResetDialogState extends State<PasswordResetDialog> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Passwort zurücksetzen",
-                            style: themeData.textTheme.headlineSmall,
+                          Expanded(
+                            child: Text(
+                              "Passwort zurücksetzen",
+                              style: themeData.textTheme.headlineSmall,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           IconButton(
                             onPressed: () => Navigator.of(context).pop(),
@@ -155,7 +162,7 @@ class _PasswordResetDialogState extends State<PasswordResetDialog> {
                               ),
                               const SizedBox(height: 20),
                               CustomButton(
-                                width: screenWidth*.1,
+                                width: isDesktop ? 150 : screenWidth * 0.6,
                                 backgroundColor: themeData.colorScheme.primary,
                                 hoverColor: primaryDark,
                                 borderColor: primaryDark,

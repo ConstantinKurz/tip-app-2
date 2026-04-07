@@ -193,10 +193,10 @@ class _SignInFormState extends State<SignInForm> {
                         ),
                       )
                     : CustomButton(
-                        width: screenWidth * 0.1,
+                        width: isDesktop ? 150 : screenWidth * 0.6,
                         hoverColor: primaryDark,
                         borderColor: primaryDark,
-                        backgroundColor: themeData.scaffoldBackgroundColor,
+                        backgroundColor: primaryDark,
                         buttonText: "Anmelden",
                         callback: state.isSubmitting
                             ? () {}

@@ -122,9 +122,10 @@ class SignUpForm extends StatelessWidget {
                 height: 40,
               ),
               CustomButton(
+                width: isDesktop ? 150 : screenWidth * 0.6,
                 hoverColor: primaryDark,
                 borderColor: primaryDark,
-                backgroundColor: themeData.scaffoldBackgroundColor,
+                backgroundColor: primaryDark,
                 buttonText: "Register",
                 callback: () {
                   {

@@ -44,7 +44,6 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
     const matchDuration = 120;
 
     return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
@@ -173,20 +172,15 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: screenWidth * 0.6,
-                          ),
-                          // ✅ Navigation mit InkWell
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: () {
-                              // Navigation zur Detail-Ansicht
-                              Routemaster.of(context).push(
-                                '/tips-detail/$tipId?from=home&returnIndex=$index',
-                              );
-                            },
-                            child: BlocProvider<TipFormBloc>.value(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            // Navigation zur Detail-Ansicht
+                            Routemaster.of(context).push(
+                              '/tips-detail/$tipId?from=home&returnIndex=$index',
+                            );
+                          },
+                          child: BlocProvider<TipFormBloc>.value(
                               value: _getTipFormBloc(match.id),
                               child: _TipCardInitializer(
                                 matchId: match.id,
@@ -201,7 +195,6 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                                 ),
                               ),
                             ),
-                          ),
                         ),
                       );
                     }).toList(),

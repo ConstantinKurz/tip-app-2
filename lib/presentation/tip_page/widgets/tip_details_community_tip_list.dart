@@ -114,51 +114,40 @@ class CommunityTipList extends StatelessWidget {
                                           ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  width: 32,
+                                const SizedBox(width: 6),
+                                Flexible(
                                   child: Row(
                                     children: [
-                                      Text('${user.jokerSum}',
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          )),
-                                      const SizedBox(width: 2),
-                                      const Icon(Icons.star,
-                                          size: 14, color: Colors.amber),
-                                    ],
-                                  ),
-                                ),
-                                // 6er
-                                Row(
-                                  children: [
-                                    Text('${user.sixer}',
-                                        style:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        )),
-                                    Text(' 6er',
-                                        style: theme.textTheme.bodySmall),
-                                  ],
-                                ),
-                                const SizedBox(width: 8),
-                                Tooltip(
-                                  message: "Gesamtpunkte",
-                                  child: SizedBox(
-                                    width: 96,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text('${user.score}',
+                                      Flexible(
+                                        child: Text('${user.jokerSum}',
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
                                               fontWeight: FontWeight.bold,
-                                            )),
-                                        Text(' pkt',
-                                            style: theme.textTheme.bodySmall),
-                                      ],
-                                    ),
+                                            ),
+                                            overflow: TextOverflow.ellipsis),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      const Icon(Icons.star,
+                                          size: 12, color: Colors.amber),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text('${user.sixer}×6',
+                                            style:
+                                                theme.textTheme.bodySmall?.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            overflow: TextOverflow.ellipsis),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text('${user.score}p',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            overflow: TextOverflow.ellipsis),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],

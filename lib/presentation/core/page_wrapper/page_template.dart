@@ -23,7 +23,7 @@ class PageTemplate extends StatelessWidget {
     final themeData = Theme.of(context);
     final responsiveValue = ResponsiveWrapper.of(context);
     return Scaffold(
-      endDrawer: const CustomDrawer(),
+      drawer: const CustomDrawer(),
       backgroundColor: themeData.scaffoldBackgroundColor,
       appBar: responsiveValue.isSmallerThan(DESKTOP)
           ? const PreferredSize(

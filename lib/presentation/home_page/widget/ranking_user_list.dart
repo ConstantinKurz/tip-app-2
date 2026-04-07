@@ -9,12 +9,14 @@ class RankingUserList extends StatelessWidget {
   final List<Team> teams;
   final String currentUserId;
   final bool scrollToCurrentUser;
+  final List<int> globalUserIndices;
 
   const RankingUserList({
     required this.users,
     required this.teams,
     required this.currentUserId,
     this.scrollToCurrentUser = false,
+    this.globalUserIndices = const [],
     Key? key,
   }) : super(key: key);
 
@@ -34,6 +36,9 @@ class RankingUserList extends StatelessWidget {
         final isCurrentUser = currentUserId == user.id;
         final champion = teams.where((element) => element.id == user.championId).firstOrNull;
         final textTheme = Theme.of(context).textTheme;
+        final globalRank = globalUserIndices.isNotEmpty && index < globalUserIndices.length
+            ? globalUserIndices[index] + 1
+            : index + 1;
 
         return Container(
           decoration: isCurrentUser
@@ -49,7 +54,7 @@ class RankingUserList extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 40,
-                  child: Text('#${index + 1}', style: textTheme.bodyMedium),
+                  child: Text('#$globalRank', style: textTheme.bodyMedium),
                 ),
                 Expanded(
                   flex: 2,

@@ -88,6 +88,9 @@ class RankingSection extends StatelessWidget {
                           teams: teams,
                           currentUserId: userId,
                           scrollToCurrentUser: rankingState.expanded,
+                          globalUserIndices: visibleUsers
+                              .map((user) => sortedUsers.indexOf(user))
+                              .toList(),
                         ),
                         if (sortedUsers.length > 5)
                           Center(

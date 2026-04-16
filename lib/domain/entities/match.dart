@@ -63,7 +63,7 @@ class CustomMatch {
 
   String get getStageName {
     if (matchDay <= 3) {
-      return 'Gruppenphase, Tag $matchDay';
+      return 'Gruppenphase';
     }
     switch (matchDay) {
       case 4:

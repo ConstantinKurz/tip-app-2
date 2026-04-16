@@ -40,57 +40,72 @@ class TipCardTippingInput extends StatelessWidget {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Flexible(
-                child: _buildScoreInput(context, state, 'home'),
+              // Home-Seite: Expanded, Input rechtsbündig
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    _buildScoreInput(context, state, 'home'),
+                  ],
+                ),
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: isMobile ? 8.0 : 16.0),
-                child: Text(
-                  ':',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
+              // Mitte: Container mit fester Breite (wie in match_info)
+              Container(
+                width: 8,
+                height: isMobile ? 48 : 56,
+                margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Center(
+                  child: Text(
+                    ':',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                    ),
                   ),
                 ),
               ),
-              Flexible(
-                child: _buildScoreInput(context, state, 'guest'),
-              ),
-              SizedBox(width: isMobile ? 4 : 16),
-              SizedBox(
-                width: isMobile ? 40 : 48,
-                height: isMobile ? 48 : 56,
-                child: StarIconButton(
-                  isStar: state.joker,
-                  onTap: (homeController.text.isNotEmpty && 
-                          guestController.text.isNotEmpty && 
-                          !readOnly)
-                      ? () {
-                          final tipHome = int.tryParse(homeController.text);
-                          final tipGuest = int.tryParse(guestController.text);
-                          
-                          context.read<TipFormBloc>().add(
-                            TipFormFieldUpdatedEvent(
-                              matchId: matchId,
-                              userId: userId,
-                              tipHome: tipHome,
-                              tipGuest: tipGuest,
-                              joker: !(state.joker),
-                              matchDay: state.matchDay,
-                            ),
-                          );
-                        }
-                      : () {},
-                  tooltipMessage: readOnly
-                      ? "Spiel bereits beendet - keine Änderungen möglich"
-                      : (homeController.text.isEmpty || guestController.text.isEmpty)
-                          ? "Beide Felder erforderlich"
-                          : ((state.joker)
-                              ? "Joker entfernen"
-                              : "Joker setzen"),
+              // Guest-Seite: Expanded, Input linksbündig + StarButton am Ende
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    _buildScoreInput(context, state, 'guest'),
+                    const Spacer(),
+                    SizedBox(
+                      width: isMobile ? 40 : 48,
+                      height: isMobile ? 48 : 56,
+                      child: StarIconButton(
+                        isStar: state.joker,
+                        onTap: (homeController.text.isNotEmpty && 
+                                guestController.text.isNotEmpty && 
+                                !readOnly)
+                            ? () {
+                                final tipHome = int.tryParse(homeController.text);
+                                final tipGuest = int.tryParse(guestController.text);
+                                
+                                context.read<TipFormBloc>().add(
+                                  TipFormFieldUpdatedEvent(
+                                    matchId: matchId,
+                                    userId: userId,
+                                    tipHome: tipHome,
+                                    tipGuest: tipGuest,
+                                    joker: !(state.joker),
+                                    matchDay: state.matchDay,
+                                  ),
+                                );
+                              }
+                            : () {},
+                        tooltipMessage: readOnly
+                            ? "Spiel bereits beendet - keine Änderungen möglich"
+                            : (homeController.text.isEmpty || guestController.text.isEmpty)
+                                ? "Beide Felder erforderlich"
+                                : ((state.joker)
+                                    ? "Joker entfernen"
+                                    : "Joker setzen"),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

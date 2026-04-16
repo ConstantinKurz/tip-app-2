@@ -109,17 +109,20 @@ class RankingUserList extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Row(
-                        children: [
-                          Text('${user.sixer}',
-                              style: textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              )),
-                          Text(' 6er', style: textTheme.bodySmall),
-                        ],
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: 48,
+                        child: Row(
+                          children: [
+                            Text('${user.sixer}',
+                                style: textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                )),
+                            Text(' 6er', style: textTheme.bodySmall),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 16),
                       SizedBox(
                         width: 60,
                         child: Text(

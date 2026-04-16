@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/form/authform_bloc.dart';
 import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
+import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
+import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/buttons/custom_button.dart';
 
@@ -34,6 +36,9 @@ class _UserProfileFormState extends State<UserProfileForm> {
   bool _showCurrentPassword = false;
   bool _showNewPassword = false;
   bool _showConfirmPassword = false;
+  
+  bool _isChampionChangeable = true;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -42,6 +47,48 @@ class _UserProfileFormState extends State<UserProfileForm> {
     currentPasswordController = TextEditingController();
     newPasswordController = TextEditingController();
     confirmPasswordController = TextEditingController();
+    
+    _checkIfChampionChangeable();
+  }
+
+  Future<void> _checkIfChampionChangeable() async {
+    try {
+      final matchRepository = sl<MatchRepository>();
+      final matchesResult = await matchRepository.getAllMatches();
+      
+      final matches = matchesResult.fold(
+        (failure) => <CustomMatch>[],
+        (matches) => matches,
+      );
+
+      // Alle Matches nach Datum sortieren und das früheste nehmen
+      final sortedMatches = List<CustomMatch>.from(matches)
+        ..sort((a, b) => a.matchDate.compareTo(b.matchDate));
+      
+      final firstMatch = sortedMatches.isNotEmpty ? sortedMatches.first : null;
+      
+      print('🔍 [UserProfileForm] Erstes Match ID: ${firstMatch?.id}');
+      print('🔍 [UserProfileForm] Match-Datum: ${firstMatch?.matchDate}');
+      print('🔍 [UserProfileForm] Jetzt: ${DateTime.now()}');
+      print('🔍 [UserProfileForm] Champion änderbar: ${firstMatch == null || firstMatch.matchDate.isAfter(DateTime.now())}');
+
+      if (mounted) {
+        setState(() {
+          // Champion ist NICHT mehr änderbar wenn das erste Match bereits gestartet ist
+          _isChampionChangeable = firstMatch == null ||
+              firstMatch.matchDate.isAfter(DateTime.now());
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('❌ [UserProfileForm] Fehler beim Laden der Matches: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isChampionChangeable = true;
+        });
+      }
+    }
   }
 
   @override
@@ -186,58 +233,85 @@ class _UserProfileFormState extends State<UserProfileForm> {
                 ),
                 const SizedBox(height: 8),
                 
-                DropdownButtonFormField<String>(
-                  initialValue: widget.teams.any((t) => t.id == (state.championId ?? widget.user.championId))
-                      ? (state.championId ?? widget.user.championId)
-                      : null,
-                  decoration: InputDecoration(
-                    hintText: "Champion wählen",
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                    
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Colors.white),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Colors.white),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Colors.white),
-                    ),
-                  ),
-                  style: const TextStyle(color: Colors.white),
-                  dropdownColor: Colors.grey.shade800,
-                  elevation: 16,
-                  items: widget.teams.map((team) {
-                    return DropdownMenuItem<String>(
-                      value: team.id,
-                      child: Row(
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  IgnorePointer(
+                    ignoring: !_isChampionChangeable,
+                    child: Opacity(
+                      opacity: _isChampionChangeable ? 1.0 : 0.5,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ClipOval(
-                            child: Flag.fromString(
-                              team.flagCode,
-                              height: 20,
-                              width: 20,
-                              fit: BoxFit.cover,
+                          DropdownButtonFormField<String>(
+                            value: widget.teams.any((t) => t.id == (state.championId ?? widget.user.championId))
+                                ? (state.championId ?? widget.user.championId)
+                                : null,
+                            decoration: InputDecoration(
+                              hintText: "Champion wählen",
+                              hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                              
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Colors.white),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Colors.white),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Colors.white),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            team.name,
                             style: const TextStyle(color: Colors.white),
+                            dropdownColor: Colors.grey.shade800,
+                            elevation: 16,
+                            items: widget.teams.map((team) {
+                              return DropdownMenuItem<String>(
+                                value: team.id,
+                                child: Row(
+                                  children: [
+                                    ClipOval(
+                                      child: Flag.fromString(
+                                        team.flagCode,
+                                        height: 20,
+                                        width: 20,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      team.name,
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: _isChampionChangeable
+                                ? (String? selectedChampionId) {
+                                    context.read<AuthformBloc>().add(
+                                      UserFormFieldUpdatedEvent(championId: selectedChampionId),
+                                    );
+                                  }
+                                : null,
                           ),
+                          if (!_isChampionChangeable)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                '❌ Kann nach Spielstart nicht mehr geändert werden',
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (String? selectedChampionId) {
-                    context.read<AuthformBloc>().add(
-                      UserFormFieldUpdatedEvent(championId: selectedChampionId),
-                    );
-                  },
-                ),
+                    ),
+                  ),
                 const SizedBox(height: 24),
                 
                 // Password Change Section

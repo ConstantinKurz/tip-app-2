@@ -102,7 +102,7 @@ class RecalculateMatchTipsUseCase {
             affectedUsers.add(tip.userId);
 
             // Berechne Punkte neu mit TipCalculator
-            final newPoints = TipCalculator.calculatePoints(
+            int newPoints = TipCalculator.calculatePoints(
               tipHome: tip.tipHome ?? 0,
               tipGuest: tip.tipGuest ?? 0,
               actualHome: match.homeScore ?? 0,
@@ -110,6 +110,21 @@ class RecalculateMatchTipsUseCase {
               hasJoker: tip.joker,
               phase: match.phase,
             );
+
+            // 🏆 FINALE: Champion-Bonus direkt zu den Tip-Punkten addieren!
+            if (match.matchDay == 8 && _cachedChampionId != null && _cachedChampionTeam != null) {
+              // Hole User um dessen championId zu prüfen
+              final userResult = await userRepository.getUserById(tip.userId);
+              userResult.fold(
+                (failure) {},
+                (user) {
+                  if (user.championId == _cachedChampionId) {
+                    newPoints += _cachedChampionTeam!.winPoints;
+                    print('🏆 [Finale] Champion-Bonus für ${user.name}: +${_cachedChampionTeam!.winPoints} → Total: $newPoints');
+                  }
+                },
+              );
+            }
 
             // Speichere Punkte, wenn unterschiedlich
             if (tip.points != newPoints) {
@@ -167,14 +182,8 @@ class RecalculateMatchTipsUseCase {
                 print('❌ Fehler beim Laden des Users: $failure');
               },
               (user) async {
-                // ✅ Champion-Bonus mit gecachten Daten (KEIN getAllMatches() mehr!)
-                if (user.championId.isNotEmpty &&
-                    _cachedChampionId != null &&
-                    _cachedChampionTeam != null &&
-                    user.championId == _cachedChampionId) {
-                  totalScore += _cachedChampionTeam!.winPoints;
-                  print('✅ Champion bonus: +${_cachedChampionTeam!.winPoints} Punkte für $userId');
-                }
+                // 🏆 Champion-Bonus ist jetzt bereits in den Finale-Tip-Punkten enthalten!
+                // (Wird direkt beim Tip-Punkte-Berechnen addiert, nicht mehr hier separat)
 
                 // Update User mit neuen Scores
                 if (user.id.isNotEmpty) {

@@ -5,8 +5,7 @@ import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart
 import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/core/utils/clear_data.dart';
 import 'package:flutter_web/core/utils/setup_tournament.dart';
-import 'package:flutter_web/core/utils/simulate_group_stage.dart';
-import 'package:flutter_web/core/utils/simulate_knockout_stage.dart';
+import 'package:flutter_web/core/utils/simulate_from_db.dart';
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
 import 'package:flutter_web/presentation/core/menu/home_logo.dart';
 import 'package:flutter_web/presentation/core/menu/menu_item.dart';
@@ -70,11 +69,11 @@ class CustomDrawer extends StatelessWidget {
                   if (isAdmin) ...[
                     _buildDrawerLabel("Admin Aktionen"),
                     const SizedBox(height: 12),
-                    _DrawerActionItem(
-                      icon: Icons.spa_outlined,
-                      text: "Seed Data",
-                      onTap: () => _handleSeedData(context),
-                    ),
+                    // _DrawerActionItem(
+                    //   icon: Icons.spa_outlined,
+                    //   text: "Seed Data",
+                    //   onTap: () => _handleSeedData(context),
+                    // ),
                     const SizedBox(height: 12),
                     _DrawerActionItem(
                       icon: Icons.group_work,
@@ -86,6 +85,12 @@ class CustomDrawer extends StatelessWidget {
                       icon: Icons.play_arrow_sharp,
                       text: "Simulate K.O.-Phase",
                       onTap: () => _handleSimulateKnockoutStage(context),
+                    ),
+                    const SizedBox(height: 12),
+                    _DrawerActionItem(
+                      icon: Icons.sports_soccer,
+                      text: "Test-Matches erstellen",
+                      onTap: () => _handleCreateTestMatches(context),
                     ),
                     const SizedBox(height: 12),
                     _DrawerActionItem(
@@ -174,7 +179,7 @@ class CustomDrawer extends StatelessWidget {
   Future<void> _handleSimulateGroupStage(BuildContext context) async {
     Navigator.of(context).pop();
     try {
-      await simulateGroupStageResults();
+      await simulateGroupStageFromDB();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("✅ Gruppenphase simuliert")),
@@ -192,10 +197,28 @@ class CustomDrawer extends StatelessWidget {
   Future<void> _handleSimulateKnockoutStage(BuildContext context) async {
     Navigator.of(context).pop();
     try {
-      await simulateKnockoutStageResults();
+      await simulateKnockoutStageFromDB();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("✅ K.O.-Phase simuliert")),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("❌ Fehler: $e")),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleCreateTestMatches(BuildContext context) async {
+    Navigator.of(context).pop();
+    try {
+      await createTestMatches();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Test-Matches erstellt")),
         );
       }
     } catch (e) {

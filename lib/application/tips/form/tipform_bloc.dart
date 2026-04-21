@@ -47,6 +47,7 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
       clearTipGuest: event.tipGuest == null,
       joker: event.joker,
       isLoading: false,
+      isTipLimitReached: event.isTipLimitReached,
     ));
   }
 

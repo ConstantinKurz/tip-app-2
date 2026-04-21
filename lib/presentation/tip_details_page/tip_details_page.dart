@@ -6,6 +6,7 @@ import 'package:flutter_web/application/teams/controller/teams_controller_bloc.d
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/match_phase.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
@@ -207,6 +208,23 @@ class _TipCardInitializer extends StatefulWidget {
 class _TipCardInitializerState extends State<_TipCardInitializer> {
   bool _initialized = false;
 
+  /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
+  bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
+    if (tip.tipHome != null || tip.tipGuest != null) return false;
+    
+    final phase = MatchPhase.fromMatchDay(widget.matchDay);
+    if (!phase.hasTipLimit) return false;
+    
+    if (phase == MatchPhase.groupStage) {
+      final stats = tipState.matchDayStatistics[widget.matchDay];
+      if (stats != null) {
+        return stats.tippedGames >= phase.maxTips!;
+      }
+    }
+    
+    return false;
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -237,6 +255,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
           tipHome: tip.tipHome,
           tipGuest: tip.tipGuest,
           joker: tip.joker,
+          isTipLimitReached: _isTipLimitReached(tipState, tip),
         ));
       }
     }
@@ -247,7 +266,8 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
     return BlocListener<TipControllerBloc, TipControllerState>(
       listenWhen: (previous, current) {
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
-          return previous.tips != current.tips;
+          return previous.tips != current.tips ||
+                 previous.matchDayStatistics != current.matchDayStatistics;
         }
         return current is TipControllerLoaded;
       },
@@ -266,6 +286,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
             tipHome: tip.tipHome,
             tipGuest: tip.tipGuest,
             joker: tip.joker,
+            isTipLimitReached: _isTipLimitReached(tipState, tip),
           ));
         }
       },

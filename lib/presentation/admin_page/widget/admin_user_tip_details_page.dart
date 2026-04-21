@@ -6,6 +6,7 @@ import 'package:flutter_web/application/teams/controller/teams_controller_bloc.d
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/match_phase.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/entities/user.dart';
@@ -372,6 +373,23 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
   bool _statsRequested = false; // ✅ Verhindert mehrfache Stats-Requests
   int _buildCount = 0; // ✅ Build Counter
 
+  /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
+  bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
+    if (tip.tipHome != null || tip.tipGuest != null) return false;
+    
+    final phase = MatchPhase.fromMatchDay(widget.matchDay);
+    if (!phase.hasTipLimit) return false;
+    
+    if (phase == MatchPhase.groupStage) {
+      final stats = tipState.matchDayStatistics[widget.matchDay];
+      if (stats != null) {
+        return stats.tippedGames >= phase.maxTips!;
+      }
+    }
+    
+    return false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -426,6 +444,7 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
           tipHome: widget.tip.tipHome,
           tipGuest: widget.tip.tipGuest,
           joker: widget.tip.joker,
+          isTipLimitReached: _isTipLimitReached(tipState, widget.tip),
         ));
       } else {
         if (!_statsRequested) {
@@ -466,7 +485,8 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
             orElse: () => Tip.empty(widget.userId),
           );
           
-          final shouldListen = prevTip != currTip;
+          final shouldListen = prevTip != currTip ||
+              previous.matchDayStatistics != current.matchDayStatistics;
           print('   [_AdminTipCardInitializer] listenWhen for ${widget.matchId}: $shouldListen');
           return shouldListen;
         }
@@ -489,6 +509,7 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
             tipHome: tip.tipHome,
             tipGuest: tip.tipGuest,
             joker: tip.joker,
+            isTipLimitReached: _isTipLimitReached(tipState, tip),
           ));
         }
       },

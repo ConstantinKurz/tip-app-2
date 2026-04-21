@@ -6,6 +6,7 @@ import 'package:flutter_web/application/teams/controller/teams_controller_bloc.d
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/match_phase.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
@@ -333,6 +334,29 @@ class _TipCardInitializer extends StatefulWidget {
 class _TipCardInitializerState extends State<_TipCardInitializer> {
   bool _initialized = false;
 
+  /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
+  /// Gibt nur true zurück wenn:
+  /// - Es ein NEUER Tipp ist (noch nicht getippt)
+  /// - Die Phase ein Tipp-Limit hat
+  /// - Das Limit erreicht oder überschritten ist
+  bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
+    // Wenn bereits getippt, kann immer bearbeitet werden
+    if (tip.tipHome != null || tip.tipGuest != null) return false;
+    
+    final phase = MatchPhase.fromMatchDay(widget.matchDay);
+    if (!phase.hasTipLimit) return false;
+    
+    // Für Gruppenphase: Statistik enthält bereits die aggregierte Anzahl
+    if (phase == MatchPhase.groupStage) {
+      final stats = tipState.matchDayStatistics[widget.matchDay];
+      if (stats != null) {
+        return stats.tippedGames >= phase.maxTips!;
+      }
+    }
+    
+    return false;
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -379,6 +403,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
           tipHome: tip.tipHome,
           tipGuest: tip.tipGuest,
           joker: tip.joker,
+          isTipLimitReached: _isTipLimitReached(tipState, tip),
         ));
       } else {
         // Falls noch nicht geladen, Stats anfordern
@@ -396,9 +421,10 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   Widget build(BuildContext context) {
     return BlocListener<TipControllerBloc, TipControllerState>(
       listenWhen: (previous, current) {
-        // Nur reagieren wenn sich Tips ändern
+        // Reagieren wenn sich Tips oder Statistiken ändern
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
-          return previous.tips != current.tips;
+          return previous.tips != current.tips ||
+                 previous.matchDayStatistics != current.matchDayStatistics;
         }
         return current is TipControllerLoaded;
       },
@@ -417,51 +443,81 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
             tipHome: tip.tipHome,
             tipGuest: tip.tipGuest,
             joker: tip.joker,
+            isTipLimitReached: _isTipLimitReached(tipState, tip),
           ));
         }
       },
-      child: BlocBuilder<TipControllerBloc, TipControllerState>(
+      child: BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
         buildWhen: (previous, current) {
-          // ✅ FIX: Rebuild wenn sich der Tip für dieses Match ändert (inkl. Punkte)
-          if (previous is TipControllerLoaded && current is TipControllerLoaded) {
-            final prevUserTips = previous.tips[widget.userId] ?? [];
-            final currUserTips = current.tips[widget.userId] ?? [];
-            
-            final prevTip = prevUserTips.firstWhere(
-              (t) => t.matchId == widget.matchId,
-              orElse: () => Tip.empty(widget.userId),
+          // Rebuild wenn sich das Match-Ergebnis ändert
+          if (previous is MatchesControllerLoaded && current is MatchesControllerLoaded) {
+            final prevMatch = previous.matches.firstWhere(
+              (m) => m.id == widget.matchId,
+              orElse: () => widget.match,
             );
-            final currTip = currUserTips.firstWhere(
-              (t) => t.matchId == widget.matchId,
-              orElse: () => Tip.empty(widget.userId),
+            final currMatch = current.matches.firstWhere(
+              (m) => m.id == widget.matchId,
+              orElse: () => widget.match,
             );
-            
-            // Rebuild wenn sich Punkte oder andere Tip-Daten ändern
-            return prevTip.points != currTip.points ||
-                   prevTip.tipHome != currTip.tipHome ||
-                   prevTip.tipGuest != currTip.tipGuest ||
-                   prevTip.joker != currTip.joker;
+            return prevMatch.homeScore != currMatch.homeScore ||
+                   prevMatch.guestScore != currMatch.guestScore;
           }
           return previous.runtimeType != current.runtimeType;
         },
-        builder: (context, tipState) {
-          Tip currentTip = Tip.empty(widget.userId);
-          if (tipState is TipControllerLoaded) {
-            final userTips = tipState.tips[widget.userId] ?? [];
-            currentTip = userTips.firstWhere(
-              (t) => t.matchId == widget.matchId,
-              orElse: () => Tip.empty(widget.userId),
+        builder: (context, matchState) {
+          // Hole das aktuelle Match mit Ergebnis aus dem Bloc
+          CustomMatch currentMatch = widget.match;
+          if (matchState is MatchesControllerLoaded) {
+            currentMatch = matchState.matches.firstWhere(
+              (m) => m.id == widget.matchId,
+              orElse: () => widget.match,
             );
           }
 
-          // ✅ FIX: Key mit Punkten für Force-Rebuild bei Punkte-Änderung
-          return TipCard(
-            key: ValueKey('${widget.matchId}_${currentTip.points}'),
-            userId: widget.userId,
-            match: widget.match,
-            homeTeam: widget.homeTeam,
-            guestTeam: widget.guestTeam,
-            tip: currentTip,
+          return BlocBuilder<TipControllerBloc, TipControllerState>(
+            buildWhen: (previous, current) {
+              // Rebuild wenn sich der Tip für dieses Match ändert (inkl. Punkte)
+              if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+                final prevUserTips = previous.tips[widget.userId] ?? [];
+                final currUserTips = current.tips[widget.userId] ?? [];
+                
+                final prevTip = prevUserTips.firstWhere(
+                  (t) => t.matchId == widget.matchId,
+                  orElse: () => Tip.empty(widget.userId),
+                );
+                final currTip = currUserTips.firstWhere(
+                  (t) => t.matchId == widget.matchId,
+                  orElse: () => Tip.empty(widget.userId),
+                );
+                
+                // Rebuild wenn sich Punkte oder andere Tip-Daten ändern
+                return prevTip.points != currTip.points ||
+                       prevTip.tipHome != currTip.tipHome ||
+                       prevTip.tipGuest != currTip.tipGuest ||
+                       prevTip.joker != currTip.joker;
+              }
+              return previous.runtimeType != current.runtimeType;
+            },
+            builder: (context, tipState) {
+              Tip currentTip = Tip.empty(widget.userId);
+              if (tipState is TipControllerLoaded) {
+                final userTips = tipState.tips[widget.userId] ?? [];
+                currentTip = userTips.firstWhere(
+                  (t) => t.matchId == widget.matchId,
+                  orElse: () => Tip.empty(widget.userId),
+                );
+              }
+
+              // Key mit Ergebnis für Force-Rebuild bei Ergebnis-Änderung
+              return TipCard(
+                key: ValueKey('${widget.matchId}_${currentTip.points}_${currentMatch.homeScore}_${currentMatch.guestScore}'),
+                userId: widget.userId,
+                match: currentMatch,
+                homeTeam: widget.homeTeam,
+                guestTeam: widget.guestTeam,
+                tip: currentTip,
+              );
+            },
           );
         },
       ),

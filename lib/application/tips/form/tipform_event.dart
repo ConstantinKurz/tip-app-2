@@ -69,6 +69,7 @@ class TipFormExternalUpdateEvent extends TipFormEvent {
   final int? tipHome;
   final int? tipGuest;
   final bool joker;
+  final bool isTipLimitReached;
 
   TipFormExternalUpdateEvent({
     required this.matchId,
@@ -76,6 +77,7 @@ class TipFormExternalUpdateEvent extends TipFormEvent {
     this.tipHome,
     this.tipGuest,
     this.joker = false,
+    this.isTipLimitReached = false,
   });
 }
 

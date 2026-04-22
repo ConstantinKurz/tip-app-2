@@ -86,7 +86,11 @@ Future<void> init({bool useMocks = false}) async {
   sl.registerFactory(() => MatchesControllerBloc(matchRepository: sl()));
   sl.registerFactory(() => TipControllerBloc(tipRepository: sl(), validateJokerUseCase: sl()));
   sl.registerFactory(() => TeamsControllerBloc(teamRepository: sl()));
-  sl.registerFactory(() => TeamsformBloc(teamRepository: sl()));
+  sl.registerFactory(() => TeamsformBloc(
+    teamRepository: sl(),
+    matchRepository: sl(),
+    recalculateMatchTipsUseCase: sl(),
+  ));
   sl.registerFactory(() => TipFormBloc(
     tipRepository: sl(),
     validateJokerUseCase: sl<ValidateJokerUsageUpdateStatUseCase>(),

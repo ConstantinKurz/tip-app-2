@@ -41,27 +41,57 @@ class RecalculateMatchTipsUseCase {
       (allMatches) async {
         _cachedAllMatches = allMatches;
 
-        // Finde das Finale-Match (matchDay 8)
-        _cachedFinalMatch = allMatches.cast<CustomMatch?>().firstWhere(
-              (m) => m != null && m.matchDay == 8 && m.hasResult,
-              orElse: () => null,
-            );
+        // Finde das Finale-Match: das ZEITLICH LETZTE Spiel mit matchDay 8
+        // (nicht das Spiel um Platz 3, das früher stattfindet)
+        final matchDay8Matches = allMatches
+            .where((m) => m.matchDay == 8 && m.hasResult)
+            .toList()
+          ..sort((a, b) => b.matchDate.compareTo(a.matchDate));
+
+        _cachedFinalMatch = matchDay8Matches.isNotEmpty ? matchDay8Matches.first : null;
 
         if (_cachedFinalMatch != null) {
-          // Der Sieger des Finals ist der Weltmeister
-          _cachedChampionId =
-              (_cachedFinalMatch!.homeScore ?? 0) > (_cachedFinalMatch!.guestScore ?? 0)
-                  ? _cachedFinalMatch!.homeTeamId
-                  : _cachedFinalMatch!.guestTeamId;
+          final homeScore = _cachedFinalMatch!.homeScore ?? 0;
+          final guestScore = _cachedFinalMatch!.guestScore ?? 0;
 
-          // Lade Champion-Team einmal
-          final championTeamResult = await teamRepository.getById(_cachedChampionId!);
-          championTeamResult.fold(
-            (failure) {},
-            (team) {
-              _cachedChampionTeam = team;
-            },
-          );
+          // Champion ermitteln: Bei Unentschieden (Elfmeterschießen) nutze team.champion Flag
+          if (homeScore > guestScore) {
+            _cachedChampionId = _cachedFinalMatch!.homeTeamId;
+          } else if (homeScore < guestScore) {
+            _cachedChampionId = _cachedFinalMatch!.guestTeamId;
+          } else {
+            // Unentschieden → Champion aus team.champion Flag ermitteln
+            final allTeamsResult = await teamRepository.getAll();
+            allTeamsResult.fold(
+              (failure) {
+                print('❌ Fehler beim Laden der Teams für Champion-Ermittlung: $failure');
+              },
+              (teams) {
+                final champion = teams.cast<Team?>().firstWhere(
+                  (t) => t != null && t.champion,
+                  orElse: () => null,
+                );
+                if (champion != null) {
+                  _cachedChampionId = champion.id;
+                  _cachedChampionTeam = champion;
+                  print('🏆 Champion bei Unentschieden aus Flag ermittelt: ${champion.name}');
+                } else {
+                  print('⚠️ Finale unentschieden, aber kein Team als Champion markiert!');
+                }
+              },
+            );
+          }
+
+          // Lade Champion-Team einmal (falls nicht bereits durch Unentschieden-Logik geladen)
+          if (_cachedChampionId != null && _cachedChampionTeam == null) {
+            final championTeamResult = await teamRepository.getById(_cachedChampionId!);
+            championTeamResult.fold(
+              (failure) {},
+              (team) {
+                _cachedChampionTeam = team;
+              },
+            );
+          }
         }
       },
     );
@@ -111,8 +141,12 @@ class RecalculateMatchTipsUseCase {
               phase: match.phase,
             );
 
-            // 🏆 FINALE: Champion-Bonus direkt zu den Tip-Punkten addieren!
-            if (match.matchDay == 8 && _cachedChampionId != null && _cachedChampionTeam != null) {
+            // 🏆 FINALE: Champion-Bonus nur für das ECHTE Finale (zeitlich letztes Spiel)
+            // Nicht für das Spiel um Platz 3 (auch matchDay 8, aber früher)
+            if (_cachedFinalMatch != null && 
+                match.id == _cachedFinalMatch!.id && 
+                _cachedChampionId != null && 
+                _cachedChampionTeam != null) {
               // Hole User um dessen championId zu prüfen
               final userResult = await userRepository.getUserById(tip.userId);
               userResult.fold(

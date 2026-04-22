@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_web/domain/usecases/recalculate_match_tips_usecase.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/entities/match.dart';
+import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/domain/repositories/user_repository.dart';
@@ -50,6 +51,10 @@ void main() {
         name: 'Fallback User',
         admin: false,
       ));
+      
+      // Default mock für getAllMatches (für _loadSharedData)
+      when(() => mockMatchRepository.getAllMatches())
+          .thenAnswer((_) async => right(<CustomMatch>[]));
     });
 
     group('Grundlegende Funktionalität', () {
@@ -645,6 +650,242 @@ void main() {
         // updatePoints sollte aufgerufen werden da Punkte unterschiedlich sind
         verify(() => mockTipRepository.updatePoints(
             tipId: 'tip_change', points: 6)).called(1);
+      });
+    });
+
+    group('Champion-Logik', () {
+      test('sollte zeitlich letztes matchDay-8-Spiel als Finale wählen, nicht Spiel um Platz 3', () async {
+        // Arrange: Zwei Spiele mit matchDay 8, Finale später als Platz-3-Spiel
+        final thirdPlaceMatch = CustomMatch(
+          id: 'third_place_match',
+          homeTeamId: 'team_3',
+          guestTeamId: 'team_4',
+          matchDate: DateTime(2024, 7, 13, 16, 0), // Früher: 16:00
+          matchDay: 8,
+          homeScore: 2,
+          guestScore: 1,
+        );
+        
+        final finalMatch = CustomMatch(
+          id: 'final_match',
+          homeTeamId: 'team_1',
+          guestTeamId: 'team_2',
+          matchDate: DateTime(2024, 7, 13, 20, 0), // Später: 20:00 = echtes Finale
+          matchDay: 8,
+          homeScore: 3,
+          guestScore: 1,
+        );
+
+        final tip = Tip(
+          id: 'tip_1',
+          userId: 'user_1',
+          matchId: 'third_place_match', // Tip für Platz-3-Spiel
+          tipDate: DateTime.now(),
+          tipHome: 2,
+          tipGuest: 1,
+          joker: false,
+          points: 0,
+        );
+
+        final championTeam = Team(
+          id: 'team_1',
+          name: 'Germany',
+          flagCode: 'DE',
+          winPoints: 50,
+          champion: false,
+        );
+
+        when(() => mockMatchRepository.getAllMatches())
+            .thenAnswer((_) async => right([thirdPlaceMatch, finalMatch]));
+        when(() => mockTeamRepository.getById('team_1'))
+            .thenAnswer((_) async => right(championTeam));
+        when(() => mockTipRepository.getTipsForMatch('third_place_match'))
+            .thenAnswer((_) async => right([tip]));
+        when(() => mockTipRepository.updatePoints(
+                tipId: any(named: 'tipId'), points: any(named: 'points')))
+            .thenAnswer((_) async => right(unit));
+        when(() => mockUserRepository.getUserById(any()))
+            .thenAnswer((_) async => right(
+              AppUser(
+                id: 'user_1',
+                email: 'test@test.com',
+                score: 0,
+                rank: 0,
+                jokerSum: 0,
+                sixer: 0,
+                championId: 'team_1', // User hat Finale-Sieger getippt
+                name: 'Test User',
+                admin: false,
+              ),
+            ));
+        when(() => mockUserRepository.updateUser(any()))
+            .thenAnswer((_) async => right(unit));
+        when(() => mockTipRepository.getTipsByUserId('user_1'))
+            .thenAnswer((_) async => right([tip]));
+
+        // Act
+        final result = await useCase(match: thirdPlaceMatch);
+
+        // Assert: Kein Champion-Bonus für Platz-3-Spiel (nur 18 Punkte: 6 * 3)
+        expect(result, isA<Right<TipFailure, Unit>>());
+        verify(() => mockTipRepository.updatePoints(
+            tipId: 'tip_1', points: 18)).called(1); // Nur Match-Punkte, kein WM-Bonus
+      });
+
+      test('sollte Champion-Bonus bei echtem Finale vergeben', () async {
+        // Arrange: Zwei Spiele mit matchDay 8
+        final thirdPlaceMatch = CustomMatch(
+          id: 'third_place_match',
+          homeTeamId: 'team_3',
+          guestTeamId: 'team_4',
+          matchDate: DateTime(2024, 7, 13, 16, 0),
+          matchDay: 8,
+          homeScore: 2,
+          guestScore: 1,
+        );
+        
+        final finalMatch = CustomMatch(
+          id: 'final_match',
+          homeTeamId: 'team_1',
+          guestTeamId: 'team_2',
+          matchDate: DateTime(2024, 7, 13, 20, 0),
+          matchDay: 8,
+          homeScore: 3,
+          guestScore: 1,
+        );
+
+        final tip = Tip(
+          id: 'tip_final',
+          userId: 'user_1',
+          matchId: 'final_match', // Tip für echtes Finale
+          tipDate: DateTime.now(),
+          tipHome: 3,
+          tipGuest: 1,
+          joker: false,
+          points: 0,
+        );
+
+        final championTeam = Team(
+          id: 'team_1',
+          name: 'Germany',
+          flagCode: 'DE',
+          winPoints: 50,
+          champion: false,
+        );
+
+        when(() => mockMatchRepository.getAllMatches())
+            .thenAnswer((_) async => right([thirdPlaceMatch, finalMatch]));
+        when(() => mockTeamRepository.getById('team_1'))
+            .thenAnswer((_) async => right(championTeam));
+        when(() => mockTipRepository.getTipsForMatch('final_match'))
+            .thenAnswer((_) async => right([tip]));
+        when(() => mockTipRepository.updatePoints(
+                tipId: any(named: 'tipId'), points: any(named: 'points')))
+            .thenAnswer((_) async => right(unit));
+        when(() => mockUserRepository.getUserById(any()))
+            .thenAnswer((_) async => right(
+              AppUser(
+                id: 'user_1',
+                email: 'test@test.com',
+                score: 0,
+                rank: 0,
+                jokerSum: 0,
+                sixer: 0,
+                championId: 'team_1', // User hat Champion richtig getippt
+                name: 'Test User',
+                admin: false,
+              ),
+            ));
+        when(() => mockUserRepository.updateUser(any()))
+            .thenAnswer((_) async => right(unit));
+        when(() => mockTipRepository.getTipsByUserId('user_1'))
+            .thenAnswer((_) async => right([tip]));
+
+        // Act
+        final result = await useCase(match: finalMatch);
+
+        // Assert: Champion-Bonus wird vergeben (18 Match-Punkte + 50 WM-Bonus = 68)
+        expect(result, isA<Right<TipFailure, Unit>>());
+        verify(() => mockTipRepository.updatePoints(
+            tipId: 'tip_final', points: 68)).called(1);
+      });
+
+      test('sollte bei Unentschieden im Finale Champion aus team.champion Flag ermitteln', () async {
+        // Arrange: Finale endet unentschieden (z.B. nach Elfmeterschießen)
+        final finalMatch = CustomMatch(
+          id: 'final_match',
+          homeTeamId: 'team_1',
+          guestTeamId: 'team_2',
+          matchDate: DateTime(2024, 7, 13, 20, 0),
+          matchDay: 8,
+          homeScore: 1,
+          guestScore: 1, // Unentschieden!
+        );
+
+        final tip = Tip(
+          id: 'tip_final',
+          userId: 'user_1',
+          matchId: 'final_match',
+          tipDate: DateTime.now(),
+          tipHome: 1,
+          tipGuest: 1,
+          joker: false,
+          points: 0,
+        );
+
+        // team_2 gewinnt im Elfmeterschießen und wird als Champion markiert
+        final team1 = Team(
+          id: 'team_1',
+          name: 'Germany',
+          flagCode: 'DE',
+          winPoints: 50,
+          champion: false, // Nicht der Champion
+        );
+        
+        final team2 = Team(
+          id: 'team_2',
+          name: 'France',
+          flagCode: 'FR',
+          winPoints: 60,
+          champion: true, // Der Champion!
+        );
+
+        when(() => mockMatchRepository.getAllMatches())
+            .thenAnswer((_) async => right([finalMatch]));
+        when(() => mockTeamRepository.getAll())
+            .thenAnswer((_) async => right([team1, team2]));
+        when(() => mockTipRepository.getTipsForMatch('final_match'))
+            .thenAnswer((_) async => right([tip]));
+        when(() => mockTipRepository.updatePoints(
+                tipId: any(named: 'tipId'), points: any(named: 'points')))
+            .thenAnswer((_) async => right(unit));
+        when(() => mockUserRepository.getUserById(any()))
+            .thenAnswer((_) async => right(
+              AppUser(
+                id: 'user_1',
+                email: 'test@test.com',
+                score: 0,
+                rank: 0,
+                jokerSum: 0,
+                sixer: 0,
+                championId: 'team_2', // User hat team_2 (den echten Champion) getippt
+                name: 'Test User',
+                admin: false,
+              ),
+            ));
+        when(() => mockUserRepository.updateUser(any()))
+            .thenAnswer((_) async => right(unit));
+        when(() => mockTipRepository.getTipsByUserId('user_1'))
+            .thenAnswer((_) async => right([tip]));
+
+        // Act
+        final result = await useCase(match: finalMatch);
+
+        // Assert: Champion-Bonus wird vergeben (18 Match-Punkte + 60 WM-Bonus = 78)
+        // Bei Unentschieden 1:1 mit exaktem Tipp: 6 Punkte * 3 (Finale) = 18 + 60 = 78
+        expect(result, isA<Right<TipFailure, Unit>>());
+        verify(() => mockTipRepository.updatePoints(
+            tipId: 'tip_final', points: 78)).called(1);
       });
     });
   });

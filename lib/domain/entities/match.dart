@@ -81,6 +81,36 @@ class CustomMatch {
     }
   }
 
+  /// Gibt den Stage-Namen zurück, mit Unterscheidung zwischen Finale und Spiel um Platz 3.
+  /// 
+  /// Bei matchDay 8: Das zeitlich spätere Spiel = Finale, das frühere = Spiel um Platz 3
+  /// [allMatches] sollte alle Matches enthalten, um den Vergleich zu ermöglichen.
+  String getStageNameInContext(List<CustomMatch> allMatches) {
+    if (matchDay != 8) {
+      return getStageName;
+    }
+    
+    // Finde alle matchDay-8-Spiele
+    final matchDay8Matches = allMatches.where((m) => m.matchDay == 8).toList();
+    
+    // Wenn nur ein Spiel → normal "Finale" zurückgeben
+    if (matchDay8Matches.length <= 1) {
+      return 'Finale';
+    }
+    
+    // Sortiere nach Zeit (spätestes zuerst)
+    matchDay8Matches.sort((a, b) => b.matchDate.compareTo(a.matchDate));
+    
+    // Das zeitlich letzte Spiel ist das echte Finale
+    final finalMatch = matchDay8Matches.first;
+    
+    if (id == finalMatch.id) {
+      return 'Finale';
+    } else {
+      return 'Spiel um Platz 3';
+    }
+  }
+
   /// Gibt die MatchPhase für dieses Spiel zurück
   MatchPhase get phase => MatchPhase.fromMatchDay(matchDay);
   

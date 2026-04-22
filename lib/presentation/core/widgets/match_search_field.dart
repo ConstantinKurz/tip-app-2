@@ -37,6 +37,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
     'viertelfinale': ['4tel', 'viertel', 'quarter'],
     'halbfinale': ['halb', 'semi', 'semifinale'],
     'finale': ['endspiel', 'final', 'end'],
+    'spiel um platz 3': ['platz 3', 'dritter platz', 'third place', 'bronze'],
   };
 
   @override
@@ -75,7 +76,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
 
   /// Berechnet den Relevanz-Score für ein Match
   int _calculateRelevanceScore(CustomMatch match, String searchTerm, Team homeTeam, Team guestTeam) {
-    final stageName = match.getStageName.toLowerCase();
+    final stageName = match.getStageNameInContext(widget.matches).toLowerCase();
     final homeTeamName = homeTeam.name.toLowerCase();
     final guestTeamName = guestTeam.name.toLowerCase();
     final matchDayStr = 'spieltag ${match.matchDay}';
@@ -414,6 +415,8 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                               const SizedBox(width: 8),
                               _buildFilterChip('Halbfinale', 'halbfinale', themeData),
                               const SizedBox(width: 8),
+                              _buildFilterChip('Platz 3', 'spiel um platz 3', themeData),
+                              const SizedBox(width: 8),
                               _buildFilterChip('Finale', 'finale', themeData),
                             ],
                           ),
@@ -441,6 +444,8 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
         return 'Viertelfinale';
       case 'halbfinale':
         return 'Halbfinale';
+      case 'spiel um platz 3':
+        return 'Platz 3';
       case 'finale':
         return 'Finale';
       default:

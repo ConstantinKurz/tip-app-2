@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/tip.dart';
@@ -24,7 +25,13 @@ class TipCardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateString = _formatDate(match.matchDate);
-    final stageName = match.getStageName;
+    
+    // Hole alle Matches für Kontext (Finale vs Platz 3 Unterscheidung)
+    final matchesState = context.watch<MatchesControllerBloc>().state;
+    final allMatches = matchesState is MatchesControllerLoaded 
+        ? matchesState.matches 
+        : <CustomMatch>[];
+    final stageName = match.getStageNameInContext(allMatches);
 
     // ✅ NEU: Hole Stats UND aktuelle Punkte aus TipControllerBloc
     return BlocBuilder<TipControllerBloc, TipControllerState>(

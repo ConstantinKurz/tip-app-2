@@ -271,12 +271,73 @@ void main() {
 
       test('should return correct group stage names for day 1', () {
         // Act & Assert
-        expect(match.getStageName, 'Gruppenphase, Tag 2');
+        expect(match.getStageName, 'Gruppenphase');
       });
 
       test('should return correct knockout stage names', () {
         // Act & Assert
-        expect(matchKo.getStageName, 'Halbfinale');
+        expect(matchKo.getStageName, 'Viertelfinale');
+      });
+    });
+
+    group('getStageNameInContext method', () {
+      test('sollte "Finale" zurückgeben wenn nur ein matchDay-8-Spiel existiert', () {
+        final finalMatch = CustomMatch(
+          id: 'final_1',
+          homeTeamId: 'team1',
+          guestTeamId: 'team2',
+          matchDate: DateTime(2024, 7, 13, 20, 0),
+          matchDay: 8,
+          homeScore: null,
+          guestScore: null,
+        );
+
+        final allMatches = [finalMatch];
+        
+        expect(finalMatch.getStageNameInContext(allMatches), 'Finale');
+      });
+
+      test('sollte "Spiel um Platz 3" für früheres Spiel und "Finale" für späteres Spiel zurückgeben', () {
+        final thirdPlaceMatch = CustomMatch(
+          id: 'third_place',
+          homeTeamId: 'team3',
+          guestTeamId: 'team4',
+          matchDate: DateTime(2024, 7, 13, 16, 0), // Früher: 16:00
+          matchDay: 8,
+          homeScore: null,
+          guestScore: null,
+        );
+
+        final finalMatch = CustomMatch(
+          id: 'final_match',
+          homeTeamId: 'team1',
+          guestTeamId: 'team2',
+          matchDate: DateTime(2024, 7, 13, 20, 0), // Später: 20:00
+          matchDay: 8,
+          homeScore: null,
+          guestScore: null,
+        );
+
+        final allMatches = [thirdPlaceMatch, finalMatch];
+        
+        expect(thirdPlaceMatch.getStageNameInContext(allMatches), 'Spiel um Platz 3');
+        expect(finalMatch.getStageNameInContext(allMatches), 'Finale');
+      });
+
+      test('sollte normale Stage-Namen für nicht-matchDay-8 Spiele zurückgeben', () {
+        final groupMatch = CustomMatch(
+          id: 'group_1',
+          homeTeamId: 'team1',
+          guestTeamId: 'team2',
+          matchDate: DateTime(2024, 6, 14),
+          matchDay: 1,
+          homeScore: null,
+          guestScore: null,
+        );
+
+        final allMatches = [groupMatch];
+        
+        expect(groupMatch.getStageNameInContext(allMatches), 'Gruppenphase');
       });
     });
 

@@ -24,6 +24,18 @@ class CustomDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Responsive sizing: Use provided dimensions or calculate from screen size
+    final double dialogWidth = screenWidth < 600 
+        ? screenWidth * 0.85  // Mobile: 85% of screen width
+        : width;
+    
+    final double dialogHeight = screenHeight < 700 
+        ? screenHeight * 0.70  // Mobile: 70% of screen height
+        : height;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -41,10 +53,12 @@ class CustomDialog extends StatelessWidget {
           children: [
             Text(dialogText, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
-            SizedBox(
-              width: width,
-              height: height,
-              child: content,
+            SingleChildScrollView(
+              child: SizedBox(
+                width: dialogWidth,
+                height: dialogHeight,
+                child: content,
+              ),
             ),
           ],
         ),

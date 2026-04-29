@@ -25,6 +25,19 @@ class _MatchListState extends State<MatchList> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Responsive width: mobile takes full width, desktop takes 50%
+    final double containerWidth = screenWidth < 600 ? screenWidth * 0.95 : screenWidth * 0.5;
+    
+    // Responsive search field width
+    final double searchFieldWidth = screenWidth < 600 ? screenWidth * 0.3 : screenWidth * 0.1;
+
+    // Debug: Log available matchDays
+    final availableMatchDays = widget.matches.map((m) => m.matchDay).toSet();
+    debugPrint('🔍 Available matchDays in data: $availableMatchDays (Total matches: ${widget.matches.length})');
+    if (!availableMatchDays.contains(4)) {
+      debugPrint('⚠️ WARNING: No 16tel Finale (matchDay=4) found in data!');
+    }
 
     List<CustomMatch> filteredMatches = widget.matches.where((match) {
       final homeTeam = widget.teams.firstWhere(
@@ -61,7 +74,7 @@ class _MatchListState extends State<MatchList> {
 
     return Center(
       child: Container(
-        width: screenWidth * 0.5,
+        width: containerWidth,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +88,7 @@ class _MatchListState extends State<MatchList> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  width: screenWidth * .1,
+                  width: searchFieldWidth,
                   child: TextField(
                     cursorColor: Colors.white,
                     style: const TextStyle(color: Colors.white),

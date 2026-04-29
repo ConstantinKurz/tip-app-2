@@ -402,24 +402,38 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        // Filter-Chips
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildFilterChip('Gruppenphase', 'gruppenphase', themeData),
-                              const SizedBox(width: 8),
-                              _buildFilterChip('Achtelfinale', 'achtelfinale', themeData),
-                              const SizedBox(width: 8),
-                              _buildFilterChip('Viertelfinale', 'viertelfinale', themeData),
-                              const SizedBox(width: 8),
-                              _buildFilterChip('Halbfinale', 'halbfinale', themeData),
-                              const SizedBox(width: 8),
-                              _buildFilterChip('Platz 3', 'spiel um platz 3', themeData),
-                              const SizedBox(width: 8),
-                              _buildFilterChip('Finale', 'finale', themeData),
-                            ],
-                          ),
+                        // Filter-Chips - Responsive: Dropdown on mobile, chips on desktop
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isMobile = constraints.maxWidth < 500;
+                            
+                            if (isMobile) {
+                              // Mobile: Compact dropdown button
+                              return _buildMobileFilterDropdown(themeData);
+                            }
+                            
+                            // Desktop: Horizontal scrolling chips
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  _buildFilterChip('Gruppe', 'gruppenphase', themeData),
+                                  const SizedBox(width: 7),
+                                  _buildFilterChip('16tel', 'sechszehntelfinale', themeData),
+                                  const SizedBox(width: 7),
+                                  _buildFilterChip('8tel', 'achtelfinale', themeData),
+                                  const SizedBox(width: 7),
+                                  _buildFilterChip('4tel', 'viertelfinale', themeData),
+                                  const SizedBox(width: 7),
+                                  _buildFilterChip('1/2', 'halbfinale', themeData),
+                                  const SizedBox(width: 7),
+                                  _buildFilterChip('Platz 3', 'spiel um platz 3', themeData),
+                                  const SizedBox(width: 7),
+                                  _buildFilterChip('Finale', 'finale', themeData),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                             ],
                           ),
@@ -437,13 +451,15 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
   String _getFilterDisplayName(String filter) {
     switch (filter) {
       case 'gruppenphase':
-        return 'Gruppenphase';
+        return 'Gruppe';
+      case 'sechszehntelfinale':
+        return '16tel';
       case 'achtelfinale':
-        return 'Achtelfinale';
+        return '8tel';
       case 'viertelfinale':
-        return 'Viertelfinale';
+        return '4tel';
       case 'halbfinale':
-        return 'Halbfinale';
+        return 'Halb';
       case 'spiel um platz 3':
         return 'Platz 3';
       case 'finale':
@@ -451,6 +467,91 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
       default:
         return filter;
     }
+  }
+
+  /// Mobile: Compact dropdown for filter selection
+  Widget _buildMobileFilterDropdown(ThemeData themeData) {
+    final filters = [
+      ('Alle Spiele', null),
+      ('Gruppenphase', 'gruppenphase'),
+      ('16tel Finale', 'sechszehntelfinale'),
+      ('Achtelfinale', 'achtelfinale'),
+      ('Viertelfinale', 'viertelfinale'),
+      ('Halbfinale', 'halbfinale'),
+      ('Platz 3', 'spiel um platz 3'),
+      ('Finale', 'finale'),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: themeData.colorScheme.primary.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _activeFilter != null ? Colors.white : Colors.white.withOpacity(0.5),
+          width: _activeFilter != null ? 2 : 1,
+        ),
+      ),
+      child: PopupMenuButton<String?>(
+        initialValue: _activeFilter,
+        onSelected: (filter) {
+          _onFilterChipSelected(filter);
+        },
+        offset: const Offset(0, 40),
+        color: Colors.black,
+        surfaceTintColor: Colors.transparent,
+        splashRadius: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.white24),
+        ),
+        itemBuilder: (context) => filters.map((filter) {
+          final isSelected = _activeFilter == filter.$2;
+          return PopupMenuItem<String?>(
+            value: filter.$2,
+            child: Row(
+              children: [
+                if (isSelected) 
+                  const Icon(Icons.check, color: Colors.white, size: 18)
+                else 
+                  const SizedBox(width: 18),
+                const SizedBox(width: 8),
+                Text(
+                  filter.$1,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.filter_list,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _activeFilter == null ? 'Alle' : _getFilterDisplayName(_activeFilter!),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: _activeFilter != null ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.arrow_drop_down,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildFilterChip(String label, String filter, ThemeData themeData) {

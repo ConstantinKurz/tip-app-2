@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
+import 'package:flutter_web/domain/entities/user.dart'; // AppUser
 
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/repositories/team_repository.dart';
@@ -21,6 +22,9 @@ class RecalculateMatchTipsUseCase {
   Team? _cachedChampionTeam;
   String? _cachedChampionId;
   List<CustomMatch>? _cachedAllMatches;
+  
+  // ✅ NEU: User-Cache für Batch-Operationen (vermeidet 1000+ getUserById Aufrufe)
+  Map<String, dynamic>? _cachedUsersById;
 
   RecalculateMatchTipsUseCase({
     required this.tipRepository,
@@ -31,7 +35,24 @@ class RecalculateMatchTipsUseCase {
 
   /// Lädt alle benötigten Daten einmal und cached sie
   Future<void> _loadSharedData() async {
-    if (_cachedAllMatches != null) return; // Bereits geladen
+    if (_cachedAllMatches != null && _cachedUsersById != null) return; // Bereits geladen
+
+    // ✅ Lade alle User EINMAL (statt 1000+ einzelne getUserById Aufrufe)
+    if (_cachedUsersById == null) {
+      final allUsersResult = await userRepository.getAllUsers();
+      allUsersResult.fold(
+        (failure) {
+          print('❌ Fehler beim Laden aller User: $failure');
+          _cachedUsersById = {};
+        },
+        (users) {
+          _cachedUsersById = {for (var user in users) user.id: user};
+          print('📦 [RecalculateMatchTipsUseCase] ${users.length} User gecached (1 Read statt ${users.length * 104} Reads)');
+        },
+      );
+    }
+
+    if (_cachedAllMatches != null) return;
 
     final allMatchesResult = await matchRepository.getAllMatches();
     await allMatchesResult.fold(
@@ -103,6 +124,7 @@ class RecalculateMatchTipsUseCase {
     _cachedChampionTeam = null;
     _cachedChampionId = null;
     _cachedAllMatches = null;
+    _cachedUsersById = null;
   }
 
   /// Berechnet Punkte für alle Tips eines Matches neu
@@ -147,17 +169,12 @@ class RecalculateMatchTipsUseCase {
                 match.id == _cachedFinalMatch!.id && 
                 _cachedChampionId != null && 
                 _cachedChampionTeam != null) {
-              // Hole User um dessen championId zu prüfen
-              final userResult = await userRepository.getUserById(tip.userId);
-              userResult.fold(
-                (failure) {},
-                (user) {
-                  if (user.championId == _cachedChampionId) {
-                    newPoints += _cachedChampionTeam!.winPoints;
-                    print('🏆 [Finale] Champion-Bonus für ${user.name}: +${_cachedChampionTeam!.winPoints} → Total: $newPoints');
-                  }
-                },
-              );
+              // ✅ OPTIMIERT: Nutze gecachten User statt getUserById
+              final cachedUser = _cachedUsersById?[tip.userId] as AppUser?;
+              if (cachedUser != null && cachedUser.championId == _cachedChampionId) {
+                newPoints += _cachedChampionTeam!.winPoints;
+                print('🏆 [Finale] Champion-Bonus für ${cachedUser.name}: +${_cachedChampionTeam!.winPoints} → Total: $newPoints');
+              }
             }
 
             // Speichere Punkte, wenn unterschiedlich
@@ -209,27 +226,25 @@ class RecalculateMatchTipsUseCase {
               }
             }
 
-            // ✅ Hole User
-            final userResult = await userRepository.getUserById(userId);
-            await userResult.fold(
-              (failure) async {
-                print('❌ Fehler beim Laden des Users: $failure');
-              },
-              (user) async {
-                // 🏆 Champion-Bonus ist jetzt bereits in den Finale-Tip-Punkten enthalten!
-                // (Wird direkt beim Tip-Punkte-Berechnen addiert, nicht mehr hier separat)
+            // ✅ OPTIMIERT: Nutze gecachten User statt getUserById
+            final cachedUser = _cachedUsersById?[userId] as AppUser?;
+            if (cachedUser != null && cachedUser.id.isNotEmpty) {
+              // 🏆 Champion-Bonus ist jetzt bereits in den Finale-Tip-Punkten enthalten!
+              // (Wird direkt beim Tip-Punkte-Berechnen addiert, nicht mehr hier separat)
 
-                // Update User mit neuen Scores
-                if (user.id.isNotEmpty) {
-                  final updatedUser = user.copyWith(
-                    score: totalScore,
-                    jokerSum: jokersUsed,
-                    sixer: perfectPredictions,
-                  );
-                  await userRepository.updateUser(updatedUser);
-                }
-              },
-            );
+              // Update User mit neuen Scores
+              final updatedUser = cachedUser.copyWith(
+                score: totalScore,
+                jokerSum: jokersUsed,
+                sixer: perfectPredictions,
+              );
+              await userRepository.updateUser(updatedUser);
+              
+              // ✅ Cache aktualisieren für nachfolgende Lookups
+              _cachedUsersById![userId] = updatedUser;
+            } else {
+              print('⚠️ User $userId nicht im Cache gefunden');
+            }
           },
         );
       } catch (e) {

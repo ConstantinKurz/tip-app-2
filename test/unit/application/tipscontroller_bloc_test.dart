@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_web/domain/usecases/validate_joker_usage_update_stat_usecase.dart';
+import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
@@ -12,6 +13,8 @@ import 'package:flutter_web/core/failures/tip_failures.dart';
 
 class MockTipRepository extends Mock implements TipRepository {}
 
+class MockMatchRepository extends Mock implements MatchRepository {}
+
 class MockValidateJokerUsageUsecase extends Mock
     implements ValidateJokerUsageUpdateStatUseCase {}
 
@@ -19,15 +22,18 @@ void main() {
   group('TipControllerBloc', () {
     late TipControllerBloc tipControllerBloc;
     late MockTipRepository mockTipRepository;
+    late MockMatchRepository mockMatchRepository;
     late MockValidateJokerUsageUsecase mockValidateJokerUsageUsecase;
     late StreamController<Either<TipFailure, Map<String, List<Tip>>>>
         streamController;
 
     setUp(() {
       mockTipRepository = MockTipRepository();
+      mockMatchRepository = MockMatchRepository();
       mockValidateJokerUsageUsecase = MockValidateJokerUsageUsecase();
       tipControllerBloc = TipControllerBloc(
           tipRepository: mockTipRepository,
+          matchRepository: mockMatchRepository,
           validateJokerUseCase: mockValidateJokerUsageUsecase);
     });
 

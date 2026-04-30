@@ -27,6 +27,19 @@ void main() {
     late MockMatchRepository mockMatchRepository;
     late MockTeamRepository mockTeamRepository;
     late RecalculateMatchTipsUseCase useCase;
+    
+    // ✅ Standard-Test-User für alle Tests
+    final testUser = AppUser(
+      id: 'user_1',
+      email: 'test@test.com',
+      score: 0,
+      rank: 0,
+      jokerSum: 0,
+      sixer: 0,
+      championId: 'TBD',
+      name: 'Test User',
+      admin: false,
+    );
 
     setUp(() {
       mockTipRepository = MockTipRepository();
@@ -55,6 +68,11 @@ void main() {
       // Default mock für getAllMatches (für _loadSharedData)
       when(() => mockMatchRepository.getAllMatches())
           .thenAnswer((_) async => right(<CustomMatch>[]));
+      
+      // Default mock für getAllUsers (für User-Caching in _loadSharedData)
+      // ✅ Gibt den Standard-Test-User zurück, damit er im Cache ist
+      when(() => mockUserRepository.getAllUsers())
+          .thenAnswer((_) async => right(<AppUser>[testUser]));
     });
 
     group('Grundlegende Funktionalität', () {
@@ -782,20 +800,22 @@ void main() {
         when(() => mockTipRepository.updatePoints(
                 tipId: any(named: 'tipId'), points: any(named: 'points')))
             .thenAnswer((_) async => right(unit));
+        // ✅ Cached User mit korrektem championId für Champion-Bonus
+        final championUser = AppUser(
+          id: 'user_1',
+          email: 'test@test.com',
+          score: 0,
+          rank: 0,
+          jokerSum: 0,
+          sixer: 0,
+          championId: 'team_1', // User hat Champion richtig getippt
+          name: 'Test User',
+          admin: false,
+        );
+        when(() => mockUserRepository.getAllUsers())
+            .thenAnswer((_) async => right([championUser]));
         when(() => mockUserRepository.getUserById(any()))
-            .thenAnswer((_) async => right(
-              AppUser(
-                id: 'user_1',
-                email: 'test@test.com',
-                score: 0,
-                rank: 0,
-                jokerSum: 0,
-                sixer: 0,
-                championId: 'team_1', // User hat Champion richtig getippt
-                name: 'Test User',
-                admin: false,
-              ),
-            ));
+            .thenAnswer((_) async => right(championUser));
         when(() => mockUserRepository.updateUser(any()))
             .thenAnswer((_) async => right(unit));
         when(() => mockTipRepository.getTipsByUserId('user_1'))
@@ -859,20 +879,22 @@ void main() {
         when(() => mockTipRepository.updatePoints(
                 tipId: any(named: 'tipId'), points: any(named: 'points')))
             .thenAnswer((_) async => right(unit));
+        // ✅ Cached User mit korrektem championId für Champion-Bonus
+        final championUser = AppUser(
+          id: 'user_1',
+          email: 'test@test.com',
+          score: 0,
+          rank: 0,
+          jokerSum: 0,
+          sixer: 0,
+          championId: 'team_2', // User hat team_2 (den echten Champion) getippt
+          name: 'Test User',
+          admin: false,
+        );
+        when(() => mockUserRepository.getAllUsers())
+            .thenAnswer((_) async => right([championUser]));
         when(() => mockUserRepository.getUserById(any()))
-            .thenAnswer((_) async => right(
-              AppUser(
-                id: 'user_1',
-                email: 'test@test.com',
-                score: 0,
-                rank: 0,
-                jokerSum: 0,
-                sixer: 0,
-                championId: 'team_2', // User hat team_2 (den echten Champion) getippt
-                name: 'Test User',
-                admin: false,
-              ),
-            ));
+            .thenAnswer((_) async => right(championUser));
         when(() => mockUserRepository.updateUser(any()))
             .thenAnswer((_) async => right(unit));
         when(() => mockTipRepository.getTipsByUserId('user_1'))

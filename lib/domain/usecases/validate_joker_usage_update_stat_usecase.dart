@@ -2,6 +2,7 @@
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
+import 'package:flutter_web/domain/entities/match.dart';
 import '../entities/match_day_statistics.dart';
 import '../entities/match_phase.dart';
 import '../repositories/tip_repository.dart';
@@ -12,6 +13,11 @@ class ValidateJokerUsageUpdateStatUseCase {
   final TipRepository tipRepository;
   final MatchRepository matchRepository;
   
+  // ✅ Cache für Matches - wird nur einmal geladen
+  List<CustomMatch>? _cachedMatches;
+  DateTime? _cacheTimestamp;
+  static const _cacheValidityDuration = Duration(minutes: 5);
+  
   ValidateJokerUsageUpdateStatUseCase({
     required this.tipRepository,
     required this.matchRepository,
@@ -19,9 +25,11 @@ class ValidateJokerUsageUpdateStatUseCase {
 
   /// Prüft ob Benutzer noch Joker in diesem matchDay verfügbar hat
   /// Nutzt matchDay um die Phase und deren Limits zu bestimmen
+  /// [preloadedMatches] - Optional: Bereits geladene Matches um DB-Calls zu sparen
   Future<Either<TipFailure, MatchDayStatistics>> call({
     required String userId,
     required int matchDay,
+    List<CustomMatch>? preloadedMatches,
   }) async {
     final phase = MatchPhase.fromMatchDay(matchDay);
       
@@ -62,11 +70,9 @@ class ValidateJokerUsageUpdateStatUseCase {
     if (isGroupStage && phase.maxTips != null) {
       totalGamesForPhase = phase.maxTips!;
     } else {
-      final allMatchesResult = await matchRepository.getAllMatches();
-      totalGamesForPhase = allMatchesResult.fold(
-        (_) => 0,
-        (matches) => matches.where((m) => m.matchDay == matchDay).length,
-      );
+      // ✅ OPTIMIERT: Nutze preloaded Matches oder Cache
+      final matches = await _getMatches(preloadedMatches);
+      totalGamesForPhase = matches.where((m) => m.matchDay == matchDay).length;
     }
 
     return tippedGamesResult.fold(
@@ -84,5 +90,38 @@ class ValidateJokerUsageUpdateStatUseCase {
         )),
       ),
     );
+  }
+
+  /// ✅ NEU: Hilfsmethode die Matches aus Cache oder DB holt
+  Future<List<CustomMatch>> _getMatches(List<CustomMatch>? preloaded) async {
+    // 1. Preloaded Matches haben Priorität
+    if (preloaded != null && preloaded.isNotEmpty) {
+      return preloaded;
+    }
+    
+    // 2. Cache prüfen
+    if (_cachedMatches != null && _cacheTimestamp != null) {
+      final cacheAge = DateTime.now().difference(_cacheTimestamp!);
+      if (cacheAge < _cacheValidityDuration) {
+        return _cachedMatches!;
+      }
+    }
+    
+    // 3. Aus DB laden und cachen
+    final result = await matchRepository.getAllMatches();
+    return result.fold(
+      (_) => <CustomMatch>[],
+      (matches) {
+        _cachedMatches = matches;
+        _cacheTimestamp = DateTime.now();
+        return matches;
+      },
+    );
+  }
+  
+  /// ✅ NEU: Cache invalidieren (z.B. nach Match-Update)
+  void invalidateCache() {
+    _cachedMatches = null;
+    _cacheTimestamp = null;
   }
 }

@@ -38,6 +38,8 @@ class _TipPageState extends State<TipPage> {
       ItemPositionsListener.create();
   bool _hasInitialScrolled = false;
   final Set<int> _loadedMatchDays = {}; // Tracking der geladenen Statistiken
+  String? _lastUserId; // ✅ Track user to reset on user change
+  bool _initialStatsLoaded = false; // ✅ Track initial stats load
 
   @override
   void dispose() {
@@ -52,6 +54,16 @@ class _TipPageState extends State<TipPage> {
       _tipFormBlocs[matchId] = sl<TipFormBloc>();
     }
     return _tipFormBlocs[matchId]!;
+  }
+
+  /// ✅ Reset state when user changes
+  void _checkAndResetForUser(String userId) {
+    if (_lastUserId != userId) {
+      _loadedMatchDays.clear();
+      _initialStatsLoaded = false;
+      _lastUserId = userId;
+      debugPrint('🔄 [TipPage] User changed: $_lastUserId → $userId, resetting stats');
+    }
   }
 
   /// ✅ Findet Index des nächsten Spiels oder aktuell laufenden Spiels
@@ -125,10 +137,8 @@ class _TipPageState extends State<TipPage> {
           );
         }
         
-        // Merke die neuen matchDays als geladen
-        setState(() {
-          _loadedMatchDays.addAll(missingMatchDays);
-        });
+        // Merke die neuen matchDays als geladen (kein setState nötig - nur tracking)
+        _loadedMatchDays.addAll(missingMatchDays);
         
         // Debug-Info
         debugPrint(
@@ -186,6 +196,9 @@ class _TipPageState extends State<TipPage> {
                         final userId = authState.signedInUser?.id ?? '';
                         final matches = matchState.matches;
                         final teams = teamState.teams;
+                        
+                        // ✅ Reset bei User-Wechsel
+                        _checkAndResetForUser(userId);
 
                         if (matches.isEmpty || teams.isEmpty) {
                           return Center(
@@ -200,6 +213,14 @@ class _TipPageState extends State<TipPage> {
                         final displayedMatches = _filteredMatches.isEmpty
                             ? matches
                             : _filteredMatches;
+                            
+                        // ✅ Lade initiale Statistiken (einmalig)
+                        if (!_initialStatsLoaded && displayedMatches.isNotEmpty) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _loadMissingStatistics(displayedMatches, userId, context);
+                          });
+                          _initialStatsLoaded = true;
+                        }
 
                         if (displayedMatches.isEmpty) {
                           return Center(
@@ -379,6 +400,17 @@ class _TipCardInitializer extends StatefulWidget {
 
 class _TipCardInitializerState extends State<_TipCardInitializer> {
   bool _initialized = false;
+  String? _initializedForMatchId;
+
+  @override
+  void didUpdateWidget(covariant _TipCardInitializer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // ✅ FIX: Reset initialization wenn matchId wechselt (Widget-Recycling)
+    if (oldWidget.matchId != widget.matchId) {
+      _initialized = false;
+      _initializedForMatchId = null;
+    }
+  }
 
   /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
   /// Gibt nur true zurück wenn:
@@ -406,8 +438,10 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_initialized) {
-      _initialized = true; // Vor dem Dispatch setzen um Mehrfachausführung zu verhindern
+    // ✅ FIX: Auch matchId prüfen für Widget-Recycling
+    if (!_initialized || _initializedForMatchId != widget.matchId) {
+      _initialized = true;
+      _initializedForMatchId = widget.matchId;
 
       final formBloc = context.read<TipFormBloc>();
       final controllerBloc = context.read<TipControllerBloc>();
@@ -459,6 +493,17 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
             matchDay: widget.matchDay,
           ),
         );
+        
+        // ✅ FIX: Auch hier ExternalUpdate senden um isLoading auf false zu setzen
+        // Der BlocListener wird später die echten Daten liefern
+        formBloc.add(TipFormExternalUpdateEvent(
+          matchId: widget.matchId,
+          matchDay: widget.matchDay,
+          tipHome: null,
+          tipGuest: null,
+          joker: false,
+          isTipLimitReached: false,
+        ));
       }
     }
   }

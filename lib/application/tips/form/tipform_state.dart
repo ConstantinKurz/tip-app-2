@@ -25,7 +25,7 @@ class TipFormState {
     this.failureOrSuccessOption = const None(),
     this.showValidationMessages = false,
     this.isTipLimitReached = false,
-    this.isLoading = true, // ✅ Default: true beim Laden
+    this.isLoading = false, // ✅ FIX: false - kein Spinner mehr als Default
   });
 
   TipFormState copyWith({
@@ -88,6 +88,6 @@ final class TipFormInitialState extends TipFormState {
           showValidationMessages: false,
           failureOrSuccessOption: const None(),
           isTipLimitReached: false,
-          isLoading: true, // ✅ Initial ist es "Loading"
+          isLoading: false, // ✅ FIX: false statt true - ExternalUpdate setzt die Daten
         );
 }

@@ -35,9 +35,10 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     TipFormExternalUpdateEvent event,
     Emitter<TipFormState> emit,
   ) async {
-    // Nur updaten wenn es für dieses Match relevant ist
-    if (state.matchId.isNotEmpty && state.matchId != event.matchId) return;
-
+    // ✅ FIX: Immer aktualisieren - der Bloc wird pro Match gecacht,
+    // aber bei Widget-Recycling könnte eine andere matchId ankommen
+    // In dem Fall akzeptieren wir das neue Match
+    
     emit(state.copyWith(
       matchId: event.matchId,
       matchDay: event.matchDay,
@@ -55,13 +56,14 @@ class TipFormBloc extends Bloc<TipFormEvent, TipFormState> {
     TipFormInitializedEvent event,
     Emitter<TipFormState> emit,
   ) async {
-    // Nur State initialisieren - kein eigener Stream mehr
-    // Der TipControllerBloc hat bereits alle Tips geladen
+    // ✅ FIX: isLoading NICHT auf true setzen
+    // TipFormExternalUpdateEvent wird direkt danach gesendet und setzt die Daten
+    // isLoading bleibt wie es ist (wird von ExternalUpdate auf false gesetzt)
     emit(state.copyWith(
       userId: event.userId,
       matchId: event.matchId,
       matchDay: event.matchDay,
-      isLoading: true,
+      // isLoading: true, // ENTFERNT - verursachte Endlos-Spinner
     ));
   }
 

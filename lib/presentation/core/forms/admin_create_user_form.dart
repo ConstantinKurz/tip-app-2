@@ -52,6 +52,17 @@ class _CreateUserFormState extends State<CreateUserForm> {
     }
   }
 
+  String? validateUsername(String? input) {
+    if (input == null || input.isEmpty) {
+      return "Bitte geben Sie einen Benutzernamen ein";
+    } else if (input.length < 2) {
+      return "Benutzername muss mindestens 2 Zeichen lang sein";
+    } else {
+      _username = input;
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
@@ -62,6 +73,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
         state.authFailureOrSuccessOption!.fold(
             () {},
             (eitherFailureOrSuccess) => eitherFailureOrSuccess.fold((failure) {
+                  print(failure);
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       backgroundColor: Colors.redAccent,
                       content: Text(
@@ -90,7 +102,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
                 cursorColor: Colors.white,
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(labelText: 'Benutzername'),
-                validator: validateString,
+                validator: validateUsername,
                 onChanged: (value) => _username = value,
               ),
               const SizedBox(height: 16),

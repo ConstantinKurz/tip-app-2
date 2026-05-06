@@ -122,7 +122,7 @@ class _SignInFormState extends State<SignInForm> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text("Bitte melde Dich sich an",
+              Text("Bitte melde Dich an",
                   style: themeData.textTheme.bodySmall),
               const SizedBox(height: 80),
               TextFormField(

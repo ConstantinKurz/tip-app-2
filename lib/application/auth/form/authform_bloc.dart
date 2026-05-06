@@ -23,7 +23,7 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     CreateUserEvent event,
     Emitter<AuthformState> emit,
   ) async {
-    if (event.email == null || event.password == null) {
+    if (event.email == null || event.password == null || event.username == null) {
       emit(state.copyWith(showValidationMessages: true));
       return;
     }
@@ -34,7 +34,8 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
         await authRepository.registerWithEmailAndPassword(
       email: event.email!,
       password: event.password!,
-      username: event.username,
+      username: event.username!,
+      admin: event.admin,
     );
 
     emit(state.copyWith(

@@ -73,6 +73,13 @@ class RankingSection extends StatelessWidget {
                       // Zeige: 2 über dir, dich, 2 unter dir = 5 User total
                       int start = currentUserIndex - 2;
                       int end = currentUserIndex + 3;
+                      
+                      // Begrenze end auf die Listengröße
+                      if (end > sortedUsers.length) {
+                        end = sortedUsers.length;
+                        // Wenn am Ende, zeige mehr User von oben
+                        start = (sortedUsers.length - 5).clamp(0, sortedUsers.length);
+                      }
 
                       visibleUsers = sortedUsers.sublist(start, end);
                     }

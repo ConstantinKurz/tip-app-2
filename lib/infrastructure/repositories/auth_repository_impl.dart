@@ -22,17 +22,34 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
     String? username,
+    bool admin = false,
   }) async {
     try {
-      await firebaseAuth.createUserWithEmailAndPassword(
+      // Firebase Auth User erstellen
+      final userCredential = await firebaseAuth.createUserWithEmailAndPassword(
           email: email, password: password);
+      
+      // Firebase Auth UID als Document-ID verwenden
+      final authUid = userCredential.user!.uid;
 
       // Benutzername: übergeben oder zufällig generieren
       final faker = Faker();
       final String finalUsername = username ?? faker.internet.userName();
 
-      final userModel = UserModel.empty(finalUsername, email);
-      await usersCollection.doc(finalUsername).set(userModel.toMap());
+      final userModel = UserModel(
+        id: authUid,  // Firebase Auth UID als ID
+        championId: 'TBD',
+        name: finalUsername,
+        email: email,
+        rank: 0,
+        score: 0,
+        jokerSum: 0,
+        sixer: 0,
+        admin: admin,
+      );
+      
+      // Speichere mit Firebase Auth UID als Document-ID
+      await usersCollection.doc(authUid).set(userModel.toMap());
 
       return right(unit);
     } on FirebaseAuthException catch (e) {

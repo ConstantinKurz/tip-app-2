@@ -37,6 +37,7 @@ class _TipPageState extends State<TipPage> {
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
   bool _hasInitialScrolled = false;
+  final Set<int> _loadedMatchDays = {}; // Tracking der geladenen Statistiken
 
   @override
   void dispose() {
@@ -94,6 +95,49 @@ class _TipPageState extends State<TipPage> {
         });
       }
     });
+  }
+
+  /// ✅ Lädt Statistiken für alle matchDays die in gefilterten Matches vorkommen
+  void _loadMissingStatistics(
+    List<CustomMatch> filteredMatches,
+    String userId,
+    BuildContext context,
+  ) {
+    if (filteredMatches.isEmpty) return;
+
+    // Extrahiere alle eindeutigen matchDays aus gefilterten Matches
+    final newMatchDays = filteredMatches.map((m) => m.matchDay).toSet();
+
+    // Finde matchDays die noch nicht geladen wurden
+    final missingMatchDays = newMatchDays.difference(_loadedMatchDays);
+
+    if (missingMatchDays.isNotEmpty) {
+      try {
+        final tipsBloc = context.read<TipControllerBloc>();
+        
+        // Lade Statistiken für alle fehlenden matchDays
+        for (final matchDay in missingMatchDays) {
+          tipsBloc.add(
+            TipUpdateStatisticsEvent(
+              userId: userId,
+              matchDay: matchDay,
+            ),
+          );
+        }
+        
+        // Merke die neuen matchDays als geladen
+        setState(() {
+          _loadedMatchDays.addAll(missingMatchDays);
+        });
+        
+        // Debug-Info
+        debugPrint(
+          '📊 [TipPage] Statistiken geladen für Spieltage: $missingMatchDays',
+        );
+      } catch (e) {
+        debugPrint('❌ [TipPage] Fehler beim Laden der Statistiken: $e');
+      }
+    }
   }
 
   @override
@@ -216,6 +260,8 @@ class _TipPageState extends State<TipPage> {
                                         _hasInitialScrolled =
                                             false; // Reset scroll bei neuem Filter
                                       });
+                                      // ✅ Lade Statistiken für neue Phasen
+                                      _loadMissingStatistics(filtered, userId, context);
                                     },
                                   ),
                                 ),

@@ -2,7 +2,7 @@
 
 /// Spielphasen der WM 2026 mit entsprechenden Regeln
 enum MatchPhase {
-  groupStage('Vorrunde', 1, 5, 20),
+  groupStage('Vorrunde', 1, 5, 36),
   roundOf16('16tel-Finale', 1, 4, null),
   roundOf8('8tel-Finale', 2, 2, null),
   quarterFinal('Viertel-Finale', 3, 1, null),
@@ -21,7 +21,7 @@ enum MatchPhase {
   final int maxJokers;
 
   /// Maximale Anzahl an Tipps in dieser Phase (null = unbegrenzt)
-  /// Vorrunde: 20 Tipps erlaubt (obwohl mehr Spiele existieren)
+  /// Vorrunde: 36 Tipps erlaubt (8 Gruppen à 6 Spiele = 48 Spiele, aber max 36 Tips)
   final int? maxTips;
 
   /// Prüft ob ein Tipp-Limit für diese Phase existiert

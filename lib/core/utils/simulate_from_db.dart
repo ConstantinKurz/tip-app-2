@@ -514,10 +514,10 @@ Future<void> _createGroupStageTips(
     print('👤 User $userId: $jokerBudget Joker verfügbar');
 
     int tipsCreatedForUser = 0;
-    const maxTipsPerUser = 20; // Nur 20 Tips pro User in Gruppenphase
+    const maxTipsPerUser = 36; // Max 36 Tips pro User in Vorrunde
 
     for (final match in matches) {
-      // Überspringe wenn 20 Tips bereits erstellt
+      // Überspringe wenn 36 Tips bereits erstellt
       if (tipsCreatedForUser >= maxTipsPerUser) {
         print('   ℹ️  Max $maxTipsPerUser Tips für diesen User erreicht');
         break;

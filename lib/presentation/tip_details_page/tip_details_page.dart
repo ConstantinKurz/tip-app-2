@@ -35,7 +35,9 @@ class TipDetailsPage extends StatefulWidget {
 
 class _TipDetailsPageState extends State<TipDetailsPage> {
   TipFormBloc? _tipFormBloc;
-  bool _statsLoaded = false; // ✅ NEU
+  bool _statsLoaded = false;
+  bool _matchTipsLoaded = false; // ✅ Tracking ob Match-Tips geladen wurden
+  String? _lastMatchId; // ✅ Track matchId to reset on change
 
   @override
   void dispose() {
@@ -73,6 +75,14 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                         // If tip does not exist matchId within tip is still empty. Get it from tipId.
                         final splitIndex = widget.tipId.indexOf('_');
                         final matchId = widget.tipId.substring(splitIndex + 1);
+                        
+                        // ✅ Reset flags wenn matchId wechselt
+                        if (_lastMatchId != matchId) {
+                          _lastMatchId = matchId;
+                          _statsLoaded = false;
+                          _matchTipsLoaded = false;
+                        }
+                        
                         final match = matchState.matches.firstWhere(
                           (m) => m.id == matchId,
                           orElse: () => CustomMatch.empty(),
@@ -96,6 +106,16 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                 );
                           });
                           _statsLoaded = true;
+                        }
+
+                        // ✅ NEU: Lade alle Tips für dieses Match (für CommunityTipList)
+                        if (!_matchTipsLoaded && match.id.isNotEmpty) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            context.read<TipControllerBloc>().add(
+                                  TipLoadForMatchEvent(matchId: match.id),
+                                );
+                          });
+                          _matchTipsLoaded = true;
                         }
 
                         // Create TipFormBloc once for this match

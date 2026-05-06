@@ -142,7 +142,7 @@ Future<void> seedRealisticWMSimulation() async {
   for (final userId in userIds) {
     // Initialisiere Joker-Budgets pro User und Phase
     final jokerBudgets = {
-      'group': 5, // Vorrunde: 5 Joker für 20 Spiele
+      'group': 5, // Vorrunde: 5 Joker für 36 Spiele
       'round16': 4, // 16tel: 4 Joker für 16 Spiele
       'round8': 2, // 8tel: 2 Joker für 8 Spiele
       'quarter': 1, // 4tel: 1 Joker für 4 Spiele
@@ -382,7 +382,7 @@ Map<String, dynamic> _generateRealisticTip(
 
 /// Gibt die Wahrscheinlichkeit für Joker-Einsatz pro Phase zurück
 double _getJokerProbability(int matchDay, bool aggressive) {
-  if (matchDay <= 3) return aggressive ? 0.12 : 0.05; // Vorrunde: 5 Joker auf 20 Spiele
+  if (matchDay <= 3) return aggressive ? 0.12 : 0.05; // Vorrunde: 5 Joker auf 36 Spiele
   if (matchDay == 4) return aggressive ? 0.25 : 0.15; // 16tel: 4 Joker auf 16 Spiele
   if (matchDay == 5) return aggressive ? 0.40 : 0.25; // 8tel: 2 Joker auf 8 Spiele
   if (matchDay == 6) return aggressive ? 0.50 : 0.40; // 4tel: 1 Joker auf 4 Spiele

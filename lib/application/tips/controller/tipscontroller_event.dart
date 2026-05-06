@@ -36,3 +36,10 @@ class TipUpdateStatisticsEvent extends TipControllerEvent {
     this.forceRefresh = false,
   });
 }
+
+// ✅ NEU: Lädt alle Tips für ein bestimmtes Match (für CommunityTipList)
+class TipLoadForMatchEvent extends TipControllerEvent {
+  final String matchId;
+
+  TipLoadForMatchEvent({required this.matchId});
+}

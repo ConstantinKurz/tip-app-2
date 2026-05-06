@@ -46,6 +46,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     on<TipUpdatedEvent>(_onTipUpdatedEvent);
     on<TipUpdateStatisticsEvent>(_onUpdateStatistics);
     on<TipResetEvent>(_onReset);
+    on<TipLoadForMatchEvent>(_onLoadForMatch);
   }
 
   @override
@@ -192,6 +193,55 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     _currentUserId = null;
     _cachedMatches = null;
     emit(TipControllerInitial());
+  }
+
+  // ✅ NEU: Lädt alle Tips für ein bestimmtes Match (für CommunityTipList)
+  Future<void> _onLoadForMatch(
+    TipLoadForMatchEvent event,
+    Emitter<TipControllerState> emit,
+  ) async {
+    print('🎯 [TipControllerBloc] _onLoadForMatch: ${event.matchId}');
+    
+    final result = await tipRepository.getTipsForMatch(event.matchId);
+    
+    result.fold(
+      (failure) {
+        print('❌ [TipControllerBloc] Failed to load tips for match: ${event.matchId}');
+      },
+      (tips) {
+        print('✅ [TipControllerBloc] Loaded ${tips.length} tips for match: ${event.matchId}');
+        
+        final currentState = state;
+        Map<String, List<Tip>> currentTips = {};
+        Map<int, MatchDayStatistics> currentStats = {};
+        
+        if (currentState is TipControllerLoaded) {
+          currentTips = Map.from(currentState.tips);
+          currentStats = Map.from(currentState.matchDayStatistics);
+        }
+        
+        // Merge neue Tips in die bestehende Map
+        for (final tip in tips) {
+          final userId = tip.id.split('_').first;
+          if (!currentTips.containsKey(userId)) {
+            currentTips[userId] = [];
+          }
+          
+          // Prüfe ob der Tip bereits existiert
+          final existingIndex = currentTips[userId]!.indexWhere((t) => t.id == tip.id);
+          if (existingIndex >= 0) {
+            currentTips[userId]![existingIndex] = tip;
+          } else {
+            currentTips[userId]!.add(tip);
+          }
+        }
+        
+        emit(TipControllerLoaded(
+          tips: currentTips,
+          matchDayStatistics: currentStats,
+        ));
+      },
+    );
   }
 
   Future<void> _onUpdateStatistics(

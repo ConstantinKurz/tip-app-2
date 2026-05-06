@@ -12,6 +12,9 @@ class TipLoadForUserEvent extends TipControllerEvent {
 
 class TipAllEvent extends TipControllerEvent {}
 
+// ✅ NEU: Reset Event für Logout
+class TipResetEvent extends TipControllerEvent {}
+
 class TipUpdatedEvent extends TipControllerEvent { // ✅ NEU
   final Either<TipFailure, dynamic> failureOrTip;
   final String? userId;

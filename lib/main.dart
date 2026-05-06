@@ -108,9 +108,20 @@ class MyApp extends StatelessWidget {
             isAdmin = authControllerState.signedInUser?.admin ?? false;
             userId = authControllerState.signedInUser?.id;
           }
+          
+          // ✅ FIX: Reset flags und Bloc wenn nicht authentifiziert (Logout)
+          if (!isAuthenticated && _tipBlocInitialized) {
+            _tipBlocInitialized = false;
+            _tipBlocInitializedForUser = null;
+            
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              print('🚪 [Main] Logout detected: Dispatching TipResetEvent');
+              context.read<TipControllerBloc>().add(TipResetEvent());
+            });
+          }
 
           // ✅ Initialisiere TipControllerBloc basierend auf User-Rolle
-          // ✅ FIX: Dispatch nur EINMAL pro User
+          // ✅ FIX: Dispatch bei User-Wechsel (neue userId)
           if (isAuthenticated && userId != null && 
               (!_tipBlocInitialized || _tipBlocInitializedForUser != userId)) {
             _tipBlocInitialized = true;
@@ -119,24 +130,19 @@ class MyApp extends StatelessWidget {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               final tipBloc = context.read<TipControllerBloc>();
               
-              // ✅ FIX: Nur dispatchen wenn nicht bereits im korrekten State
-              if (tipBloc.state is! TipControllerLoaded && 
-                  tipBloc.state is! TipControllerLoading) {
-                if (isAdmin) {
-                  print('👑 [Main] Admin: Dispatching TipAllEvent (ONE TIME)');
-                  tipBloc.add(TipAllEvent());
-                } else {
-                  print('👤 [Main] User: Dispatching TipLoadForUserEvent (ONE TIME)');
-                  tipBloc.add(TipLoadForUserEvent(userId: userId!));
-                }
+              // ✅ FIX: Immer neu laden bei User-Wechsel (User-ID hat sich geändert)
+              if (isAdmin) {
+                print('👑 [Main] Admin: Dispatching TipAllEvent for user: $userId');
+                tipBloc.add(TipAllEvent());
               } else {
-                print('⏭️ [Main] SKIPPED: TipControllerBloc already initialized');
+                print('👤 [Main] User: Dispatching TipLoadForUserEvent for user: $userId');
+                tipBloc.add(TipLoadForUserEvent(userId: userId!));
               }
             });
           }
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
-            title: 'Flutter Web',
+            title: 'Shorty Tipp',
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: ThemeMode.dark,

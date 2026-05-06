@@ -32,6 +32,9 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   
   // ✅ NEU: Cache für Matches (verhindert redundante DB-Calls)
   List<CustomMatch>? _cachedMatches;
+  
+  // ✅ FIX: Track current user to reset stats on user change
+  String? _currentUserId;
 
   TipControllerBloc({
     required this.tipRepository,
@@ -42,6 +45,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     on<TipAllEvent>(_onTipAllEvent);
     on<TipUpdatedEvent>(_onTipUpdatedEvent);
     on<TipUpdateStatisticsEvent>(_onUpdateStatistics);
+    on<TipResetEvent>(_onReset);
   }
 
   @override
@@ -70,6 +74,15 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     Emitter<TipControllerState> emit,
   ) async {
     print('👤 [TipControllerBloc] _onLoadForUser: ${event.userId}');
+    
+    // ✅ FIX: Reset stats cache und stream flag wenn User wechselt
+    if (_currentUserId != event.userId) {
+      print('🔄 [TipControllerBloc] User changed: $_currentUserId → ${event.userId}, resetting stats');
+      _loadingMatchDays.clear();
+      _isStreamActive = false;
+    }
+    _currentUserId = event.userId;
+    
     emit(TipControllerLoading());
     await _tipStreamSub?.cancel();
 
@@ -102,8 +115,12 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         final currentState = state;
         Map<int, MatchDayStatistics> currentStats = {};
 
-        if (currentState is TipControllerLoaded) {
+        // ✅ FIX: Nur Stats beibehalten wenn gleicher User
+        if (currentState is TipControllerLoaded && 
+            event.userId == _currentUserId) {
           currentStats = Map.from(currentState.matchDayStatistics);
+        } else {
+          print('🧹 [TipControllerBloc] Clearing stats for new user: ${event.userId}');
         }
 
         late Map<String, List<Tip>> tipMap;
@@ -126,6 +143,15 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     TipAllEvent event,
     Emitter<TipControllerState> emit,
   ) async {
+    // ✅ FIX: Bei User-Wechsel (Admin wechselt) Stats zurücksetzen
+    // Admin-Mode: _currentUserId auf null setzen bedeutet "alle User"
+    if (_currentUserId != null) {
+      print('🔄 [TipControllerBloc] Switching to admin mode, resetting stats');
+      _loadingMatchDays.clear();
+      _isStreamActive = false;
+    }
+    _currentUserId = null;
+    
     // ✅ FIX: Verhindere Stream-Neustart wenn bereits aktiv
     if (_isStreamActive && state is TipControllerLoaded) {
       print('⏭️  [TipControllerBloc] _onTipAllEvent SKIPPED: Stream already active');
@@ -151,6 +177,21 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         ));
       },
     );
+  }
+
+  // ✅ NEU: Reset Bloc State bei Logout
+  Future<void> _onReset(
+    TipResetEvent event,
+    Emitter<TipControllerState> emit,
+  ) async {
+    print('🧹 [TipControllerBloc] RESET: Clearing all state');
+    await _tipStreamSub?.cancel();
+    _tipStreamSub = null;
+    _loadingMatchDays.clear();
+    _isStreamActive = false;
+    _currentUserId = null;
+    _cachedMatches = null;
+    emit(TipControllerInitial());
   }
 
   Future<void> _onUpdateStatistics(

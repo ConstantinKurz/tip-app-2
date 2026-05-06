@@ -26,7 +26,11 @@ class CommunityTipList extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final currentUserIndex = users.indexWhere((u) => u.id == currentUserId);
+    // ✅ FIX: Sortiere User nach Score (absteigend) für korrektes Ranking
+    final sortedUsers = List<AppUser>.from(users)
+      ..sort((a, b) => b.score.compareTo(a.score));
+    
+    final currentUserIndex = sortedUsers.indexWhere((u) => u.id == currentUserId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,13 +38,15 @@ class CommunityTipList extends StatelessWidget {
         Expanded(
           child: ScrollablePositionedList.separated(
             initialScrollIndex: currentUserIndex >= 0 ? currentUserIndex : 0,
-            itemCount: users.length,
+            itemCount: sortedUsers.length,
             separatorBuilder: (_, __) => Divider(
               color: theme.dividerColor.withOpacity(0.05),
               height: 1,
             ),
             itemBuilder: (context, index) {
-              final user = users[index];
+              final user = sortedUsers[index];
+              // ✅ FIX: Rang basiert auf sortierter Position (1-basiert)
+              final displayRank = index + 1;
               final tip = allTips[user.id]?.firstWhere(
                 (t) => t.matchId == match.id,
                 orElse: () => Tip.empty(user.id),
@@ -68,7 +74,7 @@ class CommunityTipList extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: 36,
-                        child: Text('#${user.rank}',
+                        child: Text('#$displayRank',
                             style: theme.textTheme.bodyMedium),
                       ),
                       Expanded(

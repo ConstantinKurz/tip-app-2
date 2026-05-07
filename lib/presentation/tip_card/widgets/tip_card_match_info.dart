@@ -90,8 +90,8 @@ class TipCardMatchInfo extends StatelessWidget {
               ),
             ),
             Container(
-              width: isMobile ? 50 : 80,
-              height: isMobile ? 32 : 40,
+              width: isMobile ? 60 : 80,
+              height: isMobile ? 40 : 40,
               margin: EdgeInsets.symmetric(horizontal: isMobile ? 8.0 : 16.0),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primaryContainer.withOpacity(0.3),
@@ -106,7 +106,7 @@ class TipCardMatchInfo extends StatelessWidget {
                                 : theme.textTheme.bodyMedium)
                             ?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: isMobile ? 12 : 16,
+                          fontSize: isMobile ? 14 : 16,
                         ),
                       )
                     : Text(

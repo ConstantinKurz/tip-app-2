@@ -29,8 +29,9 @@ class CommunityTipList extends StatelessWidget {
     // ✅ FIX: Sortiere User nach Score (absteigend) für korrektes Ranking
     final sortedUsers = List<AppUser>.from(users)
       ..sort((a, b) => b.score.compareTo(a.score));
-    
-    final currentUserIndex = sortedUsers.indexWhere((u) => u.id == currentUserId);
+
+    final currentUserIndex =
+        sortedUsers.indexWhere((u) => u.id == currentUserId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,36 +122,42 @@ class CommunityTipList extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 6),
-                                Flexible(
+                                Expanded(
                                   child: Row(
                                     children: [
-                                      Flexible(
+                                      SizedBox(
+                                        width: 12,
                                         child: Text('${user.jokerSum}',
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
                                               fontWeight: FontWeight.bold,
                                             ),
+                                            textAlign: TextAlign.right,
+                                            overflow: TextOverflow.ellipsis),
+                                      ),
+                                      const SizedBox(width: 1),
+                                      const Icon(Icons.star,
+                                          size: 12, color: Colors.amber),
+                                      const SizedBox(width: 2),
+                                      SizedBox(
+                                        width: 25,
+                                        child: Text('${user.sixer}×6',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            textAlign: TextAlign.right,
                                             overflow: TextOverflow.ellipsis),
                                       ),
                                       const SizedBox(width: 2),
-                                      const Icon(Icons.star,
-                                          size: 12, color: Colors.amber),
-                                      const SizedBox(width: 4),
-                                      Flexible(
-                                        child: Text('${user.sixer}×6',
-                                            style:
-                                                theme.textTheme.bodySmall?.copyWith(
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                            overflow: TextOverflow.ellipsis),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Flexible(
+                                      SizedBox(
+                                        width: 34,
                                         child: Text('${user.score}p',
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
                                               fontWeight: FontWeight.bold,
                                             ),
+                                            textAlign: TextAlign.right,
                                             overflow: TextOverflow.ellipsis),
                                       ),
                                     ],
@@ -167,8 +174,7 @@ class CommunityTipList extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              if (tip == null)
-                                const SizedBox(width: 20),
+                              if (tip == null) const SizedBox(width: 20),
                               if (tip?.joker == true)
                                 const Padding(
                                   padding: EdgeInsets.only(right: 4.0),

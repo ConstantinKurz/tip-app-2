@@ -26,16 +26,19 @@ class _MatchListState extends State<MatchList> {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 800;
-    
+
     // Responsive width: mobile takes full width, desktop takes 50%
-    final double containerWidth = isMobile ? screenWidth * 0.95 : screenWidth * 0.5;
-    
+    final double containerWidth =
+        isMobile ? screenWidth * 0.95 : screenWidth * 0.5;
+
     // Responsive search field width
-    final double searchFieldWidth = isMobile ? screenWidth * 0.3 : screenWidth * 0.1;
+    final double searchFieldWidth =
+        isMobile ? screenWidth * 0.3 : screenWidth * 0.1;
 
     // Debug: Log available matchDays
     final availableMatchDays = widget.matches.map((m) => m.matchDay).toSet();
-    debugPrint('🔍 Available matchDays in data: $availableMatchDays (Total matches: ${widget.matches.length})');
+    debugPrint(
+        '🔍 Available matchDays in data: $availableMatchDays (Total matches: ${widget.matches.length})');
     if (!availableMatchDays.contains(4)) {
       debugPrint('⚠️ WARNING: No 16tel Finale (matchDay=4) found in data!');
     }
@@ -84,7 +87,8 @@ class _MatchListState extends State<MatchList> {
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Matches', style: themeData.textTheme.headlineMedium),
+                      Text('Matches',
+                          style: themeData.textTheme.headlineMedium),
                       const SizedBox(height: 12),
                       Row(
                         children: [
@@ -100,7 +104,8 @@ class _MatchListState extends State<MatchList> {
                                   hintText: 'Suche',
                                   prefixIcon: Icon(Icons.search),
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
                                 ),
                                 onChanged: (text) {
                                   setState(() {
@@ -112,7 +117,8 @@ class _MatchListState extends State<MatchList> {
                           ),
                           const SizedBox(width: 8),
                           FancyIconButton(
-                            backgroundColor: themeData.colorScheme.primaryContainer,
+                            backgroundColor:
+                                themeData.colorScheme.primaryContainer,
                             hoverColor: primaryDark,
                             borderColor: primaryDark,
                             icon: Icons.add,
@@ -154,8 +160,8 @@ class _MatchListState extends State<MatchList> {
                         icon: Icons.add,
                         callback: () => _showAddMatchDialog(context),
                       ),
-            ],
-          ),
+                    ],
+                  ),
             const SizedBox(height: 16.0),
             Expanded(
                 child: ListView.builder(

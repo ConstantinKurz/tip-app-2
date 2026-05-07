@@ -155,7 +155,8 @@ class UpdateTeamForm extends StatelessWidget {
                               width: double.infinity,
                               child: CustomButton(
                                 buttonText: 'Speichern',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {
@@ -164,12 +165,12 @@ class UpdateTeamForm extends StatelessWidget {
                                       id: state.id ?? team.id,
                                       name: state.name ?? team.name,
                                       flagCode: state.flagCode ?? team.flagCode,
-                                      winPoints: state.winPoints ?? team.winPoints,
+                                      winPoints:
+                                          state.winPoints ?? team.winPoints,
                                       champion: state.champion ?? team.champion,
                                     );
-                                    context
-                                        .read<TeamsformBloc>()
-                                        .add(TeamFormUpdateEvent(team: updatedTeam));
+                                    context.read<TeamsformBloc>().add(
+                                        TeamFormUpdateEvent(team: updatedTeam));
                                   }
                                 },
                               ),
@@ -179,7 +180,8 @@ class UpdateTeamForm extends StatelessWidget {
                               width: double.infinity,
                               child: CustomButton(
                                 buttonText: 'Abbrechen',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {
@@ -195,7 +197,8 @@ class UpdateTeamForm extends StatelessWidget {
                             Expanded(
                               child: CustomButton(
                                 buttonText: 'Speichern',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {
@@ -204,12 +207,12 @@ class UpdateTeamForm extends StatelessWidget {
                                       id: state.id ?? team.id,
                                       name: state.name ?? team.name,
                                       flagCode: state.flagCode ?? team.flagCode,
-                                      winPoints: state.winPoints ?? team.winPoints,
+                                      winPoints:
+                                          state.winPoints ?? team.winPoints,
                                       champion: state.champion ?? team.champion,
                                     );
-                                    context
-                                        .read<TeamsformBloc>()
-                                        .add(TeamFormUpdateEvent(team: updatedTeam));
+                                    context.read<TeamsformBloc>().add(
+                                        TeamFormUpdateEvent(team: updatedTeam));
                                   }
                                 },
                               ),
@@ -218,7 +221,8 @@ class UpdateTeamForm extends StatelessWidget {
                             Expanded(
                               child: CustomButton(
                                 buttonText: 'Abbrechen',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {

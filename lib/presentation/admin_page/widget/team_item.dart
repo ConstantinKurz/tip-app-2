@@ -48,7 +48,8 @@ class TeamItem extends StatelessWidget {
                         children: [
                           Text(
                             team.name,
-                            style: themeData.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                            style: themeData.textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),

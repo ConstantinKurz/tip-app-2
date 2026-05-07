@@ -180,7 +180,8 @@ class _CreateTeamFormState extends State<CreateTeamForm> {
                                 width: double.infinity,
                                 child: CustomButton(
                                   buttonText: 'Speichern',
-                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      themeData.colorScheme.primaryContainer,
                                   borderColor: primaryDark,
                                   hoverColor: primaryDark,
                                   callback: () {
@@ -205,7 +206,8 @@ class _CreateTeamFormState extends State<CreateTeamForm> {
                                 width: double.infinity,
                                 child: CustomButton(
                                   buttonText: 'Abbrechen',
-                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      themeData.colorScheme.primaryContainer,
                                   borderColor: primaryDark,
                                   hoverColor: primaryDark,
                                   callback: () {
@@ -221,7 +223,8 @@ class _CreateTeamFormState extends State<CreateTeamForm> {
                               Expanded(
                                 child: CustomButton(
                                   buttonText: 'Speichern',
-                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      themeData.colorScheme.primaryContainer,
                                   borderColor: primaryDark,
                                   hoverColor: primaryDark,
                                   callback: () {
@@ -245,7 +248,8 @@ class _CreateTeamFormState extends State<CreateTeamForm> {
                               Expanded(
                                 child: CustomButton(
                                   buttonText: 'Abbrechen',
-                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      themeData.colorScheme.primaryContainer,
                                   borderColor: primaryDark,
                                   hoverColor: primaryDark,
                                   callback: () {

@@ -146,7 +146,8 @@ class _CreateUserFormState extends State<CreateUserForm> {
                               width: double.infinity,
                               child: CustomButton(
                                 buttonText: 'Speichern',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {
@@ -162,7 +163,10 @@ class _CreateUserFormState extends State<CreateUserForm> {
                                   } else {
                                     BlocProvider.of<AuthformBloc>(context).add(
                                       CreateUserEvent(
-                                          username: null, email: null, password: null, admin: false),
+                                          username: null,
+                                          email: null,
+                                          password: null,
+                                          admin: false),
                                     );
                                   }
                                 },
@@ -173,7 +177,8 @@ class _CreateUserFormState extends State<CreateUserForm> {
                               width: double.infinity,
                               child: CustomButton(
                                 buttonText: 'Abbrechen',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {
@@ -188,7 +193,8 @@ class _CreateUserFormState extends State<CreateUserForm> {
                           children: [
                             CustomButton(
                               buttonText: 'Speichern',
-                              backgroundColor: themeData.colorScheme.primaryContainer,
+                              backgroundColor:
+                                  themeData.colorScheme.primaryContainer,
                               borderColor: primaryDark,
                               hoverColor: primaryDark,
                               callback: () {
@@ -204,7 +210,10 @@ class _CreateUserFormState extends State<CreateUserForm> {
                                 } else {
                                   BlocProvider.of<AuthformBloc>(context).add(
                                     CreateUserEvent(
-                                        username: null, email: null, password: null, admin: false),
+                                        username: null,
+                                        email: null,
+                                        password: null,
+                                        admin: false),
                                   );
                                 }
                               },
@@ -212,7 +221,8 @@ class _CreateUserFormState extends State<CreateUserForm> {
                             const SizedBox(width: 8),
                             CustomButton(
                               buttonText: 'Abbrechen',
-                              backgroundColor: themeData.colorScheme.primaryContainer,
+                              backgroundColor:
+                                  themeData.colorScheme.primaryContainer,
                               borderColor: primaryDark,
                               hoverColor: primaryDark,
                               callback: () {

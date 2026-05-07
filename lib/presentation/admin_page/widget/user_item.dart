@@ -34,25 +34,31 @@ class UserItem extends StatelessWidget {
                   children: [
                     Text(
                       user.name,
-                      style: themeData.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: themeData.textTheme.bodyLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
                       child: TextButton.icon(
                         onPressed: () {
-                          Routemaster.of(context).push('/admin/user-tips/${user.id}');
+                          Routemaster.of(context)
+                              .push('/admin/user-tips/${user.id}');
                         },
                         icon: const Icon(Icons.edit, size: 14),
                         label: const Text('Tipps bearbeiten'),
                         style: TextButton.styleFrom(
-                          foregroundColor: themeData.colorScheme.onPrimaryContainer,
-                          backgroundColor: themeData.colorScheme.primaryContainer,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          foregroundColor:
+                              themeData.colorScheme.onPrimaryContainer,
+                          backgroundColor:
+                              themeData.colorScheme.primaryContainer,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(6),
                             side: BorderSide(
-                                color: themeData.colorScheme.onPrimaryContainer),
+                                color:
+                                    themeData.colorScheme.onPrimaryContainer),
                           ),
                         ),
                       ),
@@ -72,15 +78,18 @@ class UserItem extends StatelessWidget {
                     const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: () {
-                        Routemaster.of(context).push('/admin/user-tips/${user.id}');
+                        Routemaster.of(context)
+                            .push('/admin/user-tips/${user.id}');
                       },
                       icon: const Icon(Icons.edit, size: 14),
-                      label: const Text('Tipps bearbeiten', overflow: TextOverflow.ellipsis),
+                      label: const Text('Tipps bearbeiten',
+                          overflow: TextOverflow.ellipsis),
                       style: TextButton.styleFrom(
-                        foregroundColor: themeData.colorScheme.onPrimaryContainer,
+                        foregroundColor:
+                            themeData.colorScheme.onPrimaryContainer,
                         backgroundColor: themeData.colorScheme.primaryContainer,
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 6),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                           side: BorderSide(
@@ -108,7 +117,8 @@ class UserItem extends StatelessWidget {
                               ),
                               Text(
                                 user.email,
-                                style: themeData.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                                style: themeData.textTheme.bodySmall
+                                    ?.copyWith(fontWeight: FontWeight.w500),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 8),
@@ -118,7 +128,8 @@ class UserItem extends StatelessWidget {
                               ),
                               Text(
                                 user.admin ? 'Ja' : 'Nein',
-                                style: themeData.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                                style: themeData.textTheme.bodySmall
+                                    ?.copyWith(fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
@@ -136,7 +147,8 @@ class UserItem extends StatelessWidget {
                                   userAction: UserAction.update),
                             );
                           },
-                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          backgroundColor:
+                              themeData.colorScheme.primaryContainer,
                           hoverColor: themeData.colorScheme.secondary,
                           borderColor: themeData.colorScheme.secondary,
                         ),

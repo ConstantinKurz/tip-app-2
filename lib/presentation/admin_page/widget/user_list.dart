@@ -47,9 +47,11 @@ class _UserListState extends State<UserList> {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 800;
-    final double containerWidth = isMobile ? screenWidth * 0.95 : screenWidth * 0.4;
-    final double searchFieldWidth = isMobile ? screenWidth * 0.3 : screenWidth * 0.1;
-    
+    final double containerWidth =
+        isMobile ? screenWidth * 0.95 : screenWidth * 0.4;
+    final double searchFieldWidth =
+        isMobile ? screenWidth * 0.3 : screenWidth * 0.1;
+
     return Center(
       child: Container(
         width: containerWidth,
@@ -77,7 +79,8 @@ class _UserListState extends State<UserList> {
                                   hintText: 'Suche',
                                   prefixIcon: Icon(Icons.search),
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
                                 ),
                                 onChanged: (text) {
                                   setState(() {
@@ -89,7 +92,8 @@ class _UserListState extends State<UserList> {
                           ),
                           const SizedBox(width: 8),
                           FancyIconButton(
-                            backgroundColor: themeData.colorScheme.primaryContainer,
+                            backgroundColor:
+                                themeData.colorScheme.primaryContainer,
                             hoverColor: primaryDark,
                             borderColor: primaryDark,
                             icon: Icons.add,
@@ -127,12 +131,12 @@ class _UserListState extends State<UserList> {
                         width: 16,
                       ),
                       FancyIconButton(
-                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          backgroundColor:
+                              themeData.colorScheme.primaryContainer,
                           hoverColor: primaryDark,
                           borderColor: primaryDark,
                           icon: Icons.add,
-                          callback: () => _showAddUsersDialog(
-                              context)),
+                          callback: () => _showAddUsersDialog(context)),
                     ],
                   ),
             const SizedBox(height: 16.0),
@@ -153,8 +157,7 @@ class _UserListState extends State<UserList> {
     );
   }
 
-  void _showAddUsersDialog(
-      BuildContext context) {
+  void _showAddUsersDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

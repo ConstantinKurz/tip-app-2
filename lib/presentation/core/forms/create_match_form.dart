@@ -108,18 +108,16 @@ class CreateMatchForm extends StatelessWidget {
                         CustomDatePickerField(
                           initialDate: state.matchDate ?? DateTime.now(),
                           onDateChanged: (date) {
-                            context
-                                .read<MatchesformBloc>()
-                                .add(MatchFormFieldUpdatedEvent(matchDate: date));
+                            context.read<MatchesformBloc>().add(
+                                MatchFormFieldUpdatedEvent(matchDate: date));
                           },
                         ),
                         const SizedBox(height: 16),
                         CustomTimePickerField(
                           initialTime: state.matchTime ?? TimeOfDay.now(),
                           onTimeChanged: (time) {
-                            context
-                                .read<MatchesformBloc>()
-                                .add(MatchFormFieldUpdatedEvent(matchTime: time));
+                            context.read<MatchesformBloc>().add(
+                                MatchFormFieldUpdatedEvent(matchTime: time));
                           },
                         ),
                       ],
@@ -130,9 +128,8 @@ class CreateMatchForm extends StatelessWidget {
                           child: CustomDatePickerField(
                             initialDate: state.matchDate ?? DateTime.now(),
                             onDateChanged: (date) {
-                              context
-                                  .read<MatchesformBloc>()
-                                  .add(MatchFormFieldUpdatedEvent(matchDate: date));
+                              context.read<MatchesformBloc>().add(
+                                  MatchFormFieldUpdatedEvent(matchDate: date));
                             },
                           ),
                         ),
@@ -141,9 +138,8 @@ class CreateMatchForm extends StatelessWidget {
                           child: CustomTimePickerField(
                             initialTime: state.matchTime ?? TimeOfDay.now(),
                             onTimeChanged: (time) {
-                              context
-                                  .read<MatchesformBloc>()
-                                  .add(MatchFormFieldUpdatedEvent(matchTime: time));
+                              context.read<MatchesformBloc>().add(
+                                  MatchFormFieldUpdatedEvent(matchTime: time));
                             },
                           ),
                         ),
@@ -154,7 +150,8 @@ class CreateMatchForm extends StatelessWidget {
                 validator: validateMatchDay,
                 initialValue: state.matchDay,
                 decoration: const InputDecoration(labelText: 'Match Tag'),
-                items: List.generate(8, (i) => i + 1) // 1 bis 8, je nach Turnierstruktur
+                items: List.generate(
+                        8, (i) => i + 1) // 1 bis 8, je nach Turnierstruktur
                     .map((day) => DropdownMenuItem(
                           value: day,
                           child: Text(CustomMatch.empty().getStageName),
@@ -180,7 +177,8 @@ class CreateMatchForm extends StatelessWidget {
                               child: CustomButton(
                                 buttonText: 'Speichern',
                                 borderColor: primaryDark,
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 hoverColor: primaryDark,
                                 callback: () {
                                   if (formKey.currentState!.validate()) {
@@ -202,7 +200,9 @@ class CreateMatchForm extends StatelessWidget {
                                           ),
                                         );
                                   } else {
-                                    context.read<MatchesformBloc>().add(CreateMatchEvent(
+                                    context
+                                        .read<MatchesformBloc>()
+                                        .add(CreateMatchEvent(
                                           id: null,
                                           homeTeamId: null,
                                           guestTeamId: null,
@@ -219,7 +219,8 @@ class CreateMatchForm extends StatelessWidget {
                               child: CustomButton(
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 buttonText: 'Abbrechen',
                                 callback: () => Navigator.of(context).pop(),
                               ),
@@ -232,7 +233,8 @@ class CreateMatchForm extends StatelessWidget {
                             CustomButton(
                               buttonText: 'Speichern',
                               borderColor: primaryDark,
-                              backgroundColor: themeData.colorScheme.primaryContainer,
+                              backgroundColor:
+                                  themeData.colorScheme.primaryContainer,
                               hoverColor: primaryDark,
                               callback: () {
                                 if (formKey.currentState!.validate()) {
@@ -254,7 +256,9 @@ class CreateMatchForm extends StatelessWidget {
                                         ),
                                       );
                                 } else {
-                                  context.read<MatchesformBloc>().add(CreateMatchEvent(
+                                  context
+                                      .read<MatchesformBloc>()
+                                      .add(CreateMatchEvent(
                                         id: null,
                                         homeTeamId: null,
                                         guestTeamId: null,
@@ -268,7 +272,8 @@ class CreateMatchForm extends StatelessWidget {
                             CustomButton(
                               borderColor: primaryDark,
                               hoverColor: primaryDark,
-                              backgroundColor: themeData.colorScheme.primaryContainer,
+                              backgroundColor:
+                                  themeData.colorScheme.primaryContainer,
                               buttonText: 'Abbrechen',
                               callback: () => Navigator.of(context).pop(),
                             ),

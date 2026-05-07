@@ -50,7 +50,7 @@ class DeleteTeamDialog extends StatelessWidget {
       builder: (context, state) {
         final screenWidth = MediaQuery.of(context).size.width;
         final isMobile = screenWidth < 600;
-        
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -62,7 +62,8 @@ class DeleteTeamDialog extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: CustomButton(
-                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          backgroundColor:
+                              themeData.colorScheme.primaryContainer,
                           hoverColor: Colors.red,
                           borderColor: Colors.red,
                           buttonText: 'Löschen',
@@ -77,7 +78,8 @@ class DeleteTeamDialog extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: CustomButton(
-                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          backgroundColor:
+                              themeData.colorScheme.primaryContainer,
                           hoverColor: primaryDark,
                           borderColor: primaryDark,
                           buttonText: 'Abbrechen',

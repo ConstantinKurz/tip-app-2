@@ -27,7 +27,7 @@ class TeamDialog extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isMobile = screenWidth < 800;
-    
+
     // Responsive Dialog-Größe
     final dialogWidth = isMobile ? screenWidth * 0.95 : screenWidth * 0.5;
     final dialogHeight = isMobile ? screenHeight * 0.75 : screenHeight * 0.6;

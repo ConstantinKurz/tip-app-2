@@ -23,8 +23,10 @@ class RankingUserList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Index des aktuellen Users finden
-    final currentUserIndex = users.indexWhere((user) => user.id == currentUserId);
-    final initialScrollIndex = (scrollToCurrentUser && currentUserIndex != -1) ? currentUserIndex : 0;
+    final currentUserIndex =
+        users.indexWhere((user) => user.id == currentUserId);
+    final initialScrollIndex =
+        (scrollToCurrentUser && currentUserIndex != -1) ? currentUserIndex : 0;
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
@@ -36,11 +38,13 @@ class RankingUserList extends StatelessWidget {
       itemBuilder: (context, index) {
         final user = users[index];
         final isCurrentUser = currentUserId == user.id;
-        final champion = teams.where((element) => element.id == user.championId).firstOrNull;
+        final champion =
+            teams.where((element) => element.id == user.championId).firstOrNull;
         final textTheme = Theme.of(context).textTheme;
-        final globalRank = globalUserIndices.isNotEmpty && index < globalUserIndices.length
-            ? globalUserIndices[index] + 1
-            : index + 1;
+        final globalRank =
+            globalUserIndices.isNotEmpty && index < globalUserIndices.length
+                ? globalUserIndices[index] + 1
+                : index + 1;
 
         return Container(
           decoration: isCurrentUser
@@ -60,21 +64,25 @@ class RankingUserList extends StatelessWidget {
                         children: [
                           SizedBox(
                             width: 30,
-                            child: Text('#$globalRank', 
-                              style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                            child: Text(
+                              '#$globalRank',
+                              style: textTheme.bodySmall
+                                  ?.copyWith(fontWeight: FontWeight.w600),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Expanded(
                             child: Text(
                               user.name,
-                              style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                              style: textTheme.bodySmall
+                                  ?.copyWith(fontWeight: FontWeight.w600),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Text(
                             '${user.score}p',
-                            style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                            style: textTheme.bodySmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -130,13 +138,15 @@ class RankingUserList extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: 40,
-                        child: Text('#$globalRank', style: textTheme.bodyMedium),
+                        child:
+                            Text('#$globalRank', style: textTheme.bodyMedium),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           user.name,
-                          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                          style: textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
                       Expanded(
@@ -145,7 +155,8 @@ class RankingUserList extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Tooltip(
-                              message: champion != null ? champion.name : 'None',
+                              message:
+                                  champion != null ? champion.name : 'None',
                               child: SizedBox(
                                 width: 28,
                                 height: 28,
@@ -181,7 +192,8 @@ class RankingUserList extends StatelessWidget {
                                         fontWeight: FontWeight.bold,
                                       )),
                                   const SizedBox(width: 2),
-                                  const Icon(Icons.star, size: 14, color: Colors.amber),
+                                  const Icon(Icons.star,
+                                      size: 14, color: Colors.amber),
                                 ],
                               ),
                             ),

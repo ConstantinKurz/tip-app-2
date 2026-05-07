@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_web/constants.dart';
 
@@ -24,8 +23,10 @@ class _TeamListState extends State<TeamList> {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 800;
-    final double containerWidth = isMobile ? screenWidth * 0.95 : screenWidth * 0.4;
-    final double searchFieldWidth = isMobile ? screenWidth * 0.3 : screenWidth * 0.1;
+    final double containerWidth =
+        isMobile ? screenWidth * 0.95 : screenWidth * 0.4;
+    final double searchFieldWidth =
+        isMobile ? screenWidth * 0.3 : screenWidth * 0.1;
 
     List<Team> filteredTeams = widget.teams.where((team) {
       final teamInfo =
@@ -72,7 +73,8 @@ class _TeamListState extends State<TeamList> {
                                   hintText: 'Suche',
                                   prefixIcon: Icon(Icons.search),
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
                                 ),
                                 onChanged: (text) {
                                   setState(() {
@@ -84,7 +86,8 @@ class _TeamListState extends State<TeamList> {
                           ),
                           const SizedBox(width: 8),
                           FancyIconButton(
-                            backgroundColor: themeData.colorScheme.primaryContainer,
+                            backgroundColor:
+                                themeData.colorScheme.primaryContainer,
                             hoverColor: primaryDark,
                             borderColor: primaryDark,
                             icon: Icons.add,
@@ -121,7 +124,8 @@ class _TeamListState extends State<TeamList> {
                         width: 16,
                       ),
                       FancyIconButton(
-                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          backgroundColor:
+                              themeData.colorScheme.primaryContainer,
                           hoverColor: primaryDark,
                           borderColor: primaryDark,
                           icon: Icons.add,

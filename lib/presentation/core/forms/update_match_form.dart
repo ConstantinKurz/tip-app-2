@@ -81,8 +81,8 @@ class UpdateMatchForm extends StatelessWidget {
       builder: (context, state) {
         // Nutze das gespeicherte Datum, falls im State nicht gesetzt
         final DateTime effectiveDate = state.matchDate ?? match.matchDate;
-        final TimeOfDay effectiveTime = state.matchTime ??
-            TimeOfDay.fromDateTime(match.matchDate);
+        final TimeOfDay effectiveTime =
+            state.matchTime ?? TimeOfDay.fromDateTime(match.matchDate);
 
         return Form(
           autovalidateMode: state.showValidationMessages
@@ -100,40 +100,58 @@ class UpdateMatchForm extends StatelessWidget {
                       ? Column(
                           children: [
                             DropdownButtonFormField<Team>(
-                              decoration: const InputDecoration(labelText: 'Home Team'),
+                              decoration:
+                                  const InputDecoration(labelText: 'Home Team'),
                               initialValue: teams.isEmpty
                                   ? null
-                                  : (teams.any((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
-                                      ? teams.firstWhere((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
+                                  : (teams.any((t) =>
+                                          t.id ==
+                                          (state.homeTeamId ??
+                                              match.homeTeamId))
+                                      ? teams.firstWhere((t) =>
+                                          t.id ==
+                                          (state.homeTeamId ??
+                                              match.homeTeamId))
                                       : null),
                               items: teams.map((team) {
                                 return DropdownMenuItem<Team>(
                                   value: team,
-                                  child: Text(team.name, overflow: TextOverflow.ellipsis),
+                                  child: Text(team.name,
+                                      overflow: TextOverflow.ellipsis),
                                 );
                               }).toList(),
                               onChanged: (value) {
                                 context.read<MatchesformBloc>().add(
-                                    MatchFormFieldUpdatedEvent(homeTeamId: value?.id));
+                                    MatchFormFieldUpdatedEvent(
+                                        homeTeamId: value?.id));
                               },
                             ),
                             const SizedBox(height: 12),
                             DropdownButtonFormField<Team>(
-                              decoration: const InputDecoration(labelText: 'Gast Team'),
+                              decoration:
+                                  const InputDecoration(labelText: 'Gast Team'),
                               initialValue: teams.isEmpty
                                   ? null
-                                  : (teams.any((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
-                                      ? teams.firstWhere((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
+                                  : (teams.any((t) =>
+                                          t.id ==
+                                          (state.guestTeamId ??
+                                              match.guestTeamId))
+                                      ? teams.firstWhere((t) =>
+                                          t.id ==
+                                          (state.guestTeamId ??
+                                              match.guestTeamId))
                                       : null),
                               items: teams.map((team) {
                                 return DropdownMenuItem<Team>(
                                   value: team,
-                                  child: Text(team.name, overflow: TextOverflow.ellipsis),
+                                  child: Text(team.name,
+                                      overflow: TextOverflow.ellipsis),
                                 );
                               }).toList(),
                               onChanged: (value) {
                                 context.read<MatchesformBloc>().add(
-                                    MatchFormFieldUpdatedEvent(guestTeamId: value?.id));
+                                    MatchFormFieldUpdatedEvent(
+                                        guestTeamId: value?.id));
                               },
                             ),
                           ],
@@ -142,42 +160,60 @@ class UpdateMatchForm extends StatelessWidget {
                           children: [
                             Expanded(
                               child: DropdownButtonFormField<Team>(
-                                decoration: const InputDecoration(labelText: 'Home Team'),
+                                decoration: const InputDecoration(
+                                    labelText: 'Home Team'),
                                 initialValue: teams.isEmpty
                                     ? null
-                                    : (teams.any((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
-                                        ? teams.firstWhere((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
+                                    : (teams.any((t) =>
+                                            t.id ==
+                                            (state.homeTeamId ??
+                                                match.homeTeamId))
+                                        ? teams.firstWhere((t) =>
+                                            t.id ==
+                                            (state.homeTeamId ??
+                                                match.homeTeamId))
                                         : null),
                                 items: teams.map((team) {
                                   return DropdownMenuItem<Team>(
                                     value: team,
-                                    child: Text(team.name, overflow: TextOverflow.ellipsis),
+                                    child: Text(team.name,
+                                        overflow: TextOverflow.ellipsis),
                                   );
                                 }).toList(),
                                 onChanged: (value) {
                                   context.read<MatchesformBloc>().add(
-                                      MatchFormFieldUpdatedEvent(homeTeamId: value?.id));
+                                      MatchFormFieldUpdatedEvent(
+                                          homeTeamId: value?.id));
                                 },
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: DropdownButtonFormField<Team>(
-                                decoration: const InputDecoration(labelText: 'Gast Team'),
+                                decoration: const InputDecoration(
+                                    labelText: 'Gast Team'),
                                 initialValue: teams.isEmpty
                                     ? null
-                                    : (teams.any((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
-                                        ? teams.firstWhere((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
+                                    : (teams.any((t) =>
+                                            t.id ==
+                                            (state.guestTeamId ??
+                                                match.guestTeamId))
+                                        ? teams.firstWhere((t) =>
+                                            t.id ==
+                                            (state.guestTeamId ??
+                                                match.guestTeamId))
                                         : null),
                                 items: teams.map((team) {
                                   return DropdownMenuItem<Team>(
                                     value: team,
-                                    child: Text(team.name, overflow: TextOverflow.ellipsis),
+                                    child: Text(team.name,
+                                        overflow: TextOverflow.ellipsis),
                                   );
                                 }).toList(),
                                 onChanged: (value) {
                                   context.read<MatchesformBloc>().add(
-                                      MatchFormFieldUpdatedEvent(guestTeamId: value?.id));
+                                      MatchFormFieldUpdatedEvent(
+                                          guestTeamId: value?.id));
                                 },
                               ),
                             ),
@@ -212,8 +248,9 @@ class UpdateMatchForm extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              onChanged: (value) => context.read<MatchesformBloc>().add(
-                                  MatchFormFieldUpdatedEvent(
+                              onChanged: (value) => context
+                                  .read<MatchesformBloc>()
+                                  .add(MatchFormFieldUpdatedEvent(
                                       homeTeamScore: int.tryParse(value))),
                             ),
                             const SizedBox(height: 8),
@@ -226,8 +263,8 @@ class UpdateMatchForm extends StatelessWidget {
                               controller: guestScoreController,
                               style: const TextStyle(color: Colors.white),
                               cursorColor: Colors.white,
-                              validator: (value) =>
-                                  _validateScore(value, state, context, 'guest'),
+                              validator: (value) => _validateScore(
+                                  value, state, context, 'guest'),
                               maxLength: 2,
                               maxLines: 1,
                               minLines: 1,
@@ -241,8 +278,9 @@ class UpdateMatchForm extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              onChanged: (value) => context.read<MatchesformBloc>().add(
-                                  MatchFormFieldUpdatedEvent(
+                              onChanged: (value) => context
+                                  .read<MatchesformBloc>()
+                                  .add(MatchFormFieldUpdatedEvent(
                                       guestTeamScore: int.tryParse(value))),
                             ),
                           ],
@@ -255,8 +293,8 @@ class UpdateMatchForm extends StatelessWidget {
                                 controller: homeScoreController,
                                 style: const TextStyle(color: Colors.white),
                                 cursorColor: Colors.white,
-                                validator: (value) =>
-                                    _validateScore(value, state, context, 'home'),
+                                validator: (value) => _validateScore(
+                                    value, state, context, 'home'),
                                 maxLength: 2,
                                 maxLines: 1,
                                 minLines: 1,
@@ -270,8 +308,9 @@ class UpdateMatchForm extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                onChanged: (value) => context.read<MatchesformBloc>().add(
-                                    MatchFormFieldUpdatedEvent(
+                                onChanged: (value) => context
+                                    .read<MatchesformBloc>()
+                                    .add(MatchFormFieldUpdatedEvent(
                                         homeTeamScore: int.tryParse(value))),
                               ),
                             ),
@@ -286,8 +325,8 @@ class UpdateMatchForm extends StatelessWidget {
                                 controller: guestScoreController,
                                 style: const TextStyle(color: Colors.white),
                                 cursorColor: Colors.white,
-                                validator: (value) =>
-                                    _validateScore(value, state, context, 'guest'),
+                                validator: (value) => _validateScore(
+                                    value, state, context, 'guest'),
                                 maxLength: 2,
                                 maxLines: 1,
                                 minLines: 1,
@@ -301,8 +340,9 @@ class UpdateMatchForm extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                onChanged: (value) => context.read<MatchesformBloc>().add(
-                                    MatchFormFieldUpdatedEvent(
+                                onChanged: (value) => context
+                                    .read<MatchesformBloc>()
+                                    .add(MatchFormFieldUpdatedEvent(
                                         guestTeamScore: int.tryParse(value))),
                               ),
                             ),
@@ -322,18 +362,18 @@ class UpdateMatchForm extends StatelessWidget {
                             CustomDatePickerField(
                               initialDate: effectiveDate,
                               onDateChanged: (DateTime? date) {
-                                context
-                                    .read<MatchesformBloc>()
-                                    .add(MatchFormFieldUpdatedEvent(matchDate: date));
+                                context.read<MatchesformBloc>().add(
+                                    MatchFormFieldUpdatedEvent(
+                                        matchDate: date));
                               },
                             ),
                             const SizedBox(height: 16),
                             CustomTimePickerField(
                               initialTime: effectiveTime,
                               onTimeChanged: (TimeOfDay? time) {
-                                context
-                                    .read<MatchesformBloc>()
-                                    .add(MatchFormFieldUpdatedEvent(matchTime: time));
+                                context.read<MatchesformBloc>().add(
+                                    MatchFormFieldUpdatedEvent(
+                                        matchTime: time));
                               },
                             ),
                           ],
@@ -344,9 +384,9 @@ class UpdateMatchForm extends StatelessWidget {
                               child: CustomDatePickerField(
                                 initialDate: effectiveDate,
                                 onDateChanged: (DateTime? date) {
-                                  context
-                                      .read<MatchesformBloc>()
-                                      .add(MatchFormFieldUpdatedEvent(matchDate: date));
+                                  context.read<MatchesformBloc>().add(
+                                      MatchFormFieldUpdatedEvent(
+                                          matchDate: date));
                                 },
                               ),
                             ),
@@ -355,9 +395,9 @@ class UpdateMatchForm extends StatelessWidget {
                               child: CustomTimePickerField(
                                 initialTime: effectiveTime,
                                 onTimeChanged: (TimeOfDay? time) {
-                                  context
-                                      .read<MatchesformBloc>()
-                                      .add(MatchFormFieldUpdatedEvent(matchTime: time));
+                                  context.read<MatchesformBloc>().add(
+                                      MatchFormFieldUpdatedEvent(
+                                          matchTime: time));
                                 },
                               ),
                             ),
@@ -369,7 +409,7 @@ class UpdateMatchForm extends StatelessWidget {
               DropdownButtonFormField<int>(
                 decoration: const InputDecoration(labelText: 'Match Tag'),
                 initialValue: match.matchDay,
-                items: List.generate(8, (index) => index +1).map((value) {
+                items: List.generate(8, (index) => index + 1).map((value) {
                   return DropdownMenuItem<int>(
                     value: value,
                     child: Text(CustomMatch.empty().getStageName),
@@ -396,14 +436,20 @@ class UpdateMatchForm extends StatelessWidget {
                               width: double.infinity,
                               child: CustomButton(
                                 buttonText: 'Speichern',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {
                                   if (formKey.currentState!.validate()) {
                                     // Fallback: Verwende gespeichertes Datum/Zeit, falls state null ist
-                                    final DateTime safeDate = state.matchDate ?? match.matchDate;
-                                    final TimeOfDay safeTime = state.matchTime ?? TimeOfDay(hour: match.matchDate.hour, minute: match.matchDate.minute);
+                                    final DateTime safeDate =
+                                        state.matchDate ?? match.matchDate;
+                                    final TimeOfDay safeTime =
+                                        state.matchTime ??
+                                            TimeOfDay(
+                                                hour: match.matchDate.hour,
+                                                minute: match.matchDate.minute);
                                     DateTime combinedDateTime = DateTime(
                                       safeDate.year,
                                       safeDate.month,
@@ -412,18 +458,24 @@ class UpdateMatchForm extends StatelessWidget {
                                       safeTime.minute,
                                     );
 
-                                    final CustomMatch updatedMatch = CustomMatch(
+                                    final CustomMatch updatedMatch =
+                                        CustomMatch(
                                       id: match.id,
-                                      homeTeamId: state.homeTeamId ?? match.homeTeamId,
-                                      guestTeamId: state.guestTeamId ?? match.guestTeamId,
+                                      homeTeamId:
+                                          state.homeTeamId ?? match.homeTeamId,
+                                      guestTeamId: state.guestTeamId ??
+                                          match.guestTeamId,
                                       matchDate: combinedDateTime,
-                                      matchDay: state.matchDay ?? match.matchDay,
-                                      homeScore: state.homeScore ?? match.homeScore,
-                                      guestScore: state.guestScore ?? match.guestScore,
+                                      matchDay:
+                                          state.matchDay ?? match.matchDay,
+                                      homeScore:
+                                          state.homeScore ?? match.homeScore,
+                                      guestScore:
+                                          state.guestScore ?? match.guestScore,
                                     );
-                                    context
-                                        .read<MatchesformBloc>()
-                                        .add(MatchFormUpdateEvent(match: updatedMatch));
+                                    context.read<MatchesformBloc>().add(
+                                        MatchFormUpdateEvent(
+                                            match: updatedMatch));
                                   } else {
                                     context
                                         .read<MatchesformBloc>()
@@ -437,7 +489,8 @@ class UpdateMatchForm extends StatelessWidget {
                               width: double.infinity,
                               child: CustomButton(
                                 buttonText: 'Abbrechen',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {
@@ -453,14 +506,20 @@ class UpdateMatchForm extends StatelessWidget {
                             Expanded(
                               child: CustomButton(
                                 buttonText: 'Speichern',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {
                                   if (formKey.currentState!.validate()) {
                                     // Fallback: Verwende gespeichertes Datum/Zeit, falls state null ist
-                                    final DateTime safeDate = state.matchDate ?? match.matchDate;
-                                    final TimeOfDay safeTime = state.matchTime ?? TimeOfDay(hour: match.matchDate.hour, minute: match.matchDate.minute);
+                                    final DateTime safeDate =
+                                        state.matchDate ?? match.matchDate;
+                                    final TimeOfDay safeTime =
+                                        state.matchTime ??
+                                            TimeOfDay(
+                                                hour: match.matchDate.hour,
+                                                minute: match.matchDate.minute);
                                     DateTime combinedDateTime = DateTime(
                                       safeDate.year,
                                       safeDate.month,
@@ -469,18 +528,24 @@ class UpdateMatchForm extends StatelessWidget {
                                       safeTime.minute,
                                     );
 
-                                    final CustomMatch updatedMatch = CustomMatch(
+                                    final CustomMatch updatedMatch =
+                                        CustomMatch(
                                       id: match.id,
-                                      homeTeamId: state.homeTeamId ?? match.homeTeamId,
-                                      guestTeamId: state.guestTeamId ?? match.guestTeamId,
+                                      homeTeamId:
+                                          state.homeTeamId ?? match.homeTeamId,
+                                      guestTeamId: state.guestTeamId ??
+                                          match.guestTeamId,
                                       matchDate: combinedDateTime,
-                                      matchDay: state.matchDay ?? match.matchDay,
-                                      homeScore: state.homeScore ?? match.homeScore,
-                                      guestScore: state.guestScore ?? match.guestScore,
+                                      matchDay:
+                                          state.matchDay ?? match.matchDay,
+                                      homeScore:
+                                          state.homeScore ?? match.homeScore,
+                                      guestScore:
+                                          state.guestScore ?? match.guestScore,
                                     );
-                                    context
-                                        .read<MatchesformBloc>()
-                                        .add(MatchFormUpdateEvent(match: updatedMatch));
+                                    context.read<MatchesformBloc>().add(
+                                        MatchFormUpdateEvent(
+                                            match: updatedMatch));
                                   } else {
                                     context
                                         .read<MatchesformBloc>()
@@ -495,7 +560,8 @@ class UpdateMatchForm extends StatelessWidget {
                             Expanded(
                               child: CustomButton(
                                 buttonText: 'Abbrechen',
-                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    themeData.colorScheme.primaryContainer,
                                 borderColor: primaryDark,
                                 hoverColor: primaryDark,
                                 callback: () {

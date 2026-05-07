@@ -150,9 +150,8 @@ class UpdateUserForm extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) => context
-                      .read<AuthformBloc>()
-                      .add(UserFormFieldUpdatedEvent(rank: int.tryParse(value))),
+                  onChanged: (value) => context.read<AuthformBloc>().add(
+                      UserFormFieldUpdatedEvent(rank: int.tryParse(value))),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -167,9 +166,8 @@ class UpdateUserForm extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) => context
-                      .read<AuthformBloc>()
-                      .add(UserFormFieldUpdatedEvent(score: int.tryParse(value))),
+                  onChanged: (value) => context.read<AuthformBloc>().add(
+                      UserFormFieldUpdatedEvent(score: int.tryParse(value))),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -184,9 +182,8 @@ class UpdateUserForm extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) => context
-                      .read<AuthformBloc>()
-                      .add(UserFormFieldUpdatedEvent(jokerSum: int.tryParse(value))),
+                  onChanged: (value) => context.read<AuthformBloc>().add(
+                      UserFormFieldUpdatedEvent(jokerSum: int.tryParse(value))),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -201,9 +198,8 @@ class UpdateUserForm extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) => context
-                      .read<AuthformBloc>()
-                      .add(UserFormFieldUpdatedEvent(sixer: int.tryParse(value))),
+                  onChanged: (value) => context.read<AuthformBloc>().add(
+                      UserFormFieldUpdatedEvent(sixer: int.tryParse(value))),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -218,8 +214,8 @@ class UpdateUserForm extends StatelessWidget {
                           ))
                       .toList(),
                   onChanged: (String? selectedChampionId) {
-                    context.read<AuthformBloc>().add(
-                        UserFormFieldUpdatedEvent(championId: selectedChampionId));
+                    context.read<AuthformBloc>().add(UserFormFieldUpdatedEvent(
+                        championId: selectedChampionId));
                   },
                 ),
                 const SizedBox(height: 16),
@@ -227,8 +223,8 @@ class UpdateUserForm extends StatelessWidget {
                   value: state.admin ?? user.admin,
                   onChanged: (val) {
                     context.read<AuthformBloc>().add(
-                      UserFormFieldUpdatedEvent(admin: val),
-                    );
+                          UserFormFieldUpdatedEvent(admin: val),
+                        );
                   },
                   title: const Text(
                     "Admin",
@@ -250,7 +246,8 @@ class UpdateUserForm extends StatelessWidget {
                                 width: double.infinity,
                                 child: CustomButton(
                                   buttonText: 'Speichern',
-                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      themeData.colorScheme.primaryContainer,
                                   borderColor: primaryDark,
                                   hoverColor: primaryDark,
                                   callback: () {
@@ -261,13 +258,17 @@ class UpdateUserForm extends StatelessWidget {
                                         email: state.email ?? user.email,
                                         rank: state.rank ?? user.rank,
                                         score: state.score ?? user.score,
-                                        jokerSum: state.jokerSum ?? user.jokerSum,
-                                        championId: state.championId ?? user.championId,
+                                        jokerSum:
+                                            state.jokerSum ?? user.jokerSum,
+                                        championId:
+                                            state.championId ?? user.championId,
                                         sixer: state.sixer ?? user.sixer,
                                         admin: state.admin ?? user.admin,
                                       );
-                                      context.read<AuthformBloc>().add(UpdateUserEvent(
-                                          user: updatedUser, currentUser: user));
+                                      context.read<AuthformBloc>().add(
+                                          UpdateUserEvent(
+                                              user: updatedUser,
+                                              currentUser: user));
                                     }
                                   },
                                 ),
@@ -277,7 +278,8 @@ class UpdateUserForm extends StatelessWidget {
                                 width: double.infinity,
                                 child: CustomButton(
                                   buttonText: 'Abbrechen',
-                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      themeData.colorScheme.primaryContainer,
                                   borderColor: primaryDark,
                                   hoverColor: primaryDark,
                                   callback: () {
@@ -293,7 +295,8 @@ class UpdateUserForm extends StatelessWidget {
                               Expanded(
                                 child: CustomButton(
                                   buttonText: 'Speichern',
-                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      themeData.colorScheme.primaryContainer,
                                   borderColor: primaryDark,
                                   hoverColor: primaryDark,
                                   callback: () {
@@ -304,13 +307,17 @@ class UpdateUserForm extends StatelessWidget {
                                         email: state.email ?? user.email,
                                         rank: state.rank ?? user.rank,
                                         score: state.score ?? user.score,
-                                        jokerSum: state.jokerSum ?? user.jokerSum,
-                                        championId: state.championId ?? user.championId,
+                                        jokerSum:
+                                            state.jokerSum ?? user.jokerSum,
+                                        championId:
+                                            state.championId ?? user.championId,
                                         sixer: state.sixer ?? user.sixer,
                                         admin: state.admin ?? user.admin,
                                       );
-                                      context.read<AuthformBloc>().add(UpdateUserEvent(
-                                          user: updatedUser, currentUser: user));
+                                      context.read<AuthformBloc>().add(
+                                          UpdateUserEvent(
+                                              user: updatedUser,
+                                              currentUser: user));
                                     }
                                   },
                                 ),
@@ -319,7 +326,8 @@ class UpdateUserForm extends StatelessWidget {
                               Expanded(
                                 child: CustomButton(
                                   buttonText: 'Abbrechen',
-                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  backgroundColor:
+                                      themeData.colorScheme.primaryContainer,
                                   borderColor: primaryDark,
                                   hoverColor: primaryDark,
                                   callback: () {

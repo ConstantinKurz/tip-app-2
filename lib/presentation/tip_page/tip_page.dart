@@ -62,7 +62,8 @@ class _TipPageState extends State<TipPage> {
       _loadedMatchDays.clear();
       _initialStatsLoaded = false;
       _lastUserId = userId;
-      debugPrint('🔄 [TipPage] User changed: $_lastUserId → $userId, resetting stats');
+      debugPrint(
+          '🔄 [TipPage] User changed: $_lastUserId → $userId, resetting stats');
     }
   }
 
@@ -126,7 +127,7 @@ class _TipPageState extends State<TipPage> {
     if (missingMatchDays.isNotEmpty) {
       try {
         final tipsBloc = context.read<TipControllerBloc>();
-        
+
         // Lade Statistiken für alle fehlenden matchDays
         for (final matchDay in missingMatchDays) {
           tipsBloc.add(
@@ -136,10 +137,10 @@ class _TipPageState extends State<TipPage> {
             ),
           );
         }
-        
+
         // Merke die neuen matchDays als geladen (kein setState nötig - nur tracking)
         _loadedMatchDays.addAll(missingMatchDays);
-        
+
         // Debug-Info
         debugPrint(
           '📊 [TipPage] Statistiken geladen für Spieltage: $missingMatchDays',
@@ -196,7 +197,7 @@ class _TipPageState extends State<TipPage> {
                         final userId = authState.signedInUser?.id ?? '';
                         final matches = matchState.matches;
                         final teams = teamState.teams;
-                        
+
                         // ✅ Reset bei User-Wechsel
                         _checkAndResetForUser(userId);
 
@@ -213,11 +214,13 @@ class _TipPageState extends State<TipPage> {
                         final displayedMatches = _filteredMatches.isEmpty
                             ? matches
                             : _filteredMatches;
-                            
+
                         // ✅ Lade initiale Statistiken (einmalig)
-                        if (!_initialStatsLoaded && displayedMatches.isNotEmpty) {
+                        if (!_initialStatsLoaded &&
+                            displayedMatches.isNotEmpty) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _loadMissingStatistics(displayedMatches, userId, context);
+                            _loadMissingStatistics(
+                                displayedMatches, userId, context);
                           });
                           _initialStatsLoaded = true;
                         }
@@ -278,11 +281,9 @@ class _TipPageState extends State<TipPage> {
                                     onFilteredMatchesChanged: (filtered) {
                                       setState(() {
                                         _filteredMatches = filtered;
-                                        _hasInitialScrolled =
-                                            false; // Reset scroll bei neuem Filter
                                       });
-                                      // ✅ Lade Statistiken für neue Phasen
-                                      _loadMissingStatistics(filtered, userId, context);
+                                      _loadMissingStatistics(
+                                          filtered, userId, context);
                                     },
                                   ),
                                 ),
@@ -420,10 +421,10 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
     // Wenn bereits getippt, kann immer bearbeitet werden
     if (tip.tipHome != null || tip.tipGuest != null) return false;
-    
+
     final phase = MatchPhase.fromMatchDay(widget.matchDay);
     if (!phase.hasTipLimit) return false;
-    
+
     // Für Gruppenphase: Statistik enthält bereits die aggregierte Anzahl
     if (phase == MatchPhase.groupStage) {
       final stats = tipState.matchDayStatistics[widget.matchDay];
@@ -431,7 +432,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
         return stats.tippedGames >= phase.maxTips!;
       }
     }
-    
+
     return false;
   }
 
@@ -460,7 +461,8 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
 
       // Stats nur laden wenn nicht bereits vorhanden
       if (tipState is TipControllerLoaded) {
-        final hasStats = tipState.matchDayStatistics.containsKey(widget.matchDay);
+        final hasStats =
+            tipState.matchDayStatistics.containsKey(widget.matchDay);
         if (!hasStats) {
           controllerBloc.add(
             TipUpdateStatisticsEvent(
@@ -493,7 +495,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
             matchDay: widget.matchDay,
           ),
         );
-        
+
         // ✅ FIX: Auch hier ExternalUpdate senden um isLoading auf false zu setzen
         // Der BlocListener wird später die echten Daten liefern
         formBloc.add(TipFormExternalUpdateEvent(
@@ -515,7 +517,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
         // Reagieren wenn sich Tips oder Statistiken ändern
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
           return previous.tips != current.tips ||
-                 previous.matchDayStatistics != current.matchDayStatistics;
+              previous.matchDayStatistics != current.matchDayStatistics;
         }
         return current is TipControllerLoaded;
       },
@@ -541,7 +543,8 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
       child: BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
         buildWhen: (previous, current) {
           // Rebuild wenn sich das Match-Ergebnis ändert
-          if (previous is MatchesControllerLoaded && current is MatchesControllerLoaded) {
+          if (previous is MatchesControllerLoaded &&
+              current is MatchesControllerLoaded) {
             final prevMatch = previous.matches.firstWhere(
               (m) => m.id == widget.matchId,
               orElse: () => widget.match,
@@ -551,7 +554,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
               orElse: () => widget.match,
             );
             return prevMatch.homeScore != currMatch.homeScore ||
-                   prevMatch.guestScore != currMatch.guestScore;
+                prevMatch.guestScore != currMatch.guestScore;
           }
           return previous.runtimeType != current.runtimeType;
         },
@@ -568,10 +571,11 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
           return BlocBuilder<TipControllerBloc, TipControllerState>(
             buildWhen: (previous, current) {
               // Rebuild wenn sich der Tip für dieses Match ändert (inkl. Punkte)
-              if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+              if (previous is TipControllerLoaded &&
+                  current is TipControllerLoaded) {
                 final prevUserTips = previous.tips[widget.userId] ?? [];
                 final currUserTips = current.tips[widget.userId] ?? [];
-                
+
                 final prevTip = prevUserTips.firstWhere(
                   (t) => t.matchId == widget.matchId,
                   orElse: () => Tip.empty(widget.userId),
@@ -580,12 +584,12 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
                   (t) => t.matchId == widget.matchId,
                   orElse: () => Tip.empty(widget.userId),
                 );
-                
+
                 // Rebuild wenn sich Punkte oder andere Tip-Daten ändern
                 return prevTip.points != currTip.points ||
-                       prevTip.tipHome != currTip.tipHome ||
-                       prevTip.tipGuest != currTip.tipGuest ||
-                       prevTip.joker != currTip.joker;
+                    prevTip.tipHome != currTip.tipHome ||
+                    prevTip.tipGuest != currTip.tipGuest ||
+                    prevTip.joker != currTip.joker;
               }
               return previous.runtimeType != current.runtimeType;
             },
@@ -601,7 +605,8 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
 
               // Key mit Ergebnis für Force-Rebuild bei Ergebnis-Änderung
               return TipCard(
-                key: ValueKey('${widget.matchId}_${currentTip.points}_${currentMatch.homeScore}_${currentMatch.guestScore}'),
+                key: ValueKey(
+                    '${widget.matchId}_${currentTip.points}_${currentMatch.homeScore}_${currentMatch.guestScore}'),
                 userId: widget.userId,
                 match: currentMatch,
                 homeTeam: widget.homeTeam,

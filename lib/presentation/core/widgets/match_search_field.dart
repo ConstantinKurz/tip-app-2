@@ -266,7 +266,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
     final themeData = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.only(bottom: 2),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
@@ -474,26 +474,26 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                                   ],
                                 ),
                               ),
-                              // Gradient overlay auf der rechten Seite um Scrollbar-Hinweis zu zeigen
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                bottom: 0,
-                                child: Container(
-                                  width: 30,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                      colors: [
-                                        Colors.transparent,
-                                        Theme.of(context)
-                                            .scaffoldBackgroundColor,
-                                      ],
+                              if (MediaQuery.of(context).size.width <= 450)
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 30,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                        colors: [
+                                          Colors.transparent,
+                                          Theme.of(context)
+                                              .scaffoldBackgroundColor,
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ],
@@ -530,26 +530,45 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
     }
   }
 
-  /// Mobile: Compact dropdown for filter selection
+  /// Filter-Chip Button mit Hover-Effekt
   Widget _buildFilterChip(String label, String filter, ThemeData themeData) {
     final isSelected = _activeFilter == filter;
+    bool isHovered = false;
 
-    return FilterChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? themeData.colorScheme.primary : Colors.white,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      selected: isSelected,
-      onSelected: (_) => _onFilterChipSelected(filter),
-      backgroundColor: themeData.colorScheme.primary.withOpacity(0.3),
-      selectedColor: Colors.white,
-      checkmarkColor: themeData.colorScheme.primary,
-      side: BorderSide(
-        color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
-      ),
+    return StatefulBuilder(
+      builder: (context, setChipState) {
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setChipState(() => isHovered = true),
+          onExit: (_) => setChipState(() => isHovered = false),
+          child: GestureDetector(
+            onTap: () => _onFilterChipSelected(filter),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color:
+                    isSelected || isHovered ? Colors.white : Colors.transparent,
+                border: Border.all(
+                  color: isSelected || isHovered
+                      ? Colors.black
+                      : Colors.white.withOpacity(0.7),
+                  width: isSelected || isHovered ? 2 : 1,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected || isHovered ? Colors.black : Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

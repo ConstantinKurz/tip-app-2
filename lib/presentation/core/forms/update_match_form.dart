@@ -231,6 +231,7 @@ class UpdateMatchForm extends StatelessWidget {
                           children: [
                             TextFormField(
                               controller: homeScoreController,
+                              keyboardType: TextInputType.number,
                               style: const TextStyle(color: Colors.white),
                               cursorColor: Colors.white,
                               validator: (value) =>
@@ -261,6 +262,7 @@ class UpdateMatchForm extends StatelessWidget {
                             const SizedBox(height: 8),
                             TextFormField(
                               controller: guestScoreController,
+                              keyboardType: TextInputType.number,
                               style: const TextStyle(color: Colors.white),
                               cursorColor: Colors.white,
                               validator: (value) => _validateScore(
@@ -291,6 +293,7 @@ class UpdateMatchForm extends StatelessWidget {
                             Expanded(
                               child: TextFormField(
                                 controller: homeScoreController,
+                                keyboardType: TextInputType.number,
                                 style: const TextStyle(color: Colors.white),
                                 cursorColor: Colors.white,
                                 validator: (value) => _validateScore(
@@ -323,6 +326,7 @@ class UpdateMatchForm extends StatelessWidget {
                             Expanded(
                               child: TextFormField(
                                 controller: guestScoreController,
+                                keyboardType: TextInputType.number,
                                 style: const TextStyle(color: Colors.white),
                                 cursorColor: Colors.white,
                                 validator: (value) => _validateScore(

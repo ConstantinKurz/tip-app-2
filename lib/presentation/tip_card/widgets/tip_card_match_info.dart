@@ -58,88 +58,6 @@ class TipCardMatchInfo extends StatelessWidget {
         final currentHasResult =
             currentMatch.homeScore != null && currentMatch.guestScore != null;
 
-        if (isMobile) {
-          return Column(
-            children: [
-              // Home Team
-              Row(
-                children: [
-                  ClipOval(
-                    child: Flag.fromString(
-                      homeTeam.flagCode,
-                      height: 28,
-                      width: 28,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      homeTeam.name,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Score
-              Container(
-                width: double.infinity,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: currentHasResult
-                      ? Text(
-                          '${currentMatch.homeScore} : ${currentMatch.guestScore}',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        )
-                      : Text(
-                          'vs',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Guest Team
-              Row(
-                children: [
-                  ClipOval(
-                    child: Flag.fromString(
-                      guestTeam.flagCode,
-                      height: 28,
-                      width: 28,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      guestTeam.name,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          );
-        }
-
         return Row(
           children: [
             Expanded(
@@ -149,16 +67,19 @@ class TipCardMatchInfo extends StatelessWidget {
                   ClipOval(
                     child: Flag.fromString(
                       homeTeam.flagCode,
-                      height: 32,
-                      width: 32,
+                      height: isMobile ? 24 : 32,
+                      width: isMobile ? 24 : 32,
                       fit: BoxFit.cover,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       homeTeam.name,
-                      style: theme.textTheme.bodyLarge?.copyWith(
+                      style: (isMobile
+                              ? theme.textTheme.bodySmall
+                              : theme.textTheme.bodyLarge)
+                          ?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -169,9 +90,9 @@ class TipCardMatchInfo extends StatelessWidget {
               ),
             ),
             Container(
-              width: 80,
-              height: 40,
-              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              width: isMobile ? 50 : 80,
+              height: isMobile ? 32 : 40,
+              margin: EdgeInsets.symmetric(horizontal: isMobile ? 8.0 : 16.0),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primaryContainer.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
@@ -180,15 +101,22 @@ class TipCardMatchInfo extends StatelessWidget {
                 child: currentHasResult
                     ? Text(
                         '${currentMatch.homeScore} : ${currentMatch.guestScore}',
-                        style: theme.textTheme.headlineSmall?.copyWith(
+                        style: (isMobile
+                                ? theme.textTheme.bodySmall
+                                : theme.textTheme.bodyMedium)
+                            ?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: isMobile ? 12 : 16,
                         ),
                       )
                     : Text(
                         'vs',
-                        style: theme.textTheme.bodyLarge?.copyWith(
+                        style: (isMobile
+                                ? theme.textTheme.bodySmall
+                                : theme.textTheme.bodyMedium)
+                            ?.copyWith(
                           fontStyle: FontStyle.italic,
+                          fontSize: isMobile ? 12 : 14,
                         ),
                       ),
               ),
@@ -200,20 +128,23 @@ class TipCardMatchInfo extends StatelessWidget {
                   Expanded(
                     child: Text(
                       guestTeam.name,
-                      style: theme.textTheme.bodyLarge?.copyWith(
+                      style: (isMobile
+                              ? theme.textTheme.bodySmall
+                              : theme.textTheme.bodyLarge)
+                          ?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
-                      textAlign: TextAlign.end,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
+                      textAlign: TextAlign.right,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   ClipOval(
                     child: Flag.fromString(
                       guestTeam.flagCode,
-                      height: 32,
-                      width: 32,
+                      height: isMobile ? 24 : 32,
+                      width: isMobile ? 24 : 32,
                       fit: BoxFit.cover,
                     ),
                   ),

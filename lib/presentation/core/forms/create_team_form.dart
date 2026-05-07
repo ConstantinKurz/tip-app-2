@@ -168,43 +168,94 @@ class _CreateTeamFormState extends State<CreateTeamForm> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CustomButton(
-                      buttonText: 'Speichern',
-                      backgroundColor: themeData.colorScheme.primaryContainer,
-                      borderColor: primaryDark,
-                      hoverColor: primaryDark,
-                      callback: () {
-                        if (formKey.currentState!.validate()) {
-                          final Team team = Team(
-                              id: _id.toUpperCase(),
-                              name: _teamName,
-                              flagCode: _flagCode,
-                              winPoints: _winPoints,
-                              champion: _champion);
-                          BlocProvider.of<TeamsformBloc>(context)
-                              .add(TeamFormCreateEvent(team: team));
-                        } else {
-                          BlocProvider.of<TeamsformBloc>(context)
-                              .add(TeamFormCreateEvent(team: null));
-                        }
-                      },
-                    ),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    CustomButton(
-                      buttonText: 'Abbrechen',
-                      backgroundColor: themeData.colorScheme.primaryContainer,
-                      borderColor: primaryDark,
-                      hoverColor: primaryDark,
-                      callback: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
+                Builder(
+                  builder: (context) {
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    final isMobile = screenWidth < 600;
+
+                    return isMobile
+                        ? Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: CustomButton(
+                                  buttonText: 'Speichern',
+                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  borderColor: primaryDark,
+                                  hoverColor: primaryDark,
+                                  callback: () {
+                                    if (formKey.currentState!.validate()) {
+                                      final Team team = Team(
+                                          id: _id.toUpperCase(),
+                                          name: _teamName,
+                                          flagCode: _flagCode,
+                                          winPoints: _winPoints,
+                                          champion: _champion);
+                                      BlocProvider.of<TeamsformBloc>(context)
+                                          .add(TeamFormCreateEvent(team: team));
+                                    } else {
+                                      BlocProvider.of<TeamsformBloc>(context)
+                                          .add(TeamFormCreateEvent(team: null));
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: CustomButton(
+                                  buttonText: 'Abbrechen',
+                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  borderColor: primaryDark,
+                                  hoverColor: primaryDark,
+                                  callback: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: CustomButton(
+                                  buttonText: 'Speichern',
+                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  borderColor: primaryDark,
+                                  hoverColor: primaryDark,
+                                  callback: () {
+                                    if (formKey.currentState!.validate()) {
+                                      final Team team = Team(
+                                          id: _id.toUpperCase(),
+                                          name: _teamName,
+                                          flagCode: _flagCode,
+                                          winPoints: _winPoints,
+                                          champion: _champion);
+                                      BlocProvider.of<TeamsformBloc>(context)
+                                          .add(TeamFormCreateEvent(team: team));
+                                    } else {
+                                      BlocProvider.of<TeamsformBloc>(context)
+                                          .add(TeamFormCreateEvent(team: null));
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: CustomButton(
+                                  buttonText: 'Abbrechen',
+                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  borderColor: primaryDark,
+                                  hoverColor: primaryDark,
+                                  callback: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                  },
                 )
               ]),
         );

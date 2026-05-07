@@ -29,9 +29,13 @@ class MatchItem extends StatelessWidget {
       orElse: () => Team.empty(),
     );
     final themeData = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 800;
+    final flagSize = isMobile ? 24.0 : 30.0;
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 8.0),
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(isMobile ? 12.0 : 16.0),
       decoration: BoxDecoration(
         color: themeData.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8.0),
@@ -39,86 +43,171 @@ class MatchItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Spieltag und Spielzeit oben links
+          // Spieltag und Spielzeit
           Text(
             'Spieltag:${match.matchDay}, ${DateFormat('dd.MM.yyyy HH:mm').format(match.matchDate)}',
-            style: themeData.textTheme.bodyMedium,
+            style: themeData.textTheme.bodySmall,
           ),
-          const SizedBox(height: 8.0),
-          Row(
-            children: [
-              const Spacer(),
-              // Heimteam
-              Expanded(
-                child: Column(
+          const SizedBox(height: 12.0),
+          
+            isMobile
+                ? Column(
+                    children: [
+                      // Home Team + Flag
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ClipOval(
+                            child: Flag.fromString(
+                              homeTeam.flagCode,
+                              height: flagSize,
+                              width: flagSize,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              homeTeam.name,
+                              style: themeData.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Score
+                      Text(
+                        '${match.homeScore ?? '-'} : ${match.guestScore ?? '-'}',
+                        style: themeData.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      // Guest Team + Flag
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ClipOval(
+                            child: Flag.fromString(
+                              guestTeam.flagCode,
+                              height: flagSize,
+                              width: flagSize,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              guestTeam.name,
+                              style: themeData.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          FancyIconButton(
+                            icon: Icons.edit,
+                            backgroundColor: themeData.colorScheme.primaryContainer,
+                            hoverColor: primaryDark,
+                            borderColor: primaryDark,
+                            callback: () {
+                              _showUpdateMatchDialog(context, teams, match);
+                            },
+                          ),
+                          const SizedBox(width: 8.0),
+                          FancyIconButton(
+                            icon: Icons.delete,
+                            backgroundColor: themeData.colorScheme.primaryContainer,
+                            hoverColor: Colors.red,
+                            borderColor: Colors.red,
+                            callback: () {
+                              _showDeleteMatchDialog(context, match);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+              : Row(
                   children: [
-                    ClipOval(
-                      child: Flag.fromString(
-                        homeTeam.flagCode,
-                        height: 30,
-                        width: 30,
-                        fit: BoxFit.cover,
+                    const Spacer(),
+                    // Heimteam
+                    Expanded(
+                      child: Column(
+                        children: [
+                          ClipOval(
+                            child: Flag.fromString(
+                              homeTeam.flagCode,
+                              height: 30,
+                              width: 30,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Text(
+                            homeTeam.name,
+                            style: themeData.textTheme.bodyLarge,
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(width: 16.0),
+                    // Heim- und Gastscore nebeneinander
                     Text(
-                      homeTeam.name,
+                      '${match.homeScore ?? '-'} : ${match.guestScore ?? '-'}',
                       style: themeData.textTheme.bodyLarge,
+                    ),
+                    const SizedBox(width: 16.0),
+                    // Gastteam
+                    Expanded(
+                      child: Column(
+                        children: [
+                          ClipOval(
+                            child: Flag.fromString(
+                              guestTeam.flagCode,
+                              height: 30,
+                              width: 30,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Text(
+                            guestTeam.name,
+                            style: themeData.textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        FancyIconButton(
+                          icon: Icons.edit,
+                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          hoverColor: primaryDark,
+                          borderColor: primaryDark,
+                          callback: () {
+                            _showUpdateMatchDialog(context, teams, match);
+                          },
+                        ),
+                        const SizedBox(width: 8.0),
+                        FancyIconButton(
+                          icon: Icons.delete,
+                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          hoverColor: Colors.red,
+                          borderColor: Colors.red,
+                          callback: () {
+                            _showDeleteMatchDialog(context, match);
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 16.0),
-              // Heim- und Gastscore nebeneinander
-              Text(
-                '${match.homeScore ?? '-'} : ${match.guestScore ?? '-'}',
-                style: themeData.textTheme.bodyLarge,
-              ),
-              const SizedBox(width: 16.0),
-              // Gastteam
-              Expanded(
-                child: Column(
-                  children: [
-                    ClipOval(
-                      child: Flag.fromString(
-                        guestTeam.flagCode,
-                        height: 30,
-                        width: 30,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Text(
-                      guestTeam.name,
-                      style: themeData.textTheme.bodyLarge,
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  FancyIconButton(
-                    icon: Icons.edit,
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    hoverColor: primaryDark,
-                    borderColor: primaryDark,
-                    callback: () {
-                      _showUpdateMatchDialog(context, teams, match);
-                    },
-                  ),
-                  const SizedBox(width: 8.0),
-                  FancyIconButton(
-                    icon: Icons.delete,
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    hoverColor: Colors.red,
-                    borderColor: Colors.red,
-                    callback: () {
-                      _showDeleteMatchDialog(context, match);
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
         ],
       ),
     );

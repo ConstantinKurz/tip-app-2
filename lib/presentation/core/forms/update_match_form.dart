@@ -92,138 +92,278 @@ class UpdateMatchForm extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<Team>(
-                      decoration: const InputDecoration(labelText: 'Home Team'),
-                      initialValue: teams.isEmpty
-                          ? null
-                          : (teams.any((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
-                              ? teams.firstWhere((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
-                              : null),
-                      items: teams.map((team) {
-                        return DropdownMenuItem<Team>(
-                          value: team,
-                          child: Text(team.name, overflow: TextOverflow.ellipsis),
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isMobile = screenWidth < 600;
+                  return isMobile
+                      ? Column(
+                          children: [
+                            DropdownButtonFormField<Team>(
+                              decoration: const InputDecoration(labelText: 'Home Team'),
+                              initialValue: teams.isEmpty
+                                  ? null
+                                  : (teams.any((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
+                                      ? teams.firstWhere((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
+                                      : null),
+                              items: teams.map((team) {
+                                return DropdownMenuItem<Team>(
+                                  value: team,
+                                  child: Text(team.name, overflow: TextOverflow.ellipsis),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                context.read<MatchesformBloc>().add(
+                                    MatchFormFieldUpdatedEvent(homeTeamId: value?.id));
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            DropdownButtonFormField<Team>(
+                              decoration: const InputDecoration(labelText: 'Gast Team'),
+                              initialValue: teams.isEmpty
+                                  ? null
+                                  : (teams.any((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
+                                      ? teams.firstWhere((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
+                                      : null),
+                              items: teams.map((team) {
+                                return DropdownMenuItem<Team>(
+                                  value: team,
+                                  child: Text(team.name, overflow: TextOverflow.ellipsis),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                context.read<MatchesformBloc>().add(
+                                    MatchFormFieldUpdatedEvent(guestTeamId: value?.id));
+                              },
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField<Team>(
+                                decoration: const InputDecoration(labelText: 'Home Team'),
+                                initialValue: teams.isEmpty
+                                    ? null
+                                    : (teams.any((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
+                                        ? teams.firstWhere((t) => t.id == (state.homeTeamId ?? match.homeTeamId))
+                                        : null),
+                                items: teams.map((team) {
+                                  return DropdownMenuItem<Team>(
+                                    value: team,
+                                    child: Text(team.name, overflow: TextOverflow.ellipsis),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  context.read<MatchesformBloc>().add(
+                                      MatchFormFieldUpdatedEvent(homeTeamId: value?.id));
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: DropdownButtonFormField<Team>(
+                                decoration: const InputDecoration(labelText: 'Gast Team'),
+                                initialValue: teams.isEmpty
+                                    ? null
+                                    : (teams.any((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
+                                        ? teams.firstWhere((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
+                                        : null),
+                                items: teams.map((team) {
+                                  return DropdownMenuItem<Team>(
+                                    value: team,
+                                    child: Text(team.name, overflow: TextOverflow.ellipsis),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  context.read<MatchesformBloc>().add(
+                                      MatchFormFieldUpdatedEvent(guestTeamId: value?.id));
+                                },
+                              ),
+                            ),
+                          ],
                         );
-                      }).toList(),
-                      onChanged: (value) {
-                        context.read<MatchesformBloc>().add(
-                            MatchFormFieldUpdatedEvent(homeTeamId: value?.id));
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButtonFormField<Team>(
-                      decoration: const InputDecoration(labelText: 'Gast Team'),
-                      initialValue: teams.isEmpty
-                          ? null
-                          : (teams.any((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
-                              ? teams.firstWhere((t) => t.id == (state.guestTeamId ?? match.guestTeamId))
-                              : null),
-                      items: teams.map((team) {
-                        return DropdownMenuItem<Team>(
-                          value: team,
-                          child: Text(team.name, overflow: TextOverflow.ellipsis),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        context.read<MatchesformBloc>().add(
-                            MatchFormFieldUpdatedEvent(guestTeamId: value?.id));
-                      },
-                    ),
-                  ),
-                ],
+                },
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: homeScoreController,
-                      style: const TextStyle(color: Colors.white),
-                      cursorColor: Colors.white,
-                      validator: (value) =>
-                          _validateScore(value, state, context, 'home'),
-                      maxLength: 2,
-                      maxLines: 1,
-                      minLines: 1,
-                      decoration: InputDecoration(
-                        labelText: "Heimtore",
-                        hintText: state.homeScore == null
-                            ? ""
-                            : state.homeScore.toString(),
-                        counterText: "",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: (value) => context.read<MatchesformBloc>().add(
-                          MatchFormFieldUpdatedEvent(
-                              homeTeamScore: int.tryParse(value))),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    ":",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: guestScoreController,
-                      style: const TextStyle(color: Colors.white),
-                      cursorColor: Colors.white,
-                      validator: (value) =>
-                          _validateScore(value, state, context, 'guest'),
-                      maxLength: 2,
-                      maxLines: 1,
-                      minLines: 1,
-                      decoration: InputDecoration(
-                        labelText: "Gasttore",
-                        hintText: state.guestScore == null
-                            ? ""
-                            : state.guestScore.toString(),
-                        counterText: "",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: (value) => context.read<MatchesformBloc>().add(
-                          MatchFormFieldUpdatedEvent(
-                              guestTeamScore: int.tryParse(value))),
-                    ),
-                  ),
-                ],
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isMobile = screenWidth < 600;
+                  return isMobile
+                      ? Column(
+                          children: [
+                            TextFormField(
+                              controller: homeScoreController,
+                              style: const TextStyle(color: Colors.white),
+                              cursorColor: Colors.white,
+                              validator: (value) =>
+                                  _validateScore(value, state, context, 'home'),
+                              maxLength: 2,
+                              maxLines: 1,
+                              minLines: 1,
+                              decoration: InputDecoration(
+                                labelText: "Heimtore",
+                                hintText: state.homeScore == null
+                                    ? ""
+                                    : state.homeScore.toString(),
+                                counterText: "",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onChanged: (value) => context.read<MatchesformBloc>().add(
+                                  MatchFormFieldUpdatedEvent(
+                                      homeTeamScore: int.tryParse(value))),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              ":",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              controller: guestScoreController,
+                              style: const TextStyle(color: Colors.white),
+                              cursorColor: Colors.white,
+                              validator: (value) =>
+                                  _validateScore(value, state, context, 'guest'),
+                              maxLength: 2,
+                              maxLines: 1,
+                              minLines: 1,
+                              decoration: InputDecoration(
+                                labelText: "Gasttore",
+                                hintText: state.guestScore == null
+                                    ? ""
+                                    : state.guestScore.toString(),
+                                counterText: "",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onChanged: (value) => context.read<MatchesformBloc>().add(
+                                  MatchFormFieldUpdatedEvent(
+                                      guestTeamScore: int.tryParse(value))),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: homeScoreController,
+                                style: const TextStyle(color: Colors.white),
+                                cursorColor: Colors.white,
+                                validator: (value) =>
+                                    _validateScore(value, state, context, 'home'),
+                                maxLength: 2,
+                                maxLines: 1,
+                                minLines: 1,
+                                decoration: InputDecoration(
+                                  labelText: "Heimtore",
+                                  hintText: state.homeScore == null
+                                      ? ""
+                                      : state.homeScore.toString(),
+                                  counterText: "",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onChanged: (value) => context.read<MatchesformBloc>().add(
+                                    MatchFormFieldUpdatedEvent(
+                                        homeTeamScore: int.tryParse(value))),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Text(
+                              ":",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: guestScoreController,
+                                style: const TextStyle(color: Colors.white),
+                                cursorColor: Colors.white,
+                                validator: (value) =>
+                                    _validateScore(value, state, context, 'guest'),
+                                maxLength: 2,
+                                maxLines: 1,
+                                minLines: 1,
+                                decoration: InputDecoration(
+                                  labelText: "Gasttore",
+                                  hintText: state.guestScore == null
+                                      ? ""
+                                      : state.guestScore.toString(),
+                                  counterText: "",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onChanged: (value) => context.read<MatchesformBloc>().add(
+                                    MatchFormFieldUpdatedEvent(
+                                        guestTeamScore: int.tryParse(value))),
+                              ),
+                            ),
+                          ],
+                        );
+                },
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomDatePickerField(
-                      initialDate: effectiveDate,
-                      onDateChanged: (DateTime? date) {
-                        context
-                            .read<MatchesformBloc>()
-                            .add(MatchFormFieldUpdatedEvent(matchDate: date));
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: CustomTimePickerField(
-                      initialTime: effectiveTime,
-                      onTimeChanged: (TimeOfDay? time) {
-                        context
-                            .read<MatchesformBloc>()
-                            .add(MatchFormFieldUpdatedEvent(matchTime: time));
-                      },
-                    ),
-                  ),
-                ],
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isMobile = screenWidth < 600;
+
+                  return isMobile
+                      ? Column(
+                          children: [
+                            CustomDatePickerField(
+                              initialDate: effectiveDate,
+                              onDateChanged: (DateTime? date) {
+                                context
+                                    .read<MatchesformBloc>()
+                                    .add(MatchFormFieldUpdatedEvent(matchDate: date));
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            CustomTimePickerField(
+                              initialTime: effectiveTime,
+                              onTimeChanged: (TimeOfDay? time) {
+                                context
+                                    .read<MatchesformBloc>()
+                                    .add(MatchFormFieldUpdatedEvent(matchTime: time));
+                              },
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: CustomDatePickerField(
+                                initialDate: effectiveDate,
+                                onDateChanged: (DateTime? date) {
+                                  context
+                                      .read<MatchesformBloc>()
+                                      .add(MatchFormFieldUpdatedEvent(matchDate: date));
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: CustomTimePickerField(
+                                initialTime: effectiveTime,
+                                onTimeChanged: (TimeOfDay? time) {
+                                  context
+                                      .read<MatchesformBloc>()
+                                      .add(MatchFormFieldUpdatedEvent(matchTime: time));
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                },
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
@@ -244,59 +384,128 @@ class UpdateMatchForm extends StatelessWidget {
               const SizedBox(
                 height: 16,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomButton(
-                    buttonText: 'Speichern',
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    borderColor: primaryDark,
-                    hoverColor: primaryDark,
-                    callback: () {
-                      if (formKey.currentState!.validate()) {
-                        // Fallback: Verwende gespeichertes Datum/Zeit, falls state null ist
-                        final DateTime safeDate = state.matchDate ?? match.matchDate;
-                        final TimeOfDay safeTime = state.matchTime ?? TimeOfDay(hour: match.matchDate.hour, minute: match.matchDate.minute);
-                        DateTime combinedDateTime = DateTime(
-                          safeDate.year,
-                          safeDate.month,
-                          safeDate.day,
-                          safeTime.hour,
-                          safeTime.minute,
-                        );
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isMobile = screenWidth < 600;
 
-                        final CustomMatch updatedMatch = CustomMatch(
-                          id: match.id,
-                          homeTeamId: state.homeTeamId ?? match.homeTeamId,
-                          guestTeamId: state.guestTeamId ?? match.guestTeamId,
-                          matchDate: combinedDateTime,
-                          matchDay: state.matchDay ?? match.matchDay,
-                          homeScore: state.homeScore ?? match.homeScore,
-                          guestScore: state.guestScore ?? match.guestScore,
+                  return isMobile
+                      ? Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                buttonText: 'Speichern',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  if (formKey.currentState!.validate()) {
+                                    // Fallback: Verwende gespeichertes Datum/Zeit, falls state null ist
+                                    final DateTime safeDate = state.matchDate ?? match.matchDate;
+                                    final TimeOfDay safeTime = state.matchTime ?? TimeOfDay(hour: match.matchDate.hour, minute: match.matchDate.minute);
+                                    DateTime combinedDateTime = DateTime(
+                                      safeDate.year,
+                                      safeDate.month,
+                                      safeDate.day,
+                                      safeTime.hour,
+                                      safeTime.minute,
+                                    );
+
+                                    final CustomMatch updatedMatch = CustomMatch(
+                                      id: match.id,
+                                      homeTeamId: state.homeTeamId ?? match.homeTeamId,
+                                      guestTeamId: state.guestTeamId ?? match.guestTeamId,
+                                      matchDate: combinedDateTime,
+                                      matchDay: state.matchDay ?? match.matchDay,
+                                      homeScore: state.homeScore ?? match.homeScore,
+                                      guestScore: state.guestScore ?? match.guestScore,
+                                    );
+                                    context
+                                        .read<MatchesformBloc>()
+                                        .add(MatchFormUpdateEvent(match: updatedMatch));
+                                  } else {
+                                    context
+                                        .read<MatchesformBloc>()
+                                        .add(MatchFormUpdateEvent(match: null));
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                buttonText: 'Abbrechen',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: CustomButton(
+                                buttonText: 'Speichern',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  if (formKey.currentState!.validate()) {
+                                    // Fallback: Verwende gespeichertes Datum/Zeit, falls state null ist
+                                    final DateTime safeDate = state.matchDate ?? match.matchDate;
+                                    final TimeOfDay safeTime = state.matchTime ?? TimeOfDay(hour: match.matchDate.hour, minute: match.matchDate.minute);
+                                    DateTime combinedDateTime = DateTime(
+                                      safeDate.year,
+                                      safeDate.month,
+                                      safeDate.day,
+                                      safeTime.hour,
+                                      safeTime.minute,
+                                    );
+
+                                    final CustomMatch updatedMatch = CustomMatch(
+                                      id: match.id,
+                                      homeTeamId: state.homeTeamId ?? match.homeTeamId,
+                                      guestTeamId: state.guestTeamId ?? match.guestTeamId,
+                                      matchDate: combinedDateTime,
+                                      matchDay: state.matchDay ?? match.matchDay,
+                                      homeScore: state.homeScore ?? match.homeScore,
+                                      guestScore: state.guestScore ?? match.guestScore,
+                                    );
+                                    context
+                                        .read<MatchesformBloc>()
+                                        .add(MatchFormUpdateEvent(match: updatedMatch));
+                                  } else {
+                                    context
+                                        .read<MatchesformBloc>()
+                                        .add(MatchFormUpdateEvent(match: null));
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Expanded(
+                              child: CustomButton(
+                                buttonText: 'Abbrechen',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ),
+                          ],
                         );
-                        context
-                            .read<MatchesformBloc>()
-                            .add(MatchFormUpdateEvent(match: updatedMatch));
-                      } else {
-                        context
-                            .read<MatchesformBloc>()
-                            .add(MatchFormUpdateEvent(match: null));
-                      }
-                    },
-                  ),
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  CustomButton(
-                    buttonText: 'Abbrechen',
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    borderColor: primaryDark,
-                    hoverColor: primaryDark,
-                    callback: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
+                },
               ),
             ],
           ),

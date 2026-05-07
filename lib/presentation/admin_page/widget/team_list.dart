@@ -23,6 +23,9 @@ class _TeamListState extends State<TeamList> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 800;
+    final double containerWidth = isMobile ? screenWidth * 0.95 : screenWidth * 0.4;
+    final double searchFieldWidth = isMobile ? screenWidth * 0.3 : screenWidth * 0.1;
 
     List<Team> filteredTeams = widget.teams.where((team) {
       final teamInfo =
@@ -44,45 +47,87 @@ class _TeamListState extends State<TeamList> {
 
     return Center(
       child: Container(
-        width: screenWidth * 0.4,
-        padding: const EdgeInsets.all(16.0),
+        width: containerWidth,
+        padding: EdgeInsets.all(isMobile ? 8.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text('Teams', style: themeData.textTheme.headlineLarge),
-                const Spacer(),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
+            isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Teams', style: themeData.textTheme.headlineMedium),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: TextField(
+                                cursorColor: Colors.white,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: const InputDecoration(
+                                  hintText: 'Suche',
+                                  prefixIcon: Icon(Icons.search),
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                onChanged: (text) {
+                                  setState(() {
+                                    _searchText = text;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FancyIconButton(
+                            backgroundColor: themeData.colorScheme.primaryContainer,
+                            hoverColor: primaryDark,
+                            borderColor: primaryDark,
+                            icon: Icons.add,
+                            callback: () => _showAddTeamDialog(context),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Text('Teams', style: themeData.textTheme.headlineLarge),
+                      const Spacer(),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        width: searchFieldWidth,
+                        child: TextField(
+                          cursorColor: Colors.white,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            hintText: 'Suche',
+                            prefixIcon: Icon(Icons.search),
+                          ),
+                          onChanged: (text) {
+                            setState(() {
+                              _searchText = text;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      FancyIconButton(
+                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          hoverColor: primaryDark,
+                          borderColor: primaryDark,
+                          icon: Icons.add,
+                          callback: () => _showAddTeamDialog(context)),
+                    ],
                   ),
-                  width: screenWidth * .1,
-                  child: TextField(
-                    cursorColor: Colors.white,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      hintText: 'Suche',
-                      prefixIcon: Icon(Icons.search),
-                    ),
-                    onChanged: (text) {
-                      setState(() {
-                        _searchText = text;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                FancyIconButton(
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    hoverColor: primaryDark,
-                    borderColor: primaryDark,
-                    icon: Icons.add,
-                    callback: () => {_showAddTeamDialog(context)}),
-              ],
-            ),
             const SizedBox(height: 16.0),
             Expanded(
                 child: ListView.builder(

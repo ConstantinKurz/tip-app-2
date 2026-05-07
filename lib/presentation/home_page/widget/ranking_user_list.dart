@@ -25,6 +25,8 @@ class RankingUserList extends StatelessWidget {
     // Index des aktuellen Users finden
     final currentUserIndex = users.indexWhere((user) => user.id == currentUserId);
     final initialScrollIndex = (scrollToCurrentUser && currentUserIndex != -1) ? currentUserIndex : 0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
 
     return ScrollablePositionedList.builder(
       initialScrollIndex: initialScrollIndex,
@@ -49,95 +51,169 @@ class RankingUserList extends StatelessWidget {
               : null,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 40,
-                  child: Text('#$globalRank', style: textTheme.bodyMedium),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    user.name,
-                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+            child: isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Tooltip(
-                        message: champion != null ? champion.name : 'None',
-                        child: SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: champion != null
-                              ? ClipOval(
-                                  child: Flag.fromString(
-                                    champion.flagCode,
-                                    height: 28,
-                                    width: 28,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.grey[300],
-                                  ),
-                                  child: const Icon(
-                                    Icons.help_outline,
-                                    size: 16,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 48,
-                        child: Row(
-                          children: [
-                            Text('${user.jokerSum}',
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                )),
-                            const SizedBox(width: 2),
-                            const Icon(Icons.star, size: 14, color: Colors.amber),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 48,
-                        child: Row(
-                          children: [
-                            Text('${user.sixer}',
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                )),
-                            Text(' 6er', style: textTheme.bodySmall),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 60,
-                        child: Text(
-                          '${user.score}',
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                      // First row: Rank + Name + Score
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 30,
+                            child: Text('#$globalRank', 
+                              style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          textAlign: TextAlign.end,
+                          Expanded(
+                            child: Text(
+                              user.name,
+                              style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            '${user.score}p',
+                            style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      // Second row: Champion flag + Joker + 6er
+                      Row(
+                        children: [
+                          Tooltip(
+                            message: champion != null ? champion.name : 'None',
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: champion != null
+                                  ? ClipOval(
+                                      child: Flag.fromString(
+                                        champion.flagCode,
+                                        height: 24,
+                                        width: 24,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.grey[300],
+                                      ),
+                                      child: const Icon(
+                                        Icons.help_outline,
+                                        size: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text('${user.jokerSum}⭐',
+                                style: textTheme.bodySmall,
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text('${user.sixer}×6',
+                                style: textTheme.bodySmall,
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 40,
+                        child: Text('#$globalRank', style: textTheme.bodyMedium),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          user.name,
+                          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Tooltip(
+                              message: champion != null ? champion.name : 'None',
+                              child: SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: champion != null
+                                    ? ClipOval(
+                                        child: Flag.fromString(
+                                          champion.flagCode,
+                                          height: 28,
+                                          width: 28,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.grey[300],
+                                        ),
+                                        child: const Icon(
+                                          Icons.help_outline,
+                                          size: 16,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 48,
+                              child: Row(
+                                children: [
+                                  Text('${user.jokerSum}',
+                                      style: textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      )),
+                                  const SizedBox(width: 2),
+                                  const Icon(Icons.star, size: 14, color: Colors.amber),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            SizedBox(
+                              width: 48,
+                              child: Row(
+                                children: [
+                                  Text('${user.sixer}',
+                                      style: textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      )),
+                                  Text(' 6er', style: textTheme.bodySmall),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            SizedBox(
+                              width: 60,
+                              child: Text(
+                                '${user.score}',
+                                style: textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.end,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
           ),
         );
       },

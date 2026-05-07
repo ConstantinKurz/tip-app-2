@@ -143,40 +143,92 @@ class UpdateTeamForm extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomButton(
-                    buttonText: 'Speichern',
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    borderColor: primaryDark,
-                    hoverColor: primaryDark,
-                    callback: () {
-                      if (formKey.currentState!.validate()) {
-                        final Team updatedTeam = Team(
-                          id: state.id ?? team.id,
-                          name: state.name ?? team.name,
-                          flagCode: state.flagCode ?? team.flagCode,
-                          winPoints: state.winPoints ?? team.winPoints,
-                          champion: state.champion ?? team.champion,
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isMobile = screenWidth < 600;
+
+                  return isMobile
+                      ? Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                buttonText: 'Speichern',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  if (formKey.currentState!.validate()) {
+                                    final Team updatedTeam = Team(
+                                      id: state.id ?? team.id,
+                                      name: state.name ?? team.name,
+                                      flagCode: state.flagCode ?? team.flagCode,
+                                      winPoints: state.winPoints ?? team.winPoints,
+                                      champion: state.champion ?? team.champion,
+                                    );
+                                    context
+                                        .read<TeamsformBloc>()
+                                        .add(TeamFormUpdateEvent(team: updatedTeam));
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                buttonText: 'Abbrechen',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: CustomButton(
+                                buttonText: 'Speichern',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  if (formKey.currentState!.validate()) {
+                                    final Team updatedTeam = Team(
+                                      id: state.id ?? team.id,
+                                      name: state.name ?? team.name,
+                                      flagCode: state.flagCode ?? team.flagCode,
+                                      winPoints: state.winPoints ?? team.winPoints,
+                                      champion: state.champion ?? team.champion,
+                                    );
+                                    context
+                                        .read<TeamsformBloc>()
+                                        .add(TeamFormUpdateEvent(team: updatedTeam));
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: CustomButton(
+                                buttonText: 'Abbrechen',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ),
+                          ],
                         );
-                        context
-                            .read<TeamsformBloc>()
-                            .add(TeamFormUpdateEvent(team: updatedTeam));
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  CustomButton(
-                    buttonText: 'Abbrechen',
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    borderColor: primaryDark,
-                    hoverColor: primaryDark,
-                    callback: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
+                },
               ),
             ],
           ),

@@ -54,6 +54,9 @@ class CreateMatchForm extends StatelessWidget {
         );
       },
       builder: (context, state) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isMobile = screenWidth < 600;
+
         return Form(
           autovalidateMode: state.showValidationMessages
               ? AutovalidateMode.always
@@ -99,31 +102,53 @@ class CreateMatchForm extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               // TODO: add current date as default
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomDatePickerField(
-                      initialDate: state.matchDate ?? DateTime.now(),
-                      onDateChanged: (date) {
-                        context
-                            .read<MatchesformBloc>()
-                            .add(MatchFormFieldUpdatedEvent(matchDate: date));
-                      },
+              isMobile
+                  ? Column(
+                      children: [
+                        CustomDatePickerField(
+                          initialDate: state.matchDate ?? DateTime.now(),
+                          onDateChanged: (date) {
+                            context
+                                .read<MatchesformBloc>()
+                                .add(MatchFormFieldUpdatedEvent(matchDate: date));
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTimePickerField(
+                          initialTime: state.matchTime ?? TimeOfDay.now(),
+                          onTimeChanged: (time) {
+                            context
+                                .read<MatchesformBloc>()
+                                .add(MatchFormFieldUpdatedEvent(matchTime: time));
+                          },
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: CustomDatePickerField(
+                            initialDate: state.matchDate ?? DateTime.now(),
+                            onDateChanged: (date) {
+                              context
+                                  .read<MatchesformBloc>()
+                                  .add(MatchFormFieldUpdatedEvent(matchDate: date));
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: CustomTimePickerField(
+                            initialTime: state.matchTime ?? TimeOfDay.now(),
+                            onTimeChanged: (time) {
+                              context
+                                  .read<MatchesformBloc>()
+                                  .add(MatchFormFieldUpdatedEvent(matchTime: time));
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: CustomTimePickerField(
-                      initialTime: state.matchTime ?? TimeOfDay.now(),
-                      onTimeChanged: (time) {
-                        context
-                            .read<MatchesformBloc>()
-                            .add(MatchFormFieldUpdatedEvent(matchTime: time));
-                      },
-                    ),
-                  ),
-                ],
-              ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 validator: validateMatchDay,
@@ -142,53 +167,114 @@ class CreateMatchForm extends StatelessWidget {
                 },
               ),
               const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomButton(
-                    buttonText: 'Speichern',
-                    borderColor: primaryDark,
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    hoverColor: primaryDark,
-                    callback: () {
-                      if (formKey.currentState!.validate()) {
-                        final combinedDateTime = DateTime(
-                          state.matchDate!.year,
-                          state.matchDate!.month,
-                          state.matchDate!.day,
-                          state.matchTime!.hour,
-                          state.matchTime!.minute,
-                        );
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isMobile = screenWidth < 600;
 
-                        context.read<MatchesformBloc>().add(
-                              CreateMatchEvent(
-                                id: "${state.homeTeamId}vs${state.guestTeamId}_${state.matchDay}",
-                                homeTeamId: state.homeTeamId,
-                                guestTeamId: state.guestTeamId,
-                                matchDate: combinedDateTime,
-                                matchDay: state.matchDay,
+                  return isMobile
+                      ? Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                buttonText: 'Speichern',
+                                borderColor: primaryDark,
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  if (formKey.currentState!.validate()) {
+                                    final combinedDateTime = DateTime(
+                                      state.matchDate!.year,
+                                      state.matchDate!.month,
+                                      state.matchDate!.day,
+                                      state.matchTime!.hour,
+                                      state.matchTime!.minute,
+                                    );
+
+                                    context.read<MatchesformBloc>().add(
+                                          CreateMatchEvent(
+                                            id: "${state.homeTeamId}vs${state.guestTeamId}_${state.matchDay}",
+                                            homeTeamId: state.homeTeamId,
+                                            guestTeamId: state.guestTeamId,
+                                            matchDate: combinedDateTime,
+                                            matchDay: state.matchDay,
+                                          ),
+                                        );
+                                  } else {
+                                    context.read<MatchesformBloc>().add(CreateMatchEvent(
+                                          id: null,
+                                          homeTeamId: null,
+                                          guestTeamId: null,
+                                          matchDate: null,
+                                          matchDay: null,
+                                        ));
+                                  }
+                                },
                               ),
-                            );
-                      } else {
-                        context.read<MatchesformBloc>().add(CreateMatchEvent(
-                              id: null,
-                              homeTeamId: null,
-                              guestTeamId: null,
-                              matchDate: null,
-                              matchDay: null,
-                            ));
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  CustomButton(
-                    borderColor: primaryDark,
-                    hoverColor: primaryDark,
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    buttonText: 'Abbrechen',
-                    callback: () => Navigator.of(context).pop(),
-                  ),
-                ],
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                buttonText: 'Abbrechen',
+                                callback: () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomButton(
+                              buttonText: 'Speichern',
+                              borderColor: primaryDark,
+                              backgroundColor: themeData.colorScheme.primaryContainer,
+                              hoverColor: primaryDark,
+                              callback: () {
+                                if (formKey.currentState!.validate()) {
+                                  final combinedDateTime = DateTime(
+                                    state.matchDate!.year,
+                                    state.matchDate!.month,
+                                    state.matchDate!.day,
+                                    state.matchTime!.hour,
+                                    state.matchTime!.minute,
+                                  );
+
+                                  context.read<MatchesformBloc>().add(
+                                        CreateMatchEvent(
+                                          id: "${state.homeTeamId}vs${state.guestTeamId}_${state.matchDay}",
+                                          homeTeamId: state.homeTeamId,
+                                          guestTeamId: state.guestTeamId,
+                                          matchDate: combinedDateTime,
+                                          matchDay: state.matchDay,
+                                        ),
+                                      );
+                                } else {
+                                  context.read<MatchesformBloc>().add(CreateMatchEvent(
+                                        id: null,
+                                        homeTeamId: null,
+                                        guestTeamId: null,
+                                        matchDate: null,
+                                        matchDay: null,
+                                      ));
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            CustomButton(
+                              borderColor: primaryDark,
+                              hoverColor: primaryDark,
+                              backgroundColor: themeData.colorScheme.primaryContainer,
+                              buttonText: 'Abbrechen',
+                              callback: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        );
+                },
               ),
               const SizedBox(height: 16),
             ],

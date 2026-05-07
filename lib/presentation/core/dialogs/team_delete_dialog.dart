@@ -48,37 +48,72 @@ class DeleteTeamDialog extends StatelessWidget {
         );
       },
       builder: (context, state) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isMobile = screenWidth < 600;
+        
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(contentString, style: const TextStyle(color: Colors.white)),
             const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomButton(
-                  backgroundColor: themeData.colorScheme.primaryContainer,
-                  hoverColor: Colors.red,
-                  borderColor: Colors.red,
-                  buttonText: 'Löschen',
-                  callback: () {
-                    BlocProvider.of<TeamsformBloc>(context)
-                        .add(TeamFormDeleteEvent(id: team.id));
-                    Navigator.pop(context);
-                  },
-                ),
-                const SizedBox(width: 8.0),
-                CustomButton(
-                  backgroundColor: themeData.colorScheme.primaryContainer,
-                  hoverColor: primaryDark,
-                  borderColor: primaryDark,
-                  buttonText: 'Abbrechen',
-                  callback: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
+            isMobile
+                ? Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          hoverColor: Colors.red,
+                          borderColor: Colors.red,
+                          buttonText: 'Löschen',
+                          callback: () {
+                            BlocProvider.of<TeamsformBloc>(context)
+                                .add(TeamFormDeleteEvent(id: team.id));
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          backgroundColor: themeData.colorScheme.primaryContainer,
+                          hoverColor: primaryDark,
+                          borderColor: primaryDark,
+                          buttonText: 'Abbrechen',
+                          callback: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomButton(
+                        backgroundColor: themeData.colorScheme.primaryContainer,
+                        hoverColor: Colors.red,
+                        borderColor: Colors.red,
+                        buttonText: 'Löschen',
+                        callback: () {
+                          BlocProvider.of<TeamsformBloc>(context)
+                              .add(TeamFormDeleteEvent(id: team.id));
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const SizedBox(width: 8.0),
+                      CustomButton(
+                        backgroundColor: themeData.colorScheme.primaryContainer,
+                        hoverColor: primaryDark,
+                        borderColor: primaryDark,
+                        buttonText: 'Abbrechen',
+                        callback: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
             const SizedBox(
               height: 16,
             )

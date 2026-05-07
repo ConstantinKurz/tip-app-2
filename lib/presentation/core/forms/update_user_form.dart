@@ -238,43 +238,98 @@ class UpdateUserForm extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CustomButton(
-                      buttonText: 'Speichern',
-                      backgroundColor: themeData.colorScheme.primaryContainer,
-                      borderColor: primaryDark,
-                      hoverColor: primaryDark,
-                      callback: () {
-                        if (formKey.currentState!.validate()) {
-                          final AppUser updatedUser = AppUser(
-                            id: state.id ?? user.id,
-                            name: state.name ?? user.name,
-                            email: state.email ?? user.email,
-                            rank: state.rank ?? user.rank,
-                            score: state.score ?? user.score,
-                            jokerSum: state.jokerSum ?? user.jokerSum,
-                            championId: state.championId ?? user.championId,
-                            sixer: state.sixer ?? user.sixer,
-                            admin: state.admin ?? user.admin,
+                Builder(
+                  builder: (context) {
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    final isMobile = screenWidth < 600;
+
+                    return isMobile
+                        ? Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: CustomButton(
+                                  buttonText: 'Speichern',
+                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  borderColor: primaryDark,
+                                  hoverColor: primaryDark,
+                                  callback: () {
+                                    if (formKey.currentState!.validate()) {
+                                      final AppUser updatedUser = AppUser(
+                                        id: state.id ?? user.id,
+                                        name: state.name ?? user.name,
+                                        email: state.email ?? user.email,
+                                        rank: state.rank ?? user.rank,
+                                        score: state.score ?? user.score,
+                                        jokerSum: state.jokerSum ?? user.jokerSum,
+                                        championId: state.championId ?? user.championId,
+                                        sixer: state.sixer ?? user.sixer,
+                                        admin: state.admin ?? user.admin,
+                                      );
+                                      context.read<AuthformBloc>().add(UpdateUserEvent(
+                                          user: updatedUser, currentUser: user));
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: CustomButton(
+                                  buttonText: 'Abbrechen',
+                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  borderColor: primaryDark,
+                                  hoverColor: primaryDark,
+                                  callback: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: CustomButton(
+                                  buttonText: 'Speichern',
+                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  borderColor: primaryDark,
+                                  hoverColor: primaryDark,
+                                  callback: () {
+                                    if (formKey.currentState!.validate()) {
+                                      final AppUser updatedUser = AppUser(
+                                        id: state.id ?? user.id,
+                                        name: state.name ?? user.name,
+                                        email: state.email ?? user.email,
+                                        rank: state.rank ?? user.rank,
+                                        score: state.score ?? user.score,
+                                        jokerSum: state.jokerSum ?? user.jokerSum,
+                                        championId: state.championId ?? user.championId,
+                                        sixer: state.sixer ?? user.sixer,
+                                        admin: state.admin ?? user.admin,
+                                      );
+                                      context.read<AuthformBloc>().add(UpdateUserEvent(
+                                          user: updatedUser, currentUser: user));
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: CustomButton(
+                                  buttonText: 'Abbrechen',
+                                  backgroundColor: themeData.colorScheme.primaryContainer,
+                                  borderColor: primaryDark,
+                                  hoverColor: primaryDark,
+                                  callback: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ),
+                            ],
                           );
-                          context.read<AuthformBloc>().add(UpdateUserEvent(
-                              user: updatedUser, currentUser: user));
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    CustomButton(
-                      buttonText: 'Abbrechen',
-                      backgroundColor: themeData.colorScheme.primaryContainer,
-                      borderColor: primaryDark,
-                      hoverColor: primaryDark,
-                      callback: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
+                  },
                 ),
               ],
             ),

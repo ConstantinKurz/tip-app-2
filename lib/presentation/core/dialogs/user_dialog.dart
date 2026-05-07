@@ -28,13 +28,18 @@ class UserDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 800;
+    
+    // Responsive Dialog-Größe
+    final dialogWidth = isMobile ? screenWidth * 0.95 : screenWidth * 0.5;
+    final dialogHeight = isMobile ? screenHeight * 0.75 : screenHeight * 0.6;
 
     return BlocProvider<AuthformBloc>(
       create: (context) => sl<AuthformBloc>(),
       child: CustomDialog(
         dialogText: dialogText,
-        width: screenWidth * 0.3,
-        height: screenHeight * 0.6,
+        width: dialogWidth,
+        height: dialogHeight,
         borderColor: Colors.white,
         content: Builder(
           builder: (context) {
@@ -50,8 +55,6 @@ class UserDialog extends StatelessWidget {
                     style: TextStyle(color: Colors.white),
                   ),
                 );
-              default:
-                return const CreateUserForm();
             }
           },
         ),

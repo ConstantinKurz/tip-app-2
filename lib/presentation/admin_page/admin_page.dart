@@ -64,8 +64,10 @@ class _AdminPageState extends State<AdminPage> {
                 return PageTemplate(
                   isAuthenticated: widget.isAuthenticated,
                   child: isMobile
-                      ? _buildMobileLayout(context, authState, matchState, teamState)
-                      : _buildDesktopLayout(context, authState, matchState, teamState),
+                      ? _buildMobileLayout(
+                          context, authState, matchState, teamState)
+                      : _buildDesktopLayout(
+                          context, authState, matchState, teamState),
                 );
               },
             );
@@ -107,7 +109,7 @@ class _AdminPageState extends State<AdminPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildTabButton(0, 'Nutzer'),
+              _buildTabButton(0, 'Tipper'),
               const SizedBox(width: 12),
               _buildTabButton(1, 'Matches'),
               const SizedBox(width: 12),

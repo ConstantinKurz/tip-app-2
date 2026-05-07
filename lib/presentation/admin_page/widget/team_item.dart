@@ -17,83 +17,154 @@ class TeamItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 800;
+    final flagSize = isMobile ? 32.0 : 40.0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8.0),
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(isMobile ? 12.0 : 16.0),
       decoration: BoxDecoration(
         color: themeData.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8.0),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
+      child: isMobile
+          ? Column(
               children: [
-                ClipOval(
-                  child: Flag.fromString(
-                    team.flagCode,
-                    height: 40,
-                    width: 40,
-                    fit: BoxFit.cover,
+                Row(
+                  children: [
+                    ClipOval(
+                      child: Flag.fromString(
+                        team.flagCode,
+                        height: flagSize,
+                        width: flagSize,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            team.name,
+                            style: themeData.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Punkte: ${team.winPoints}',
+                            style: themeData.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Tooltip(
+                      message: team.champion ? 'Champion' : 'Kein Champion',
+                      child: Icon(
+                        Icons.star,
+                        color: team.champion ? Colors.amber : Colors.grey,
+                        size: 18.0,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    FancyIconButton(
+                      icon: Icons.edit,
+                      backgroundColor: themeData.colorScheme.primaryContainer,
+                      hoverColor: primaryDark,
+                      borderColor: primaryDark,
+                      callback: () {
+                        _showUpdateUserDialog(context, team);
+                      },
+                    ),
+                    const SizedBox(width: 8.0),
+                    FancyIconButton(
+                      icon: Icons.delete,
+                      backgroundColor: themeData.colorScheme.primaryContainer,
+                      hoverColor: Colors.red,
+                      borderColor: Colors.red,
+                      callback: () {
+                        _showDeleteMatchDialog(context, team);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      ClipOval(
+                        child: Flag.fromString(
+                          team.flagCode,
+                          height: 40,
+                          width: 40,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        team.name,
+                        style: themeData.textTheme.bodyLarge,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
+                Column(
+                  children: [
+                    Tooltip(
+                      message: team.champion ? 'Champion' : 'Kein Champion',
+                      child: Icon(
+                        Icons.star,
+                        color: team.champion ? Colors.amber : Colors.grey,
+                        size: 20.0,
+                      ),
+                    ),
+                    const SizedBox(height: 4.0),
+                    Text(
+                      'Punkte: ${team.winPoints}',
+                      style: themeData.textTheme.bodyMedium,
+                    ),
+                  ],
                 ),
-                Text(
-                  team.name,
-                  style: themeData.textTheme.bodyLarge,
+                const Spacer(),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FancyIconButton(
+                      icon: Icons.edit,
+                      backgroundColor: themeData.colorScheme.primaryContainer,
+                      hoverColor: primaryDark,
+                      borderColor: primaryDark,
+                      callback: () {
+                        _showUpdateUserDialog(context, team);
+                      },
+                    ),
+                    const SizedBox(width: 8.0),
+                    FancyIconButton(
+                      icon: Icons.delete,
+                      backgroundColor: themeData.colorScheme.primaryContainer,
+                      hoverColor: Colors.red,
+                      borderColor: Colors.red,
+                      callback: () {
+                        _showDeleteMatchDialog(context, team);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
-          Column(
-            children: [
-              Tooltip(
-                message: team.champion ? 'Champion' : 'Kein Champion',
-                child: Icon(
-                  Icons.star,
-                  color: team.champion ? Colors.amber : Colors.grey,
-                  size: 20.0,
-                ),
-              ),
-              const SizedBox(height: 4.0),
-              Text(
-                'Punkte: ${team.winPoints}',
-                style: themeData.textTheme.bodyMedium,
-              ),
-            ],
-          ),
-          const Spacer(),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FancyIconButton(
-                icon: Icons.edit,
-                backgroundColor: themeData.colorScheme.primaryContainer,
-                hoverColor: primaryDark,
-                borderColor: primaryDark,
-                callback: () {
-                  _showUpdateUserDialog(context, team);
-                },
-              ),
-              const SizedBox(width: 8.0),
-              FancyIconButton(
-                icon: Icons.delete,
-                backgroundColor: themeData.colorScheme.primaryContainer,
-                hoverColor: Colors.red,
-                borderColor: Colors.red,
-                callback: () {
-                  _showDeleteMatchDialog(context, team);
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

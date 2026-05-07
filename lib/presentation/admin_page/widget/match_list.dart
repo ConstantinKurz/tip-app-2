@@ -25,12 +25,13 @@ class _MatchListState extends State<MatchList> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 800;
     
     // Responsive width: mobile takes full width, desktop takes 50%
-    final double containerWidth = screenWidth < 600 ? screenWidth * 0.95 : screenWidth * 0.5;
+    final double containerWidth = isMobile ? screenWidth * 0.95 : screenWidth * 0.5;
     
     // Responsive search field width
-    final double searchFieldWidth = screenWidth < 600 ? screenWidth * 0.3 : screenWidth * 0.1;
+    final double searchFieldWidth = isMobile ? screenWidth * 0.3 : screenWidth * 0.1;
 
     // Debug: Log available matchDays
     final availableMatchDays = widget.matches.map((m) => m.matchDay).toSet();
@@ -75,48 +76,86 @@ class _MatchListState extends State<MatchList> {
     return Center(
       child: Container(
         width: containerWidth,
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(isMobile ? 8.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text('Matches', style: themeData.textTheme.headlineLarge),
-                const Spacer(),
-                // Suchleiste
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  width: searchFieldWidth,
-                  child: TextField(
-                    cursorColor: Colors.white,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      hintText: 'Suche',
-                      prefixIcon: Icon(Icons.search),
-                    ),
-                    onChanged: (text) {
-                      setState(() {
-                        _searchText =
-                            text; // Aktualisieren des Suchtextes bei jeder Änderung
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                FancyIconButton(
-                    backgroundColor: themeData.colorScheme.primaryContainer,
-                    hoverColor: primaryDark,
-                    borderColor: primaryDark,
-                    icon: Icons.add,
-                    callback: () => {
-                          _showAddMatchDialog(context, widget.teams)
-                        }),
-              ],
-            ),
+            isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Matches', style: themeData.textTheme.headlineMedium),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: TextField(
+                                cursorColor: Colors.white,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: const InputDecoration(
+                                  hintText: 'Suche',
+                                  prefixIcon: Icon(Icons.search),
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                onChanged: (text) {
+                                  setState(() {
+                                    _searchText = text;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FancyIconButton(
+                            backgroundColor: themeData.colorScheme.primaryContainer,
+                            hoverColor: primaryDark,
+                            borderColor: primaryDark,
+                            icon: Icons.add,
+                            callback: () => _showAddMatchDialog(context),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Text('Matches', style: themeData.textTheme.headlineLarge),
+                      const Spacer(),
+                      // Suchleiste
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        width: searchFieldWidth,
+                        child: TextField(
+                          cursorColor: Colors.white,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            hintText: 'Suche',
+                            prefixIcon: Icon(Icons.search),
+                          ),
+                          onChanged: (text) {
+                            setState(() {
+                              _searchText = text;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      FancyIconButton(
+                        backgroundColor: themeData.colorScheme.primaryContainer,
+                        hoverColor: primaryDark,
+                        borderColor: primaryDark,
+                        icon: Icons.add,
+                        callback: () => _showAddMatchDialog(context),
+                      ),
+            ],
+          ),
             const SizedBox(height: 16.0),
             Expanded(
                 child: ListView.builder(
@@ -135,14 +174,14 @@ class _MatchListState extends State<MatchList> {
     );
   }
 
-  void _showAddMatchDialog(BuildContext context, List<Team> teams) {
+  void _showAddMatchDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Builder(
           builder: (BuildContext newContext) {
             return MatchDialog(
-              teams: teams,
+              teams: widget.teams,
               dialogText: "Neues Match",
               matchAction: MatchAction.create,
             );

@@ -30,6 +30,11 @@ class MatchDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 800;
+    
+    // Responsive Dialog-Größe
+    final dialogWidth = isMobile ? screenWidth * 0.95 : screenWidth * 0.5;
+    final dialogHeight = isMobile ? screenHeight * 0.75 : screenHeight * 0.6;
 
     return BlocProvider<MatchesformBloc>(
       create: (context) => sl<MatchesformBloc>(),
@@ -43,13 +48,12 @@ class MatchDialog extends StatelessWidget {
               case MatchAction.delete:
                 return DeleteMatchDialog(match: match!);
               case MatchAction.create:
-              default:
                 return CreateMatchForm(teams: teams!);
             }
           },
         ),
-        width: screenWidth * 0.3,
-        height: screenHeight * 0.6,
+        width: dialogWidth,
+        height: dialogHeight,
         borderColor: Colors.white,
       ),
     );

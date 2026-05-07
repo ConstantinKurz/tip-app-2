@@ -22,6 +22,8 @@ class TipCardMatchInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
 
     return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
       buildWhen: (previous, current) {
@@ -55,6 +57,88 @@ class TipCardMatchInfo extends StatelessWidget {
 
         final currentHasResult =
             currentMatch.homeScore != null && currentMatch.guestScore != null;
+
+        if (isMobile) {
+          return Column(
+            children: [
+              // Home Team
+              Row(
+                children: [
+                  ClipOval(
+                    child: Flag.fromString(
+                      homeTeam.flagCode,
+                      height: 28,
+                      width: 28,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      homeTeam.name,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Score
+              Container(
+                width: double.infinity,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: currentHasResult
+                      ? Text(
+                          '${currentMatch.homeScore} : ${currentMatch.guestScore}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        )
+                      : Text(
+                          'vs',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Guest Team
+              Row(
+                children: [
+                  ClipOval(
+                    child: Flag.fromString(
+                      guestTeam.flagCode,
+                      height: 28,
+                      width: 28,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      guestTeam.name,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
 
         return Row(
           children: [

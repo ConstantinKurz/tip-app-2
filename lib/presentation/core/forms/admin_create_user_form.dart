@@ -134,43 +134,95 @@ class _CreateUserFormState extends State<CreateUserForm> {
                 contentPadding: EdgeInsets.zero,
               ),
               const SizedBox(height: 16),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                CustomButton(
-                  buttonText: 'Speichern',
-                  backgroundColor: themeData.colorScheme.primaryContainer,
-                  borderColor: primaryDark,
-                  hoverColor: primaryDark,
-                  callback: () {
-                    if (formKey.currentState!.validate()) {
-                      BlocProvider.of<AuthformBloc>(context).add(
-                        CreateUserEvent(
-                          username: _username,
-                          email: _email,
-                          password: _password,
-                          admin: _isAdmin,
-                        ),
-                      );
-                    } else {
-                      BlocProvider.of<AuthformBloc>(context).add(
-                        CreateUserEvent(
-                            username: null, email: null, password: null, admin: false),
-                      );
-                    }
-                  },
-                ),
-                const SizedBox(
-                  width: 8,
-                ),
-                CustomButton(
-                  buttonText: 'Abbrechen',
-                  backgroundColor: themeData.colorScheme.primaryContainer,
-                  borderColor: primaryDark,
-                  hoverColor: primaryDark,
-                  callback: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ]),
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isMobile = screenWidth < 600;
+
+                  return isMobile
+                      ? Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                buttonText: 'Speichern',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  if (formKey.currentState!.validate()) {
+                                    BlocProvider.of<AuthformBloc>(context).add(
+                                      CreateUserEvent(
+                                        username: _username,
+                                        email: _email,
+                                        password: _password,
+                                        admin: _isAdmin,
+                                      ),
+                                    );
+                                  } else {
+                                    BlocProvider.of<AuthformBloc>(context).add(
+                                      CreateUserEvent(
+                                          username: null, email: null, password: null, admin: false),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                buttonText: 'Abbrechen',
+                                backgroundColor: themeData.colorScheme.primaryContainer,
+                                borderColor: primaryDark,
+                                hoverColor: primaryDark,
+                                callback: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomButton(
+                              buttonText: 'Speichern',
+                              backgroundColor: themeData.colorScheme.primaryContainer,
+                              borderColor: primaryDark,
+                              hoverColor: primaryDark,
+                              callback: () {
+                                if (formKey.currentState!.validate()) {
+                                  BlocProvider.of<AuthformBloc>(context).add(
+                                    CreateUserEvent(
+                                      username: _username,
+                                      email: _email,
+                                      password: _password,
+                                      admin: _isAdmin,
+                                    ),
+                                  );
+                                } else {
+                                  BlocProvider.of<AuthformBloc>(context).add(
+                                    CreateUserEvent(
+                                        username: null, email: null, password: null, admin: false),
+                                  );
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            CustomButton(
+                              buttonText: 'Abbrechen',
+                              backgroundColor: themeData.colorScheme.primaryContainer,
+                              borderColor: primaryDark,
+                              hoverColor: primaryDark,
+                              callback: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                },
+              ),
             ],
           ),
         );

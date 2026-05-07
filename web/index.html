@@ -1,26 +1,38 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <base href="/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Shorty Tipp">
+  <meta name="theme-color" content="#121212">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
   <title>Shorty Tipp</title>
   <link rel="manifest" href="manifest.json">
 
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #121212;
+      overflow: hidden;
+    }
+  </style>
+
   <script>
-    window.addEventListener('flutter-first-frame', function() {
+    window.addEventListener('flutter-first-frame', function () {
       document.body.style.margin = '0';
       document.body.style.padding = '0';
     });
@@ -28,17 +40,19 @@
 
   <script src="flutter.js" defer></script>
 </head>
+
 <body>
   <script>
-    window.onload = function() {
+    window.onload = function () {
       _flutter.loader.loadEntrypoint({
         serviceWorkerVersion: null,
-      }).then(function(engineInitializer) {
+      }).then(function (engineInitializer) {
         return engineInitializer.initializeEngine();
-      }).then(function(appRunner) {
+      }).then(function (appRunner) {
         return appRunner.runApp();
       });
-    };
+    }
   </script>
 </body>
+
 </html>

@@ -19,14 +19,12 @@ class TipDetailsPage extends StatefulWidget {
   final bool isAuthenticated;
   final String tipId;
   final int? returnIndex;
-  final String? from;
 
   const TipDetailsPage({
     Key? key,
     required this.isAuthenticated,
     required this.tipId,
     this.returnIndex,
-    this.from,
   }) : super(key: key);
 
   @override
@@ -48,8 +46,10 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final routeData = RouteData.of(context);
-    final from = routeData.queryParameters['from'];
     final returnIndexString = routeData.queryParameters['returnIndex'];
+    final returnIndex = returnIndexString != null 
+        ? int.tryParse(returnIndexString) 
+        : widget.returnIndex;
 
     return Scaffold(
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
@@ -71,18 +71,18 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                           (t) => t.id == widget.tipId,
                           orElse: () => Tip.empty(userId),
                         );
-                        
+
                         // If tip does not exist matchId within tip is still empty. Get it from tipId.
                         final splitIndex = widget.tipId.indexOf('_');
                         final matchId = widget.tipId.substring(splitIndex + 1);
-                        
+
                         // ✅ Reset flags wenn matchId wechselt
                         if (_lastMatchId != matchId) {
                           _lastMatchId = matchId;
                           _statsLoaded = false;
                           _matchTipsLoaded = false;
                         }
-                        
+
                         final match = matchState.matches.firstWhere(
                           (m) => m.id == matchId,
                           orElse: () => CustomMatch.empty(),
@@ -130,24 +130,27 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   ConstrainedBox(
-                                    constraints: const BoxConstraints(maxWidth: 700),
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 700),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
                                       children: [
                                         const SizedBox(height: 24),
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
                                           children: [
                                             IconButton(
                                               icon: const Icon(Icons.close),
                                               onPressed: () {
-                                                if (from == 'tip' &&
-                                                    returnIndexString != null) {
+                                                if (returnIndex != null) {
                                                   Routemaster.of(context).replace(
-                                                      '/tips?scrollTo=$returnIndexString');
+                                                      '/tips?returnIndex=$returnIndex');
                                                 } else {
-                                                  Routemaster.of(context).replace('/home');
+                                                  Routemaster.of(context)
+                                                      .replace('/home');
                                                 }
                                               },
                                             ),
@@ -170,7 +173,12 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                         ),
                                         const SizedBox(height: 24),
                                         SizedBox(
-                                          height: 500,
+                                          height: MediaQuery.of(context)
+                                                      .size
+                                                      .width <
+                                                  800
+                                              ? 650
+                                              : 500,
                                           child: CommunityTipList(
                                             users: authState.users,
                                             allTips: tipState.tips,
@@ -192,7 +200,8 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                       // Show loading indicator while data is loading
                       return Center(
                         child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       );
                     },
@@ -231,17 +240,17 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
   bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
     if (tip.tipHome != null || tip.tipGuest != null) return false;
-    
+
     final phase = MatchPhase.fromMatchDay(widget.matchDay);
     if (!phase.hasTipLimit) return false;
-    
+
     if (phase == MatchPhase.groupStage) {
       final stats = tipState.matchDayStatistics[widget.matchDay];
       if (stats != null) {
         return stats.tippedGames >= phase.maxTips!;
       }
     }
-    
+
     return false;
   }
 
@@ -287,7 +296,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
       listenWhen: (previous, current) {
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
           return previous.tips != current.tips ||
-                 previous.matchDayStatistics != current.matchDayStatistics;
+              previous.matchDayStatistics != current.matchDayStatistics;
         }
         return current is TipControllerLoaded;
       },

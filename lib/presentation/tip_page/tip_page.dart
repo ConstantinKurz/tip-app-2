@@ -36,10 +36,19 @@ class _TipPageState extends State<TipPage> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
-  bool _hasInitialScrolled = false;
   final Set<int> _loadedMatchDays = {}; // Tracking der geladenen Statistiken
   String? _lastUserId; // ✅ Track user to reset on user change
   bool _initialStatsLoaded = false; // ✅ Track initial stats load
+  Key? _listKey; // ✅ Key für die Liste, ändert sich wenn returnIndex vorhanden
+
+  @override
+  void initState() {
+    super.initState();
+    // ✅ Setze einmaligen Key wenn wir von Detail-Page zurückkommen
+    if (widget.initialScrollIndex != null) {
+      _listKey = ValueKey('list_${widget.initialScrollIndex}');
+    }
+  }
 
   @override
   void dispose() {
@@ -86,28 +95,6 @@ class _TipPageState extends State<TipPage> {
 
     // Fallback: Springe zum letzten Spiel
     return matches.isEmpty ? 0 : matches.length - 1;
-  }
-
-  /// ✅ Scrollt zum initialen Index (nur einmal)
-  void _scrollToInitialPosition(int targetIndex, int maxIndex) {
-    if (_hasInitialScrolled) return;
-    if (!_itemScrollController.isAttached) return;
-
-    final safeIndex = targetIndex.clamp(0, maxIndex);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_itemScrollController.isAttached && mounted) {
-        _itemScrollController.scrollTo(
-          index: safeIndex,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-          alignment: 0.1, // 10% vom oberen Rand
-        );
-        setState(() {
-          _hasInitialScrolled = true;
-        });
-      }
-    });
   }
 
   /// ✅ Lädt Statistiken für alle matchDays die in gefilterten Matches vorkommen
@@ -239,8 +226,6 @@ class _TipPageState extends State<TipPage> {
                                   onPressed: () {
                                     setState(() {
                                       _filteredMatches = [];
-                                      _hasInitialScrolled =
-                                          false; // Reset scroll bei neuem Filter
                                     });
                                   },
                                   child: const Text('Filter zurücksetzen'),
@@ -261,9 +246,8 @@ class _TipPageState extends State<TipPage> {
                               _findCurrentOrNextMatchIndex(displayedMatches);
                         }
 
-                        // ✅ Scroll nur einmal nach Build
-                        _scrollToInitialPosition(
-                            targetIndex, displayedMatches.length - 1);
+                        // ✅ Clamp den Index auf gültigen Bereich
+                        final safeIndex = targetIndex.clamp(0, displayedMatches.length - 1);
 
                         return Stack(
                           children: [
@@ -293,6 +277,8 @@ class _TipPageState extends State<TipPage> {
                                     child: SizedBox(
                                       width: contentMaxWidth,
                                       child: ScrollablePositionedList.separated(
+                                        key: _listKey,
+                                        initialScrollIndex: safeIndex,
                                         itemScrollController:
                                             _itemScrollController,
                                         itemPositionsListener:
@@ -333,7 +319,7 @@ class _TipPageState extends State<TipPage> {
                                                   ? tip.id
                                                   : "${userId}_${match.id}";
                                               Routemaster.of(context).push(
-                                                '/tips-detail/$tipId?from=tip&returnIndex=$index',
+                                                '/tips-detail/$tipId?returnIndex=$index',
                                               );
                                             },
                                             child:

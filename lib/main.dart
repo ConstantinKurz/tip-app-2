@@ -194,7 +194,9 @@ class MyApp extends StatelessWidget {
                               child: UserProfilePage(isAuthenticated: true),
                             ),
                         AppRoutes.userTips: (info) {
-                          final scrollToIndex = info.queryParameters['scrollTo'];
+                          // Unterstützt beide Parameter: scrollTo (alt) und returnIndex (neu)
+                          final scrollToIndex = info.queryParameters['scrollTo'] 
+                              ?? info.queryParameters['returnIndex'];
                           
                           return MaterialPage(
                             child: TipPage(
@@ -207,10 +209,7 @@ class MyApp extends StatelessWidget {
                         },
                         AppRoutes.userTipsDetail: (info) {
                           final tipId = info.pathParameters['id']!;
-                          // Lese alle Query-Parameter
                           final returnIndexString = info.queryParameters['returnIndex'];
-                          final from = info.queryParameters['from'];
-                          
                           final returnIndex = returnIndexString != null 
                               ? int.tryParse(returnIndexString) 
                               : null;
@@ -220,7 +219,6 @@ class MyApp extends StatelessWidget {
                               isAuthenticated: true,
                               tipId: tipId,
                               returnIndex: returnIndex,
-                              from: from, // Neuer Parameter
                             ),
                           );
                         },

@@ -247,7 +247,8 @@ class _TipPageState extends State<TipPage> {
                         }
 
                         // ✅ Clamp den Index auf gültigen Bereich
-                        final safeIndex = targetIndex.clamp(0, displayedMatches.length - 1);
+                        final safeIndex =
+                            targetIndex.clamp(0, displayedMatches.length - 1);
 
                         return Stack(
                           children: [

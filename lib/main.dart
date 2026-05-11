@@ -50,7 +50,8 @@ void main() async {
   recalculationService.startListening();
 
   print('🚀 App gestartet - Neuberechnung Service aktiv');
-  print('📊 Firestore Logging aktiv - Nutze FirestoreLogger.printSummary() für Statistiken');
+  print(
+      '📊 Firestore Logging aktiv - Nutze FirestoreLogger.printSummary() für Statistiken');
 
   runApp(const MyApp());
 }
@@ -103,17 +104,17 @@ class MyApp extends StatelessWidget {
           final authControllerState = context.watch<AuthControllerBloc>().state;
           bool isAdmin = false;
           String? userId;
-          
+
           if (authControllerState is AuthControllerLoaded) {
             isAdmin = authControllerState.signedInUser?.admin ?? false;
             userId = authControllerState.signedInUser?.id;
           }
-          
+
           // ✅ FIX: Reset flags und Bloc wenn nicht authentifiziert (Logout)
           if (!isAuthenticated && _tipBlocInitialized) {
             _tipBlocInitialized = false;
             _tipBlocInitializedForUser = null;
-            
+
             WidgetsBinding.instance.addPostFrameCallback((_) {
               print('🚪 [Main] Logout detected: Dispatching TipResetEvent');
               context.read<TipControllerBloc>().add(TipResetEvent());
@@ -122,20 +123,23 @@ class MyApp extends StatelessWidget {
 
           // ✅ Initialisiere TipControllerBloc basierend auf User-Rolle
           // ✅ FIX: Dispatch bei User-Wechsel (neue userId)
-          if (isAuthenticated && userId != null && 
+          if (isAuthenticated &&
+              userId != null &&
               (!_tipBlocInitialized || _tipBlocInitializedForUser != userId)) {
             _tipBlocInitialized = true;
             _tipBlocInitializedForUser = userId;
-            
+
             WidgetsBinding.instance.addPostFrameCallback((_) {
               final tipBloc = context.read<TipControllerBloc>();
-              
+
               // ✅ FIX: Immer neu laden bei User-Wechsel (User-ID hat sich geändert)
               if (isAdmin) {
-                print('👑 [Main] Admin: Dispatching TipAllEvent for user: $userId');
+                print(
+                    '👑 [Main] Admin: Dispatching TipAllEvent for user: $userId');
                 tipBloc.add(TipAllEvent());
               } else {
-                print('👤 [Main] User: Dispatching TipLoadForUserEvent for user: $userId');
+                print(
+                    '👤 [Main] User: Dispatching TipLoadForUserEvent for user: $userId');
                 tipBloc.add(TipLoadForUserEvent(userId: userId!));
               }
             });
@@ -174,14 +178,13 @@ class MyApp extends StatelessWidget {
                       routes: {
                         AppRoutes.home: (_) => const MaterialPage(
                             child: HomePage(isAuthenticated: true)),
-                        AppRoutes.admin: (_) => 
-                          isAdmin
-                              ? MaterialPage(
-                                  child: AdminPage(isAuthenticated: true),
-                                )
-                              : const MaterialPage(
-                            child: HomePage(isAuthenticated: true)),
-                        AppRoutes.adminUserTips : (info) {
+                        AppRoutes.admin: (_) => isAdmin
+                            ? MaterialPage(
+                                child: AdminPage(isAuthenticated: true),
+                              )
+                            : const MaterialPage(
+                                child: HomePage(isAuthenticated: true)),
+                        AppRoutes.adminUserTips: (info) {
                           final userId = info.pathParameters['userId']!;
                           return MaterialPage(
                             child: AdminUserTipDetailsPage(
@@ -195,9 +198,10 @@ class MyApp extends StatelessWidget {
                             ),
                         AppRoutes.userTips: (info) {
                           // Unterstützt beide Parameter: scrollTo (alt) und returnIndex (neu)
-                          final scrollToIndex = info.queryParameters['scrollTo'] 
-                              ?? info.queryParameters['returnIndex'];
-                          
+                          final scrollToIndex =
+                              info.queryParameters['scrollTo'] ??
+                                  info.queryParameters['returnIndex'];
+
                           return MaterialPage(
                             child: TipPage(
                               isAuthenticated: true,
@@ -209,11 +213,12 @@ class MyApp extends StatelessWidget {
                         },
                         AppRoutes.userTipsDetail: (info) {
                           final tipId = info.pathParameters['id']!;
-                          final returnIndexString = info.queryParameters['returnIndex'];
-                          final returnIndex = returnIndexString != null 
-                              ? int.tryParse(returnIndexString) 
+                          final returnIndexString =
+                              info.queryParameters['returnIndex'];
+                          final returnIndex = returnIndexString != null
+                              ? int.tryParse(returnIndexString)
                               : null;
-                          
+
                           return MaterialPage(
                             child: TipDetailsPage(
                               isAuthenticated: true,

@@ -47,8 +47,8 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
   Widget build(BuildContext context) {
     final routeData = RouteData.of(context);
     final returnIndexString = routeData.queryParameters['returnIndex'];
-    final returnIndex = returnIndexString != null 
-        ? int.tryParse(returnIndexString) 
+    final returnIndex = returnIndexString != null
+        ? int.tryParse(returnIndexString)
         : widget.returnIndex;
 
     return Scaffold(

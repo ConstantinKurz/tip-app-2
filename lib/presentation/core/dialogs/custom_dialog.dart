@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomDialog extends StatelessWidget {
+class CustomDialog extends StatefulWidget {
   final String dialogText;
   final Widget content;
   final double width;
@@ -23,47 +23,65 @@ class CustomDialog extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CustomDialog> createState() => _CustomDialogState();
+}
+
+class _CustomDialogState extends State<CustomDialog> {
+  late double _dialogWidth;
+  late double _dialogHeight;
+  late double _horizontalPadding;
+  late double _verticalPadding;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Nur beim ersten Mal berechnen, nicht wenn Tastatur erscheint
+    if (!_initialized) {
+      _initialized = true;
+      final screenWidth = MediaQuery.of(context).size.width;
+      final screenHeight = MediaQuery.of(context).size.height;
+
+      _dialogWidth = screenWidth < 600 ? screenWidth * 0.85 : widget.width;
+
+      _dialogHeight = screenHeight < 700 ? screenHeight * 0.70 : widget.height;
+
+      _horizontalPadding = screenWidth < 600 ? 16 : 40;
+      _verticalPadding = screenWidth < 600 ? 24 : 40;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    // Responsive sizing: Use provided dimensions or calculate from screen size
-    final double dialogWidth = screenWidth < 600
-        ? screenWidth * 0.85 // Mobile: 85% of screen width
-        : width;
-
-    final double dialogHeight = screenHeight < 700
-        ? screenHeight * 0.70 // Mobile: 70% of screen height
-        : height;
-
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
-        horizontal: screenWidth < 600 ? 16 : 40,
-        vertical: screenWidth < 600 ? 24 : 40,
+        horizontal: _horizontalPadding,
+        vertical: _verticalPadding,
       ),
       child: Container(
-        width: dialogWidth,
+        width: _dialogWidth,
         constraints: BoxConstraints(
-          maxHeight: dialogHeight,
+          maxHeight: _dialogHeight,
         ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(borderRadius),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
           border: Border.all(
-            color: borderColor ?? Colors.white,
-            width: borderWidth,
+            color: widget.borderColor ?? Colors.white,
+            width: widget.borderWidth,
           ),
         ),
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(dialogText, style: Theme.of(context).textTheme.headlineSmall),
+            Text(widget.dialogText,
+                style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
             Flexible(
               child: SingleChildScrollView(
-                child: content,
+                child: widget.content,
               ),
             ),
           ],

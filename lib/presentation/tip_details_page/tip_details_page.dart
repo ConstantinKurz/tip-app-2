@@ -187,6 +187,13 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                             teams: teamState.teams,
                                           ),
                                         ),
+                                        // Bottom padding for safe area on mobile
+                                        SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .padding
+                                                  .bottom +
+                                              100,
+                                        ),
                                       ],
                                     ),
                                   ),

@@ -124,14 +124,14 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                         return PageTemplate(
                           isAuthenticated: widget.isAuthenticated,
                           child: Center(
-                            child: SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 700),
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  ConstrainedBox(
-                                    constraints:
-                                        const BoxConstraints(maxWidth: 700),
+                                  // Non-scrolling header section
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       crossAxisAlignment:
@@ -172,29 +172,27 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                           ),
                                         ),
                                         const SizedBox(height: 24),
-                                        SizedBox(
-                                          height: MediaQuery.of(context)
-                                                      .size
-                                                      .width <
-                                                  800
-                                              ? 650
-                                              : 500,
-                                          child: CommunityTipList(
-                                            users: authState.users,
-                                            allTips: tipState.tips,
-                                            match: match,
-                                            currentUserId: userId,
-                                            teams: teamState.teams,
-                                          ),
-                                        ),
-                                        // Bottom padding for safe area on mobile
-                                        SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .padding
-                                                  .bottom +
-                                              100,
-                                        ),
                                       ],
+                                    ),
+                                  ),
+                                  // Scrollable CommunityTipList takes remaining space
+                                  Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 16,
+                                        right: 16,
+                                        bottom: MediaQuery.of(context)
+                                                .padding
+                                                .bottom +
+                                            16,
+                                      ),
+                                      child: CommunityTipList(
+                                        users: authState.users,
+                                        allTips: tipState.tips,
+                                        match: match,
+                                        currentUserId: userId,
+                                        teams: teamState.teams,
+                                      ),
                                     ),
                                   ),
                                 ],

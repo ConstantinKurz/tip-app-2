@@ -12,7 +12,7 @@ import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/tip_card/tip_card.dart';
-import 'package:flutter_web/presentation/tip_page/widgets/tip_details_community_tip_list.dart';
+import 'package:flutter_web/presentation/tip_details_page/widgets/tip_details_community_tip_list.dart';
 import 'package:routemaster/routemaster.dart';
 
 class TipDetailsPage extends StatefulWidget {

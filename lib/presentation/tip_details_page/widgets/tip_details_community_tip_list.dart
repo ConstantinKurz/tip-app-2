@@ -39,12 +39,22 @@ class CommunityTipList extends StatelessWidget {
         Expanded(
           child: ScrollablePositionedList.separated(
             initialScrollIndex: currentUserIndex >= 0 ? currentUserIndex : 0,
-            itemCount: sortedUsers.length,
-            separatorBuilder: (_, __) => Divider(
-              color: theme.dividerColor.withOpacity(0.05),
-              height: 1,
-            ),
+            itemCount: sortedUsers.length + 1, // +1 for bottom padding item
+            separatorBuilder: (_, index) {
+              // No separator after the last real item (before padding item)
+              if (index >= sortedUsers.length - 1) {
+                return const SizedBox.shrink();
+              }
+              return Divider(
+                color: theme.dividerColor.withOpacity(0.05),
+                height: 1,
+              );
+            },
             itemBuilder: (context, index) {
+              // Bottom padding item
+              if (index >= sortedUsers.length) {
+                return const SizedBox(height: 100);
+              }
               final user = sortedUsers[index];
               // ✅ FIX: Rang basiert auf sortierter Position (1-basiert)
               final displayRank = index + 1;

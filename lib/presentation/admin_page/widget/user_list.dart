@@ -5,8 +5,8 @@ import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/user_dialog.dart';
 import 'package:flutter_web/presentation/admin_page/widget/user_item.dart';
+import 'package:routemaster/routemaster.dart';
 
 class UserList extends StatefulWidget {
   final List<AppUser> users;
@@ -158,18 +158,6 @@ class _UserListState extends State<UserList> {
   }
 
   void _showAddUsersDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Builder(
-          builder: (BuildContext newContext) {
-            return const UserDialog(
-              dialogText: "Tipper hinzufügen",
-              userAction: UserAction.create,
-            );
-          },
-        );
-      },
-    );
+    Routemaster.of(context).push('/admin/user/create');
   }
 }

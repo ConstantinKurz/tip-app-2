@@ -3,9 +3,9 @@ import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
 import 'package:flutter_web/presentation/admin_page/widget/match_item.dart';
 import 'package:intl/intl.dart';
+import 'package:routemaster/routemaster.dart';
 
 class MatchList extends StatefulWidget {
   final List<CustomMatch> matches;
@@ -181,19 +181,6 @@ class _MatchListState extends State<MatchList> {
   }
 
   void _showAddMatchDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Builder(
-          builder: (BuildContext newContext) {
-            return MatchDialog(
-              teams: widget.teams,
-              dialogText: "Neues Match",
-              matchAction: MatchAction.create,
-            );
-          },
-        );
-      },
-    );
+    Routemaster.of(context).push('/admin/match/create');
   }
 }

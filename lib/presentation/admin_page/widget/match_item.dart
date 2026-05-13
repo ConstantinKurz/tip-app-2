@@ -6,8 +6,8 @@ import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/match_dialog.dart';
 import 'package:intl/intl.dart';
+import 'package:routemaster/routemaster.dart';
 
 class MatchItem extends StatelessWidget {
   final CustomMatch match;
@@ -221,37 +221,11 @@ class MatchItem extends StatelessWidget {
   }
 
   void _showDeleteMatchDialog(BuildContext context, CustomMatch match) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Builder(
-          builder: (BuildContext newContext) {
-            return MatchDialog(
-              match: match,
-              dialogText: "Match löschen",
-              matchAction: MatchAction.delete,
-            );
-          },
-        );
-      },
-    );
+    Routemaster.of(context).push('/admin/match/delete/${match.id}');
   }
 
   void _showUpdateMatchDialog(
       BuildContext context, List<Team> teams, CustomMatch match) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Builder(
-            builder: (BuildContext newContext) {
-              return MatchDialog(
-                teams: teams,
-                dialogText: "Match bearbeiten",
-                matchAction: MatchAction.update,
-                match: match,
-              );
-            },
-          );
-        });
+    Routemaster.of(context).push('/admin/match/edit/${match.id}');
   }
 }

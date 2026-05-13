@@ -4,7 +4,7 @@ import 'package:flutter_web/constants.dart';
 
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/team_dialog.dart';
+import 'package:routemaster/routemaster.dart';
 
 class TeamItem extends StatelessWidget {
   final Team team;
@@ -171,34 +171,9 @@ class TeamItem extends StatelessWidget {
 }
 
 void _showDeleteMatchDialog(BuildContext context, Team team) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Builder(
-        builder: (BuildContext newContext) {
-          return TeamDialog(
-            team: team,
-            dialogText: "Team löschen",
-            teamAction: TeamAction.delete,
-          );
-        },
-      );
-    },
-  );
+  Routemaster.of(context).push('/admin/team/delete/${team.id}');
 }
 
 void _showUpdateUserDialog(BuildContext context, Team team) {
-  showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Builder(
-          builder: (BuildContext newContext) {
-            return TeamDialog(
-              team: team,
-              dialogText: "Team bearbeiten",
-              teamAction: TeamAction.update,
-            );
-          },
-        );
-      });
+  Routemaster.of(context).push('/admin/team/edit/${team.id}');
 }

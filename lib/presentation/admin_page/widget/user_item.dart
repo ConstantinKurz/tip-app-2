@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/user_dialog.dart';
 import 'package:routemaster/routemaster.dart';
 
 class UserItem extends StatelessWidget {
@@ -138,14 +137,8 @@ class UserItem extends StatelessWidget {
                         FancyIconButton(
                           icon: Icons.edit,
                           callback: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => UserDialog(
-                                  user: user,
-                                  teams: teams,
-                                  dialogText: 'Benutzerdaten bearbeiten',
-                                  userAction: UserAction.update),
-                            );
+                            Routemaster.of(context)
+                                .push('/admin/user/edit/${user.id}');
                           },
                           backgroundColor:
                               themeData.colorScheme.primaryContainer,
@@ -184,14 +177,8 @@ class UserItem extends StatelessWidget {
                     FancyIconButton(
                       icon: Icons.edit,
                       callback: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => UserDialog(
-                              user: user,
-                              teams: teams,
-                              dialogText: 'Benutzerdaten bearbeiten',
-                              userAction: UserAction.update),
-                        );
+                        Routemaster.of(context)
+                            .push('/admin/user/edit/${user.id}');
                       },
                       backgroundColor: themeData.colorScheme.primaryContainer,
                       hoverColor: themeData.colorScheme.secondary,

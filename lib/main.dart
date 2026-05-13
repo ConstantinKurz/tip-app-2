@@ -11,6 +11,11 @@ import 'package:flutter_web/domain/services/tip_recalculation_service.dart';
 import 'package:flutter_web/firebase_options.dart';
 import 'package:flutter_web/injections.dart' as di;
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
+import 'package:flutter_web/presentation/admin_page/pages/admin_match_delete_page.dart';
+import 'package:flutter_web/presentation/admin_page/pages/admin_match_form_page.dart';
+import 'package:flutter_web/presentation/admin_page/pages/admin_team_delete_page.dart';
+import 'package:flutter_web/presentation/admin_page/pages/admin_team_form_page.dart';
+import 'package:flutter_web/presentation/admin_page/pages/admin_user_form_page.dart';
 import 'package:flutter_web/presentation/admin_page/widget/admin_user_tip_details_page.dart';
 import 'package:flutter_web/presentation/core/page_wrapper/page_template.dart';
 import 'package:flutter_web/presentation/home_page/home_page.dart';
@@ -66,6 +71,15 @@ class AppRoutes {
   static const userProfile = '/profile';
   static const dashboard = '/dashboard';
   static const adminUserTips = '/admin/user-tips/:userId';
+  // Admin form pages
+  static const adminMatchCreate = '/admin/match/create';
+  static const adminMatchEdit = '/admin/match/edit/:id';
+  static const adminMatchDelete = '/admin/match/delete/:id';
+  static const adminUserCreate = '/admin/user/create';
+  static const adminUserEdit = '/admin/user/edit/:id';
+  static const adminTeamCreate = '/admin/team/create';
+  static const adminTeamEdit = '/admin/team/edit/:id';
+  static const adminTeamDelete = '/admin/team/delete/:id';
 }
 
 // ✅ FIX: Flag verhindert mehrfaches Dispatchen von Tip-Events
@@ -192,6 +206,73 @@ class MyApp extends StatelessWidget {
                               selectedUserId: userId,
                             ),
                           );
+                        },
+                        // Admin Match Routes
+                        AppRoutes.adminMatchCreate: (_) => isAdmin
+                            ? const MaterialPage(
+                                child: AdminMatchFormPage(
+                                    action: MatchFormAction.create))
+                            : const Redirect(AppRoutes.home),
+                        AppRoutes.adminMatchEdit: (info) {
+                          final matchId = info.pathParameters['id']!;
+                          return isAdmin
+                              ? MaterialPage(
+                                  child: AdminMatchFormPage(
+                                    action: MatchFormAction.update,
+                                    matchId: matchId,
+                                  ),
+                                )
+                              : const Redirect(AppRoutes.home);
+                        },
+                        AppRoutes.adminMatchDelete: (info) {
+                          final matchId = info.pathParameters['id']!;
+                          return isAdmin
+                              ? MaterialPage(
+                                  child: AdminMatchDeletePage(matchId: matchId),
+                                )
+                              : const Redirect(AppRoutes.home);
+                        },
+                        // Admin User Routes
+                        AppRoutes.adminUserCreate: (_) => isAdmin
+                            ? const MaterialPage(
+                                child: AdminUserFormPage(
+                                    action: UserFormAction.create))
+                            : const Redirect(AppRoutes.home),
+                        AppRoutes.adminUserEdit: (info) {
+                          final userId = info.pathParameters['id']!;
+                          return isAdmin
+                              ? MaterialPage(
+                                  child: AdminUserFormPage(
+                                    action: UserFormAction.update,
+                                    userId: userId,
+                                  ),
+                                )
+                              : const Redirect(AppRoutes.home);
+                        },
+                        // Admin Team Routes
+                        AppRoutes.adminTeamCreate: (_) => isAdmin
+                            ? const MaterialPage(
+                                child: AdminTeamFormPage(
+                                    action: TeamFormAction.create))
+                            : const Redirect(AppRoutes.home),
+                        AppRoutes.adminTeamEdit: (info) {
+                          final teamId = info.pathParameters['id']!;
+                          return isAdmin
+                              ? MaterialPage(
+                                  child: AdminTeamFormPage(
+                                    action: TeamFormAction.update,
+                                    teamId: teamId,
+                                  ),
+                                )
+                              : const Redirect(AppRoutes.home);
+                        },
+                        AppRoutes.adminTeamDelete: (info) {
+                          final teamId = info.pathParameters['id']!;
+                          return isAdmin
+                              ? MaterialPage(
+                                  child: AdminTeamDeletePage(teamId: teamId),
+                                )
+                              : const Redirect(AppRoutes.home);
                         },
                         AppRoutes.userProfile: (_) => const MaterialPage(
                               child: UserProfilePage(isAuthenticated: true),

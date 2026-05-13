@@ -99,6 +99,7 @@ class UpdateTeamForm extends StatelessWidget {
                     .read<TeamsformBloc>()
                     .add(TeamFormFieldUpdatedEvent(name: value)),
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: flagCodeController,
                 style: const TextStyle(color: Colors.white),
@@ -110,6 +111,7 @@ class UpdateTeamForm extends StatelessWidget {
                     .read<TeamsformBloc>()
                     .add(TeamFormFieldUpdatedEvent(flagCode: value)),
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: winPointsController,
                 style: const TextStyle(color: Colors.white),
@@ -120,6 +122,7 @@ class UpdateTeamForm extends StatelessWidget {
                 onChanged: (value) => context.read<TeamsformBloc>().add(
                     TeamFormFieldUpdatedEvent(winPoints: int.tryParse(value))),
               ),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [

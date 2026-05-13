@@ -3,8 +3,8 @@ import 'package:flutter_web/constants.dart';
 
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
-import 'package:flutter_web/presentation/core/dialogs/team_dialog.dart';
 import 'package:flutter_web/presentation/admin_page/widget/team_item.dart';
+import 'package:routemaster/routemaster.dart';
 
 class TeamList extends StatefulWidget {
   final List<Team> teams;
@@ -153,14 +153,6 @@ class _TeamListState extends State<TeamList> {
   }
 
   void _showAddTeamDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return const TeamDialog(
-          dialogText: "Neues Team",
-          teamAction: TeamAction.create,
-        );
-      },
-    );
+    Routemaster.of(context).push('/admin/team/create');
   }
 }

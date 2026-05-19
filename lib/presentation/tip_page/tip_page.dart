@@ -327,6 +327,7 @@ class _TipPageState extends State<TipPage> {
                                                 BlocProvider<TipFormBloc>.value(
                                               value: bloc,
                                               child: _TipCardInitializer(
+                                                key: ValueKey(match.id),
                                                 matchId: match.id,
                                                 userId: userId,
                                                 matchDay: match.matchDay,

@@ -11,6 +11,7 @@ class UpdateUserForm extends StatelessWidget {
   final List<Team> teams;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController rankController = TextEditingController();
   final TextEditingController scoreController = TextEditingController();
   final TextEditingController jokerSumController = TextEditingController();
@@ -53,6 +54,7 @@ class UpdateUserForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     usernameController.text = user.name;
+    emailController.text = user.email;
     rankController.text = user.rank.toString();
     scoreController.text = user.score.toString();
     jokerSumController.text = user.jokerSum.toString();
@@ -120,9 +122,9 @@ class UpdateUserForm extends StatelessWidget {
                       .add(UserFormFieldUpdatedEvent(username: value)),
                 ),
                 const SizedBox(height: 16),
-                // --- E-Mail Feld hinzufügen ---
+                // --- E-Mail Feld ---
                 TextFormField(
-                  controller: TextEditingController(text: user.email),
+                  controller: emailController,
                   style: const TextStyle(color: Colors.white),
                   cursorColor: Colors.white,
                   validator: _validateEmail,

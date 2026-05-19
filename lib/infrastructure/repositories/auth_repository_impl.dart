@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:dartz/dartz.dart';
 import 'package:faker/faker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -256,6 +257,42 @@ class AuthRepositoryImpl implements AuthRepository {
         unexpected: UnexpectedAuthFailure(),
         notFound: UserNotFoundFailure(message: "Benutzer konnten nicht geladen werden"),
       ));
+    }
+  }
+
+  @override
+  Future<Either<AuthFailure, Unit>> updateUserEmailAsAdmin({
+    required String userId,
+    required String newEmail,
+  }) async {
+    try {
+      final functions = FirebaseFunctions.instance;
+      final callable = functions.httpsCallable('updateUserEmail');
+      
+      await callable.call({
+        'userId': userId,
+        'newEmail': newEmail,
+      });
+      
+      return right(unit);
+    } on FirebaseFunctionsException catch (e) {
+      print('❌ [AuthRepository] Cloud Function error: ${e.code} - ${e.message}');
+      
+      switch (e.code) {
+        case 'already-exists':
+          return left(EmailAlreadyInUseFailure());
+        case 'permission-denied':
+          return left(InsufficientPermisssons());
+        case 'not-found':
+          return left(UserNotFoundFailure(message: 'Benutzer nicht gefunden'));
+        case 'invalid-argument':
+          return left(InvalidEmailFailure(message: e.message ?? 'Ungültige E-Mail'));
+        default:
+          return left(UnexpectedAuthFailure());
+      }
+    } catch (e) {
+      print('❌ [AuthRepository] updateUserEmailAsAdmin error: $e');
+      return left(UnexpectedAuthFailure());
     }
   }
 }

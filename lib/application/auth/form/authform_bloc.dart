@@ -70,6 +70,28 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
 
     emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
 
+    // Check if email has changed - if so, use Cloud Function to update Firebase Auth
+    final emailChanged = event.currentUser != null && 
+        event.user!.email != event.currentUser!.email;
+    
+    if (emailChanged) {
+      // First update email in Firebase Auth via Cloud Function
+      final emailResult = await authRepository.updateUserEmailAsAdmin(
+        userId: event.user!.id,
+        newEmail: event.user!.email,
+      );
+      
+      // If email update failed, stop here
+      if (emailResult.isLeft()) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessOption: optionOf(emailResult),
+        ));
+        return;
+      }
+    }
+
+    // Update the rest of the user data in Firestore
     final failureOrSuccess = await authRepository.updateUser(user: event.user!);
 
     emit(state.copyWith(

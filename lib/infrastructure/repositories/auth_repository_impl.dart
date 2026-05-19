@@ -14,9 +14,11 @@ class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuth firebaseAuth;
   final FirebaseFirestore firebaseFirestore;
 
-  AuthRepositoryImpl({required this.firebaseAuth, required this.firebaseFirestore});
+  AuthRepositoryImpl(
+      {required this.firebaseAuth, required this.firebaseFirestore});
 
-  CollectionReference get usersCollection => firebaseFirestore.collection('users');
+  CollectionReference get usersCollection =>
+      firebaseFirestore.collection('users');
 
   @override
   Future<Either<AuthFailure, Unit>> registerWithEmailAndPassword({
@@ -29,7 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // Firebase Auth User erstellen
       final userCredential = await firebaseAuth.createUserWithEmailAndPassword(
           email: email, password: password);
-      
+
       // Firebase Auth UID als Document-ID verwenden
       final authUid = userCredential.user!.uid;
 
@@ -38,7 +40,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final String finalUsername = username ?? faker.internet.userName();
 
       final userModel = UserModel(
-        id: authUid,  // Firebase Auth UID als ID
+        id: authUid, // Firebase Auth UID als ID
         championId: 'TBD',
         name: finalUsername,
         email: email,
@@ -48,7 +50,7 @@ class AuthRepositoryImpl implements AuthRepository {
         sixer: 0,
         admin: admin,
       );
-      
+
       // Speichere mit Firebase Auth UID als Document-ID
       await usersCollection.doc(authUid).set(userModel.toMap());
 
@@ -63,7 +65,8 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: ServerFailure(),
-        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+        notFound: UserNotFoundFailure(
+            message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }
@@ -89,7 +92,8 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: ServerFailure(),
-        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+        notFound: UserNotFoundFailure(
+            message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }
@@ -127,7 +131,8 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: UnexpectedAuthFailure(),
-        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+        notFound: UserNotFoundFailure(
+            message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }
@@ -136,14 +141,18 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers() async* {
     print('🎯 [AuthRepository] watchAllUsers STREAM STARTED');
     FirestoreLogger.logRead('users', 'watchAllUsers (STREAM)');
-    
+
     int eventCount = 0;
-    
-    yield* usersCollection.orderBy('rank').snapshots()
+
+    yield* usersCollection
+        .orderBy('rank')
+        .snapshots()
         .map<Either<AuthFailure, List<AppUser>>>((snapshot) {
       eventCount++;
-      FirestoreLogger.logRead('users', 'watchAllUsers (EVENT #$eventCount)', docId: '[${snapshot.docs.length} docs]');
-      print('📥 [AuthRepository] watchAllUsers EVENT #$eventCount: ${snapshot.docs.length} users');
+      FirestoreLogger.logRead('users', 'watchAllUsers (EVENT #$eventCount)',
+          docId: '[${snapshot.docs.length} docs]');
+      print(
+          '📥 [AuthRepository] watchAllUsers EVENT #$eventCount: ${snapshot.docs.length} users');
       try {
         final users = snapshot.docs
             .map((doc) => UserModel.fromFirestore(doc).toDomain())
@@ -155,7 +164,8 @@ class AuthRepositoryImpl implements AuthRepository {
             e,
             insufficientPermissions: InsufficientPermisssons(),
             unexpected: UnexpectedAuthFailure(),
-            notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+            notFound: UserNotFoundFailure(
+                message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
           ),
         );
       }
@@ -165,7 +175,8 @@ class AuthRepositoryImpl implements AuthRepository {
           e,
           insufficientPermissions: InsufficientPermisssons(),
           unexpected: UnexpectedAuthFailure(),
-          notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+          notFound: UserNotFoundFailure(
+              message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
         ),
       );
     });
@@ -179,7 +190,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = firebaseAuth.currentUser;
       if (user == null) {
-        return left(UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"));
+        return left(UserNotFoundFailure(
+            message: "Benutzer mit dieser E-Mail wurde nicht gefunden"));
       }
 
       // Re-authentifizierung mit dem aktuellen Passwort
@@ -189,10 +201,10 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       await user.reauthenticateWithCredential(credential);
-      
+
       // Neues Passwort setzen
       await user.updatePassword(newPassword);
-      
+
       return right(unit);
     } on FirebaseAuthException catch (e) {
       if (e.code == "wrong-password") {
@@ -202,7 +214,8 @@ class AuthRepositoryImpl implements AuthRepository {
       } else if (e.code == "requires-recent-login") {
         return left(InsufficientPermisssons());
       } else if (e.code == "invalid-credential") {
-        return left(InvalidCredential(message: "Ungültiges aktuelles Passwort"));
+        return left(
+            InvalidCredential(message: "Ungültiges aktuelles Passwort"));
       }
       return left(ServerFailure());
     } catch (e) {
@@ -210,7 +223,8 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: UnexpectedAuthFailure(),
-        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+        notFound: UserNotFoundFailure(
+            message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }
@@ -224,9 +238,11 @@ class AuthRepositoryImpl implements AuthRepository {
       return right(unit);
     } on FirebaseAuthException catch (e) {
       if (e.code == "user-not-found") {
-        return left(UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"));
+        return left(UserNotFoundFailure(
+            message: "Benutzer mit dieser E-Mail wurde nicht gefunden"));
       } else if (e.code == "invalid-email") {
-        return left(InvalidEmailFailure(message: "Die angegebene E-Mail ist ungültig"));
+        return left(
+            InvalidEmailFailure(message: "Die angegebene E-Mail ist ungültig"));
       }
       return left(ServerFailure());
     } catch (e) {
@@ -234,7 +250,8 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: UnexpectedAuthFailure(),
-        notFound: UserNotFoundFailure(message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+        notFound: UserNotFoundFailure(
+            message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
       ));
     }
   }
@@ -244,7 +261,8 @@ class AuthRepositoryImpl implements AuthRepository {
       FirestoreLogger.logRead('users', 'getAllUsers');
       print('📥 [AuthRepository] getAllUsers called');
       final snapshot = await usersCollection.get();
-      FirestoreLogger.logRead('users', 'getAllUsers (RESULT)', docId: '[${snapshot.docs.length} docs]');
+      FirestoreLogger.logRead('users', 'getAllUsers (RESULT)',
+          docId: '[${snapshot.docs.length} docs]');
       print('✅ [AuthRepository] getAllUsers: ${snapshot.docs.length} users');
       final users = snapshot.docs
           .map((doc) => UserModel.fromFirestore(doc).toDomain())
@@ -255,7 +273,8 @@ class AuthRepositoryImpl implements AuthRepository {
         e,
         insufficientPermissions: InsufficientPermisssons(),
         unexpected: UnexpectedAuthFailure(),
-        notFound: UserNotFoundFailure(message: "Benutzer konnten nicht geladen werden"),
+        notFound: UserNotFoundFailure(
+            message: "Benutzer konnten nicht geladen werden"),
       ));
     }
   }
@@ -268,16 +287,17 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final functions = FirebaseFunctions.instance;
       final callable = functions.httpsCallable('updateUserEmail');
-      
+
       await callable.call({
         'userId': userId,
         'newEmail': newEmail,
       });
-      
+
       return right(unit);
     } on FirebaseFunctionsException catch (e) {
-      print('❌ [AuthRepository] Cloud Function error: ${e.code} - ${e.message}');
-      
+      print(
+          '❌ [AuthRepository] Cloud Function error: ${e.code} - ${e.message}');
+
       switch (e.code) {
         case 'already-exists':
           return left(EmailAlreadyInUseFailure());
@@ -286,7 +306,8 @@ class AuthRepositoryImpl implements AuthRepository {
         case 'not-found':
           return left(UserNotFoundFailure(message: 'Benutzer nicht gefunden'));
         case 'invalid-argument':
-          return left(InvalidEmailFailure(message: e.message ?? 'Ungültige E-Mail'));
+          return left(
+              InvalidEmailFailure(message: e.message ?? 'Ungültige E-Mail'));
         default:
           return left(UnexpectedAuthFailure());
       }

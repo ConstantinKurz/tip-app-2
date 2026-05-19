@@ -11,8 +11,7 @@ part 'authform_state.dart';
 class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
   final AuthRepository authRepository;
 
-  AuthformBloc({required this.authRepository})
-      : super(AuthFormIntialState()) {
+  AuthformBloc({required this.authRepository}) : super(AuthFormIntialState()) {
     on<CreateUserEvent>(_onCreateUser);
     on<UserFormFieldUpdatedEvent>(_onUserFormFieldUpdated);
     on<UpdateUserEvent>(_onUpdateUser);
@@ -23,15 +22,16 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     CreateUserEvent event,
     Emitter<AuthformState> emit,
   ) async {
-    if (event.email == null || event.password == null || event.username == null) {
+    if (event.email == null ||
+        event.password == null ||
+        event.username == null) {
       emit(state.copyWith(showValidationMessages: true));
       return;
     }
 
     emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
 
-    final failureOrSuccess =
-        await authRepository.registerWithEmailAndPassword(
+    final failureOrSuccess = await authRepository.registerWithEmailAndPassword(
       email: event.email!,
       password: event.password!,
       username: event.username!,
@@ -71,16 +71,16 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
 
     // Check if email has changed - if so, use Cloud Function to update Firebase Auth
-    final emailChanged = event.currentUser != null && 
+    final emailChanged = event.currentUser != null &&
         event.user!.email != event.currentUser!.email;
-    
+
     if (emailChanged) {
       // First update email in Firebase Auth via Cloud Function
       final emailResult = await authRepository.updateUserEmailAsAdmin(
         userId: event.user!.id,
         newEmail: event.user!.email,
       );
-      
+
       // If email update failed, stop here
       if (emailResult.isLeft()) {
         emit(state.copyWith(
@@ -112,7 +112,7 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
         currentPassword: event.currentPassword!,
         newPassword: event.newPassword!,
       );
-      
+
       // Bei Passwort-Fehler sofort abbrechen
       if (passwordResult.isLeft()) {
         emit(state.copyWith(

@@ -2,14 +2,15 @@
 
 /// Spielphasen der WM 2026 mit entsprechenden Regeln
 enum MatchPhase {
-  groupStage('Vorrunde', 1, 5, 36),
-  roundOf16('16tel-Finale', 1, 4, null),
-  roundOf8('8tel-Finale', 2, 2, null),
-  quarterFinal('Viertel-Finale', 3, 1, null),
+  groupStage('Vorrunde', 1, 0, 36),
+  roundOf16('16tel-Finale', 2, 3, null),
+  roundOf8('8tel-Finale', 2, 3, null),
+  quarterFinal('Viertel-Finale', 3, 2, null),
   semiFinal('Halbfinale', 3, 2, null),
   finalStage('Finale', 3, 2, null);
 
-  const MatchPhase(this.displayName, this.pointMultiplier, this.maxJokers, this.maxTips);
+  const MatchPhase(
+      this.displayName, this.pointMultiplier, this.maxJokers, this.maxTips);
 
   /// Anzeigename der Phase
   final String displayName;

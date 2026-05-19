@@ -6,16 +6,20 @@ class MatchSearchField extends StatefulWidget {
   final List<CustomMatch> matches;
   final List<Team> teams;
   final Function(List<CustomMatch>) onFilteredMatchesChanged;
+  final Function(String?)? onFilterChanged; // ✅ Callback for filter changes
   final String? hintText;
   final bool showHelpDialog;
+  final String? initialFilter; // ✅ Initial filter to apply
 
   const MatchSearchField({
     Key? key,
     required this.matches,
     required this.teams,
     required this.onFilteredMatchesChanged,
+    this.onFilterChanged,
     this.hintText,
     this.showHelpDialog = true,
+    this.initialFilter,
   }) : super(key: key);
 
   @override
@@ -49,9 +53,14 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
   @override
   void initState() {
     super.initState();
-    // Initial call with all matches - defer until after build
+    // ✅ Apply initial filter if provided
+    if (widget.initialFilter != null && widget.initialFilter!.isNotEmpty) {
+      _activeFilter = widget.initialFilter;
+      _isExpanded = true;
+    }
+    // Initial call with filtered or all matches - defer until after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onFilteredMatchesChanged(widget.matches);
+      _filterMatches();
     });
   }
 
@@ -183,6 +192,8 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
     final filteredMatches =
         matchesWithScore.map((item) => item['match'] as CustomMatch).toList();
     widget.onFilteredMatchesChanged(filteredMatches);
+    // ✅ Notify about filter change
+    widget.onFilterChanged?.call(_activeFilter ?? _searchQuery);
   }
 
   void _onFilterChipSelected(String? filter) {
@@ -275,105 +286,114 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Button rechts ausrichten mit Row
+                // Row mit Filter-Button und Suchfeld nebeneinander
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _isExpanded
-                        ? MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            onEnter: (_) =>
-                                setState(() => _isButtonHovered = true),
-                            onExit: (_) =>
-                                setState(() => _isButtonHovered = false),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isExpanded = !_isExpanded;
-                                  if (!_isExpanded) {
-                                    // Reset bei Einklappen
-                                    _searchController.clear();
-                                    _searchQuery = '';
-                                    _activeFilter = null;
-                                    _filterMatches();
-                                  }
-                                });
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                height: 40,
-                                width: 40,
-                                decoration: BoxDecoration(
-                                  color: _isButtonHovered
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  border: Border.all(
-                                      color: _isButtonHovered
-                                          ? Colors.black
-                                          : Colors.white),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.close,
-                                  color: _isButtonHovered
-                                      ? Colors.black
-                                      : Colors.white,
-                                ),
-                              ),
-                            ),
-                          )
-                        : Tooltip(
-                            message: _activeFilter != null
-                                ? 'Filter: ${_getFilterDisplayName(_activeFilter!)}'
-                                : _searchQuery.isNotEmpty
-                                    ? 'Suche: $_searchQuery'
-                                    : 'Spiele filtern',
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              onEnter: (_) =>
-                                  setState(() => _isButtonHovered = true),
-                              onExit: (_) =>
-                                  setState(() => _isButtonHovered = false),
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _isExpanded = !_isExpanded;
-                                    if (!_isExpanded) {
-                                      // Reset bei Einklappen
+                    // Suchfeld - nur sichtbar wenn expandiert
+                    if (_isExpanded) ...[
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          style: const TextStyle(color: Colors.white),
+                          cursorColor: Colors.white,
+                          decoration: InputDecoration(
+                            hintText: widget.hintText ??
+                                "Nach Teams, Spielphase oder Matchtag suchen...",
+                            hintStyle:
+                                TextStyle(color: Colors.white.withOpacity(0.7)),
+                            prefixIcon:
+                                const Icon(Icons.search, color: Colors.white),
+                            suffixIcon: (_searchQuery.isNotEmpty ||
+                                    _activeFilter != null)
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear,
+                                        color: Colors.white),
+                                    onPressed: () {
                                       _searchController.clear();
-                                      _searchQuery = '';
-                                      _activeFilter = null;
+                                      setState(() {
+                                        _searchQuery = '';
+                                        _activeFilter = null;
+                                      });
                                       _filterMatches();
-                                    }
-                                  });
-                                },
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  height: 40,
-                                  width: 40,
-                                  decoration: BoxDecoration(
-                                    color: _isButtonHovered
-                                        ? Colors.white
-                                        : Colors.transparent,
-                                    border: Border.all(
-                                        color: _isButtonHovered
-                                            ? Colors.black
-                                            : Colors.white),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.filter_list,
-                                    color: _isButtonHovered
-                                        ? Colors.black
-                                        : Colors.white,
-                                  ),
-                                ),
-                              ),
+                                    },
+                                  )
+                                : widget.showHelpDialog
+                                    ? IconButton(
+                                        icon: const Icon(Icons.help_outline,
+                                            color: Colors.white70),
+                                        onPressed: _showHelpDialog,
+                                      )
+                                    : null,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.white),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.white),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: Colors.white, width: 2),
                             ),
                           ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                              _activeFilter =
+                                  null; // Deaktiviere Filter bei Texteingabe
+                            });
+                            _filterMatches();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    // Filter Button
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      onEnter: (_) => setState(() => _isButtonHovered = true),
+                      onExit: (_) => setState(() => _isButtonHovered = false),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                            if (!_isExpanded) {
+                              // Reset bei Einklappen
+                              _searchController.clear();
+                              _searchQuery = '';
+                              _activeFilter = null;
+                              _filterMatches();
+                            }
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: _isButtonHovered
+                                ? Colors.white
+                                : Colors.transparent,
+                            border: Border.all(
+                                color: _isButtonHovered
+                                    ? Colors.black
+                                    : Colors.white),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _isExpanded ? Icons.close : Icons.filter_list,
+                            color:
+                                _isButtonHovered ? Colors.black : Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                // Einklappbarer Suchbereich
+                // Filter-Chips darunter - nur sichtbar wenn expandiert
                 ClipRect(
                   child: AnimatedAlign(
                     duration: const Duration(milliseconds: 300),
@@ -381,122 +401,35 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                     alignment: Alignment.topCenter,
                     heightFactor: _isExpanded ? 1.0 : 0.0,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Suchfeld
-                          TextField(
-                            controller: _searchController,
-                            style: const TextStyle(color: Colors.white),
-                            cursorColor: Colors.white,
-                            decoration: InputDecoration(
-                              hintText: widget.hintText ??
-                                  "Nach Teams, Spielphase oder Matchtag suchen...",
-                              hintStyle: TextStyle(
-                                  color: Colors.white.withOpacity(0.7)),
-                              prefixIcon:
-                                  const Icon(Icons.search, color: Colors.white),
-                              suffixIcon: (_searchQuery.isNotEmpty ||
-                                      _activeFilter != null)
-                                  ? IconButton(
-                                      icon: const Icon(Icons.clear,
-                                          color: Colors.white),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() {
-                                          _searchQuery = '';
-                                          _activeFilter = null;
-                                        });
-                                        _filterMatches();
-                                      },
-                                    )
-                                  : widget.showHelpDialog
-                                      ? IconButton(
-                                          icon: const Icon(Icons.help_outline,
-                                              color: Colors.white70),
-                                          onPressed: _showHelpDialog,
-                                        )
-                                      : null,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    const BorderSide(color: Colors.white),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    const BorderSide(color: Colors.white),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                    color: Colors.white, width: 2),
-                              ),
-                            ),
-                            onChanged: (value) {
-                              setState(() {
-                                _searchQuery = value;
-                                _activeFilter =
-                                    null; // Deaktiviere Filter bei Texteingabe
-                              });
-                              _filterMatches();
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          // Filter-Chips - Horizontal scrollable for all screen sizes
-                          Stack(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: Row(
                             children: [
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: [
-                                    _buildFilterChip(
-                                        'Gruppe', 'gruppenphase', themeData),
-                                    const SizedBox(width: 7),
-                                    _buildFilterChip('16tel',
-                                        'sechszehntelfinale', themeData),
-                                    const SizedBox(width: 7),
-                                    _buildFilterChip(
-                                        '8tel', 'achtelfinale', themeData),
-                                    const SizedBox(width: 7),
-                                    _buildFilterChip(
-                                        '4tel', 'viertelfinale', themeData),
-                                    const SizedBox(width: 7),
-                                    _buildFilterChip(
-                                        '1/2', 'halbfinale', themeData),
-                                    const SizedBox(width: 7),
-                                    _buildFilterChip('Platz 3',
-                                        'spiel um platz 3', themeData),
-                                    const SizedBox(width: 7),
-                                    _buildFilterChip(
-                                        'Finale', 'finale', themeData),
-                                  ],
-                                ),
-                              ),
-                              if (MediaQuery.of(context).size.width <= 450)
-                                Positioned(
-                                  right: 0,
-                                  top: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    width: 30,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight,
-                                        colors: [
-                                          Colors.transparent,
-                                          Theme.of(context)
-                                              .scaffoldBackgroundColor,
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                              _buildFilterChip(
+                                  'Gruppe', 'gruppenphase', themeData),
+                              const SizedBox(width: 7),
+                              _buildFilterChip(
+                                  '16tel', 'sechszehntelfinale', themeData),
+                              const SizedBox(width: 7),
+                              _buildFilterChip(
+                                  '8tel', 'achtelfinale', themeData),
+                              const SizedBox(width: 7),
+                              _buildFilterChip(
+                                  '4tel', 'viertelfinale', themeData),
+                              const SizedBox(width: 7),
+                              _buildFilterChip('1/2', 'halbfinale', themeData),
+                              const SizedBox(width: 7),
+                              _buildFilterChip(
+                                  'Platz 3', 'spiel um platz 3', themeData),
+                              const SizedBox(width: 7),
+                              _buildFilterChip('Finale', 'finale', themeData),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),

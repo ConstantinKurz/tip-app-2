@@ -282,6 +282,7 @@ class MyApp extends StatelessWidget {
                           final scrollToIndex =
                               info.queryParameters['scrollTo'] ??
                                   info.queryParameters['returnIndex'];
+                          final filter = info.queryParameters['filter'];
 
                           return MaterialPage(
                             child: TipPage(
@@ -289,6 +290,7 @@ class MyApp extends StatelessWidget {
                               initialScrollIndex: scrollToIndex != null
                                   ? int.tryParse(scrollToIndex)
                                   : null,
+                              initialFilter: filter,
                             ),
                           );
                         },
@@ -299,12 +301,14 @@ class MyApp extends StatelessWidget {
                           final returnIndex = returnIndexString != null
                               ? int.tryParse(returnIndexString)
                               : null;
+                          final returnFilter = info.queryParameters['filter'];
 
                           return MaterialPage(
                             child: TipDetailsPage(
                               isAuthenticated: true,
                               tipId: tipId,
                               returnIndex: returnIndex,
+                              returnFilter: returnFilter,
                             ),
                           );
                         },

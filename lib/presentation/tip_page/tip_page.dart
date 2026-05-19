@@ -19,11 +19,13 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 class TipPage extends StatefulWidget {
   final bool isAuthenticated;
   final int? initialScrollIndex;
+  final String? initialFilter;
 
   const TipPage({
     Key? key,
     required this.isAuthenticated,
     this.initialScrollIndex,
+    this.initialFilter,
   }) : super(key: key);
 
   @override
@@ -32,6 +34,7 @@ class TipPage extends StatefulWidget {
 
 class _TipPageState extends State<TipPage> {
   List<CustomMatch> _filteredMatches = [];
+  String? _currentFilter; // ✅ Track current filter for navigation
   final Map<String, TipFormBloc> _tipFormBlocs = {};
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
@@ -48,6 +51,8 @@ class _TipPageState extends State<TipPage> {
     if (widget.initialScrollIndex != null) {
       _listKey = ValueKey('list_${widget.initialScrollIndex}');
     }
+    // ✅ Apply initial filter if returning from details
+    _currentFilter = widget.initialFilter;
   }
 
   @override
@@ -143,8 +148,11 @@ class _TipPageState extends State<TipPage> {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     const contentMaxWidth = 700.0;
-    final horizontalMargin =
-        (screenWidth - contentMaxWidth).clamp(16.0, double.infinity) / 2;
+    final horizontalMargin = (screenWidth > contentMaxWidth)
+        ? (screenWidth - contentMaxWidth) / 2
+        : 16.0;
+
+    final isMobile = screenWidth < 800;
 
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
@@ -263,6 +271,13 @@ class _TipPageState extends State<TipPage> {
                                     teams: teams,
                                     hintText:
                                         "Nach Teams, Spielphase oder Matchtag suchen...",
+                                    initialFilter: _currentFilter,
+                                    onFilterChanged: (filter) {
+                                      _currentFilter =
+                                          filter?.isNotEmpty == true
+                                              ? filter
+                                              : null;
+                                    },
                                     onFilteredMatchesChanged: (filtered) {
                                       setState(() {
                                         _filteredMatches = filtered;
@@ -284,9 +299,9 @@ class _TipPageState extends State<TipPage> {
                                             _itemScrollController,
                                         itemPositionsListener:
                                             _itemPositionsListener,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 16.0,
-                                          // horizontal: 16.0,
+                                        padding: const EdgeInsets.only(
+                                          top: 16.0,
+                                          bottom: 100.0, // Extra space for FAB
                                         ),
                                         itemCount: displayedMatches.length,
                                         separatorBuilder: (_, __) =>
@@ -319,8 +334,12 @@ class _TipPageState extends State<TipPage> {
                                               final tipId = tip.id.isNotEmpty
                                                   ? tip.id
                                                   : "${userId}_${match.id}";
+                                              final filterParam = _currentFilter !=
+                                                      null
+                                                  ? '&filter=${Uri.encodeComponent(_currentFilter!)}'
+                                                  : '';
                                               Routemaster.of(context).push(
-                                                '/tips-detail/$tipId?returnIndex=$index',
+                                                '/tips-detail/$tipId?returnIndex=$index$filterParam',
                                               );
                                             },
                                             child:

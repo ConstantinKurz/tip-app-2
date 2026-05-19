@@ -19,12 +19,14 @@ class TipDetailsPage extends StatefulWidget {
   final bool isAuthenticated;
   final String tipId;
   final int? returnIndex;
+  final String? returnFilter;
 
   const TipDetailsPage({
     Key? key,
     required this.isAuthenticated,
     required this.tipId,
     this.returnIndex,
+    this.returnFilter,
   }) : super(key: key);
 
   @override
@@ -50,6 +52,8 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
     final returnIndex = returnIndexString != null
         ? int.tryParse(returnIndexString)
         : widget.returnIndex;
+    final returnFilter =
+        routeData.queryParameters['filter'] ?? widget.returnFilter;
 
     return Scaffold(
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
@@ -146,8 +150,12 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                               icon: const Icon(Icons.close),
                                               onPressed: () {
                                                 if (returnIndex != null) {
+                                                  final filterParam =
+                                                      returnFilter != null
+                                                          ? '&filter=${Uri.encodeComponent(returnFilter)}'
+                                                          : '';
                                                   Routemaster.of(context).replace(
-                                                      '/tips?returnIndex=$returnIndex');
+                                                      '/tips?returnIndex=$returnIndex$filterParam');
                                                 } else {
                                                   Routemaster.of(context)
                                                       .replace('/home');

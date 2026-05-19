@@ -147,7 +147,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
                                       ),
                                       child: const Icon(
                                         Icons.help_outline,
-                                        size: 16,
+                                        size: 14,
                                         color: Colors.grey,
                                       ),
                                     ),

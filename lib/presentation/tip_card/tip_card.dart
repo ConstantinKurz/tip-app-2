@@ -137,11 +137,13 @@ class _TipCardState extends State<TipCard> {
               TipCardHeader(
                 match: widget.match,
                 tip: widget.tip,
-                // Delete-Button nur anzeigen wenn Tipp existiert UND (Spiel noch nicht angefangen ODER Admin ist)
+                // Delete-Button nur anzeigen wenn Tipp existiert UND (Spiel noch nicht 3 Min vor Start ODER Admin ist)
                 onDelete: (formState.tipHome != null &&
                         formState.tipGuest != null &&
                         (widget.isAdmin ||
-                            widget.match.matchDate.isAfter(DateTime.now())))
+                            widget.match.matchDate
+                                .subtract(const Duration(minutes: 3))
+                                .isAfter(DateTime.now())))
                     ? () {
                         final tipId = '${widget.userId}_${widget.match.id}';
                         context.read<TipFormBloc>().add(
@@ -169,10 +171,11 @@ class _TipCardState extends State<TipCard> {
                   userId: widget.userId,
                   matchId: widget.match.id,
                   tip: widget.tip,
+                  // Sperre 3 Minuten vor Spielbeginn
                   readOnly: !widget.isAdmin &&
-                      (widget.match.matchDate.isBefore(DateTime.now()) ||
-                          widget.match.matchDate
-                              .isAtSameMomentAs(DateTime.now()))),
+                      widget.match.matchDate
+                          .subtract(const Duration(minutes: 3))
+                          .isBefore(DateTime.now())),
               if (widget.footer != null) ...[
                 const SizedBox(height: 16),
                 widget.footer!,

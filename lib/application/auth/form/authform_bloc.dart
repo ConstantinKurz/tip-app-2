@@ -63,7 +63,18 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     UpdateUserEvent event,
     Emitter<AuthformState> emit,
   ) async {
+    print('═══════════════════════════════════════════════════════════');
+    print('📝 [AuthformBloc] _onUpdateUser called');
+    print('   event.user: ${event.user?.name} (${event.user?.id})');
+    print(
+        '   event.currentUser: ${event.currentUser?.name} (${event.currentUser?.id})');
+    print('   event.user.email: ${event.user?.email}');
+    print('   event.currentUser.email: ${event.currentUser?.email}');
+    print('═══════════════════════════════════════════════════════════');
+
     if (event.user == null) {
+      print(
+          '⚠️ [AuthformBloc] event.user is null, showing validation messages');
       emit(state.copyWith(showValidationMessages: true, isSubmitting: false));
       return;
     }
@@ -74,15 +85,22 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     final emailChanged = event.currentUser != null &&
         event.user!.email != event.currentUser!.email;
 
+    print('📧 [AuthformBloc] Email changed: $emailChanged');
+
     if (emailChanged) {
+      print('📧 [AuthformBloc] Calling Cloud Function to update email...');
       // First update email in Firebase Auth via Cloud Function
       final emailResult = await authRepository.updateUserEmailAsAdmin(
         userId: event.user!.id,
         newEmail: event.user!.email,
       );
 
+      print(
+          '📧 [AuthformBloc] Cloud Function result: ${emailResult.isRight() ? "SUCCESS" : "FAILED"}');
+
       // If email update failed, stop here
       if (emailResult.isLeft()) {
+        print('❌ [AuthformBloc] Email update failed, stopping...');
         emit(state.copyWith(
           isSubmitting: false,
           authFailureOrSuccessOption: optionOf(emailResult),
@@ -91,8 +109,12 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
       }
     }
 
+    print('📝 [AuthformBloc] Updating user in Firestore...');
     // Update the rest of the user data in Firestore
     final failureOrSuccess = await authRepository.updateUser(user: event.user!);
+
+    print(
+        '📝 [AuthformBloc] Firestore update result: ${failureOrSuccess.isRight() ? "SUCCESS" : "FAILED"}');
 
     emit(state.copyWith(
       isSubmitting: false,

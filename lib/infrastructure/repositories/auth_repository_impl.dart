@@ -285,18 +285,39 @@ class AuthRepositoryImpl implements AuthRepository {
     required String newEmail,
   }) async {
     try {
-      final functions = FirebaseFunctions.instance;
+      print('═══════════════════════════════════════════════════════════');
+      print('🚀 [AuthRepository] Calling updateUserEmail Cloud Function');
+      print('   userId: $userId');
+      print('   newEmail: $newEmail');
+      print('   region: us-central1');
+      print('═══════════════════════════════════════════════════════════');
+
+      // Explizit Region setzen (us-central1 ist Standard für Firebase Functions)
+      final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
       final callable = functions.httpsCallable('updateUserEmail');
 
-      await callable.call({
+      print('📤 [AuthRepository] Sending request to Cloud Function...');
+
+      final result = await callable.call({
         'userId': userId,
         'newEmail': newEmail,
       });
 
+      print('═══════════════════════════════════════════════════════════');
+      print('✅ [AuthRepository] Cloud Function SUCCESS!');
+      print('   Response data: ${result.data}');
+      print('═══════════════════════════════════════════════════════════');
+
       return right(unit);
-    } on FirebaseFunctionsException catch (e) {
-      print(
-          '❌ [AuthRepository] Cloud Function error: ${e.code} - ${e.message}');
+    } on FirebaseFunctionsException catch (e, stackTrace) {
+      print('═══════════════════════════════════════════════════════════');
+      print('❌ [AuthRepository] FirebaseFunctionsException!');
+      print('   Code: ${e.code}');
+      print('   Message: ${e.message}');
+      print('   Details: ${e.details}');
+      print('   Plugin: ${e.plugin}');
+      print('   StackTrace: $stackTrace');
+      print('═══════════════════════════════════════════════════════════');
 
       switch (e.code) {
         case 'already-exists':
@@ -311,8 +332,13 @@ class AuthRepositoryImpl implements AuthRepository {
         default:
           return left(UnexpectedAuthFailure());
       }
-    } catch (e) {
-      print('❌ [AuthRepository] updateUserEmailAsAdmin error: $e');
+    } catch (e, stackTrace) {
+      print('═══════════════════════════════════════════════════════════');
+      print('❌ [AuthRepository] UNEXPECTED ERROR!');
+      print('   Type: ${e.runtimeType}');
+      print('   Error: $e');
+      print('   StackTrace: $stackTrace');
+      print('═══════════════════════════════════════════════════════════');
       return left(UnexpectedAuthFailure());
     }
   }

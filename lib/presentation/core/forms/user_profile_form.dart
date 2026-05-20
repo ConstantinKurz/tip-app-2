@@ -28,15 +28,20 @@ class UserProfileForm extends StatefulWidget {
 class _UserProfileFormState extends State<UserProfileForm> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   late final TextEditingController nameController;
+  late final TextEditingController emailController;
+  late final TextEditingController emailPasswordController;
   late final TextEditingController currentPasswordController;
   late final TextEditingController newPasswordController;
   late final TextEditingController confirmPasswordController;
-  
+
+  bool _emailChanged = false;
+  bool _showEmailPassword = false;
+
   bool _showPasswordFields = false;
   bool _showCurrentPassword = false;
   bool _showNewPassword = false;
   bool _showConfirmPassword = false;
-  
+
   bool _isChampionChangeable = true;
   bool _isLoading = true;
 
@@ -44,10 +49,12 @@ class _UserProfileFormState extends State<UserProfileForm> {
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.user.name);
+    emailController = TextEditingController(text: widget.user.email);
+    emailPasswordController = TextEditingController();
     currentPasswordController = TextEditingController();
     newPasswordController = TextEditingController();
     confirmPasswordController = TextEditingController();
-    
+
     _checkIfChampionChangeable();
   }
 
@@ -55,7 +62,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
     try {
       final matchRepository = sl<MatchRepository>();
       final matchesResult = await matchRepository.getAllMatches();
-      
+
       final matches = matchesResult.fold(
         (failure) => <CustomMatch>[],
         (matches) => matches,
@@ -64,13 +71,14 @@ class _UserProfileFormState extends State<UserProfileForm> {
       // Alle Matches nach Datum sortieren und das früheste nehmen
       final sortedMatches = List<CustomMatch>.from(matches)
         ..sort((a, b) => a.matchDate.compareTo(b.matchDate));
-      
+
       final firstMatch = sortedMatches.isNotEmpty ? sortedMatches.first : null;
-      
+
       print('🔍 [UserProfileForm] Erstes Match ID: ${firstMatch?.id}');
       print('🔍 [UserProfileForm] Match-Datum: ${firstMatch?.matchDate}');
       print('🔍 [UserProfileForm] Jetzt: ${DateTime.now()}');
-      print('🔍 [UserProfileForm] Champion änderbar: ${firstMatch == null || firstMatch.matchDate.isAfter(DateTime.now())}');
+      print(
+          '🔍 [UserProfileForm] Champion änderbar: ${firstMatch == null || firstMatch.matchDate.isAfter(DateTime.now())}');
 
       if (mounted) {
         setState(() {
@@ -94,6 +102,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
   @override
   void dispose() {
     nameController.dispose();
+    emailController.dispose();
+    emailPasswordController.dispose();
     currentPasswordController.dispose();
     newPasswordController.dispose();
     confirmPasswordController.dispose();
@@ -106,6 +116,18 @@ class _UserProfileFormState extends State<UserProfileForm> {
     }
     if (value.trim().length < 2) {
       return "Name muss mindestens 2 Zeichen lang sein";
+    }
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Bitte geben Sie eine E-Mail ein";
+    }
+    final emailRegex =
+        RegExp(r"^[a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    if (!emailRegex.hasMatch(value)) {
+      return "Bitte geben Sie eine gültige E-Mail ein";
     }
     return null;
   }
@@ -154,9 +176,15 @@ class _UserProfileFormState extends State<UserProfileForm> {
                   );
                 },
                 (_) {
-                  final message = _showPasswordFields
-                      ? "Profil und Passwort erfolgreich aktualisiert!"
-                      : "Profil erfolgreich aktualisiert!";
+                  String message;
+                  if (_emailChanged) {
+                    message =
+                        "Bestätigungs-E-Mail wurde an ${emailController.text} gesendet!";
+                  } else if (_showPasswordFields) {
+                    message = "Profil und Passwort erfolgreich aktualisiert!";
+                  } else {
+                    message = "Profil erfolgreich aktualisiert!";
+                  }
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -172,6 +200,15 @@ class _UserProfileFormState extends State<UserProfileForm> {
                   if (_showPasswordFields) {
                     setState(() {
                       _showPasswordFields = false;
+                      currentPasswordController.clear();
+                      newPasswordController.clear();
+                      confirmPasswordController.clear();
+                    });
+                  }
+                  if (_emailChanged) {
+                    setState(() {
+                      _emailChanged = false;
+                      emailPasswordController.clear();
                     });
                   }
                 },
@@ -223,7 +260,89 @@ class _UserProfileFormState extends State<UserProfileForm> {
                       .add(UserFormFieldUpdatedEvent(username: value)),
                 ),
                 const SizedBox(height: 16),
+
+                // Email Field
+                Text(
+                  'E-Mail',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: emailController,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: Colors.white,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: _validateEmail,
+                  decoration: InputDecoration(
+                    hintText: "Deine E-Mail",
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                    prefixIcon: const Icon(Icons.email, color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Colors.white),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Colors.white),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Colors.white),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _emailChanged = value != widget.user.email;
+                    });
+                    context
+                        .read<AuthformBloc>()
+                        .add(UserFormFieldUpdatedEvent(email: value));
+                  },
+                ),
                 
+                // Password field for email change (only visible when email changed)
+                if (_emailChanged) ...[                  
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: emailPasswordController,
+                    style: const TextStyle(color: Colors.white),
+                    cursorColor: Colors.white,
+                    obscureText: !_showEmailPassword,
+                    decoration: InputDecoration(
+                      labelText: "Passwort für E-Mail-Änderung",
+                      hintText: "Aktuelles Passwort eingeben",
+                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                      prefixIcon: const Icon(Icons.lock_outline, color: Colors.orangeAccent),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _showEmailPassword ? Icons.visibility : Icons.visibility_off,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _showEmailPassword = !_showEmailPassword;
+                          });
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.orangeAccent),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.orangeAccent),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.orangeAccent, width: 2),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+
                 // Champion Selection
                 Text(
                   'Champion',
@@ -232,7 +351,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                
+
                 if (_isLoading)
                   const Center(child: CircularProgressIndicator())
                 else
@@ -244,24 +363,30 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           DropdownButtonFormField<String>(
-                            value: widget.teams.any((t) => t.id == (state.championId ?? widget.user.championId))
+                            value: widget.teams.any((t) =>
+                                    t.id ==
+                                    (state.championId ??
+                                        widget.user.championId))
                                 ? (state.championId ?? widget.user.championId)
                                 : null,
                             decoration: InputDecoration(
                               hintText: "Champion wählen",
-                              hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                              
+                              hintStyle: TextStyle(
+                                  color: Colors.white.withOpacity(0.5)),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Colors.white),
+                                borderSide:
+                                    const BorderSide(color: Colors.white),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Colors.white),
+                                borderSide:
+                                    const BorderSide(color: Colors.white),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Colors.white),
+                                borderSide:
+                                    const BorderSide(color: Colors.white),
                               ),
                             ),
                             style: const TextStyle(color: Colors.white),
@@ -283,7 +408,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
                                     const SizedBox(width: 12),
                                     Text(
                                       team.name,
-                                      style: const TextStyle(color: Colors.white),
+                                      style:
+                                          const TextStyle(color: Colors.white),
                                     ),
                                   ],
                                 ),
@@ -292,8 +418,9 @@ class _UserProfileFormState extends State<UserProfileForm> {
                             onChanged: _isChampionChangeable
                                 ? (String? selectedChampionId) {
                                     context.read<AuthformBloc>().add(
-                                      UserFormFieldUpdatedEvent(championId: selectedChampionId),
-                                    );
+                                          UserFormFieldUpdatedEvent(
+                                              championId: selectedChampionId),
+                                        );
                                   }
                                 : null,
                           ),
@@ -313,7 +440,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     ),
                   ),
                 const SizedBox(height: 24),
-                
+
                 // Password Change Section
                 InkWell(
                   onTap: () {
@@ -331,7 +458,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     child: Row(
                       children: [
                         Text(
@@ -354,7 +482,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     ),
                   ),
                 ),
-                
+
                 if (_showPasswordFields) ...[
                   const SizedBox(height: 16),
                   TextFormField(
@@ -365,11 +493,15 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     validator: _validatePassword,
                     decoration: InputDecoration(
                       labelText: "Aktuelles Passwort",
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                      prefixIcon: const Icon(Icons.lock_outline, color: Colors.white),
+                      hintStyle:
+                          TextStyle(color: Colors.white.withOpacity(0.5)),
+                      prefixIcon:
+                          const Icon(Icons.lock_outline, color: Colors.white),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _showCurrentPassword ? Icons.visibility : Icons.visibility_off,
+                          _showCurrentPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.white,
                         ),
                         onPressed: () {
@@ -401,11 +533,14 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     validator: _validatePassword,
                     decoration: InputDecoration(
                       labelText: "Neues Passwort",
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                      hintStyle:
+                          TextStyle(color: Colors.white.withOpacity(0.5)),
                       prefixIcon: const Icon(Icons.lock, color: Colors.white),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _showNewPassword ? Icons.visibility : Icons.visibility_off,
+                          _showNewPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.white,
                         ),
                         onPressed: () {
@@ -437,11 +572,14 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     validator: _validateConfirmPassword,
                     decoration: InputDecoration(
                       labelText: "Passwort bestätigen",
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                      hintStyle:
+                          TextStyle(color: Colors.white.withOpacity(0.5)),
                       prefixIcon: const Icon(Icons.lock, color: Colors.white),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _showConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                          _showConfirmPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.white,
                         ),
                         onPressed: () {
@@ -465,15 +603,16 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     ),
                   ),
                 ],
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Action Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CustomButton(
-                      buttonText: state.isSubmitting ? 'Speichert...' : 'Speichern',
+                      buttonText:
+                          state.isSubmitting ? 'Speichert...' : 'Speichern',
                       backgroundColor: theme.colorScheme.primary,
                       borderColor: primaryDark,
                       hoverColor: primaryDark,
@@ -481,23 +620,50 @@ class _UserProfileFormState extends State<UserProfileForm> {
                           ? () {}
                           : () {
                               if (formKey.currentState!.validate()) {
+                                // Check if email changed and password is required
+                                if (_emailChanged &&
+                                    emailPasswordController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: Colors.orange,
+                                      content: Text(
+                                        'Bitte gib dein aktuelles Passwort ein, um die E-Mail zu ändern',
+                                        style: theme.textTheme.bodyLarge
+                                            ?.copyWith(color: Colors.white),
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 final updatedUser = widget.user.copyWith(
                                   name: state.name ?? nameController.text,
-                                  championId: state.championId ?? widget.user.championId,
+                                  email: emailController.text,
+                                  championId: state.championId ??
+                                      widget.user.championId,
                                 );
-                                
+
+                                // For email change: use emailPasswordController
+                                // For password change: use currentPasswordController
+                                final passwordForEmail = _emailChanged && emailPasswordController.text.isNotEmpty
+                                    ? emailPasswordController.text
+                                    : null;
+                                final passwordForPasswordChange = _showPasswordFields && currentPasswordController.text.isNotEmpty
+                                    ? currentPasswordController.text
+                                    : null;
+
                                 context.read<AuthformBloc>().add(
-                                  UpdateUserWithPasswordEvent(
-                                    user: updatedUser,
-                                    currentUser: widget.user,
-                                    currentPassword: _showPasswordFields && currentPasswordController.text.isNotEmpty 
-                                        ? currentPasswordController.text 
-                                        : null,
-                                    newPassword: _showPasswordFields && newPasswordController.text.isNotEmpty 
-                                        ? newPasswordController.text 
-                                        : null,
-                                  ),
-                                );
+                                      UpdateUserWithPasswordEvent(
+                                        user: updatedUser,
+                                        currentUser: widget.user,
+                                        currentPassword: passwordForEmail ?? passwordForPasswordChange,
+                                        newPassword: _showPasswordFields &&
+                                                newPasswordController
+                                                    .text.isNotEmpty
+                                            ? newPasswordController.text
+                                            : null,
+                                      ),
+                                    );
                               }
                             },
                     ),
@@ -517,6 +683,12 @@ class _UserProfileFormState extends State<UserProfileForm> {
       return failure.message;
     } else if (failure is InvalidEmailAndPasswordCombinationFailure) {
       return "Das aktuelle Passwort ist falsch";
+    } else if (failure is EmailAlreadyInUseFailure) {
+      return "Diese E-Mail-Adresse wird bereits verwendet";
+    } else if (failure is InvalidEmailFailure) {
+      return "Ungültige E-Mail-Adresse";
+    } else if (failure is InsufficientPermisssons) {
+      return "Bitte melde dich erneut an und versuche es noch einmal";
     } else {
       return "Fehler beim Aktualisieren des Profils";
     }

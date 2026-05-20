@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:dartz/dartz.dart';
 import 'package:faker/faker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -280,66 +279,57 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<AuthFailure, Unit>> updateUserEmailAsAdmin({
-    required String userId,
+  Future<Either<AuthFailure, Unit>> updateOwnEmail({
     required String newEmail,
+    required String currentPassword,
   }) async {
     try {
-      print('═══════════════════════════════════════════════════════════');
-      print('🚀 [AuthRepository] Calling updateUserEmail Cloud Function');
-      print('   userId: $userId');
-      print('   newEmail: $newEmail');
-      print('   region: us-central1');
-      print('═══════════════════════════════════════════════════════════');
+      final user = firebaseAuth.currentUser;
+      if (user == null || user.email == null) {
+        return left(UserNotFoundFailure(message: "Kein Benutzer eingeloggt"));
+      }
 
-      // Explizit Region setzen (us-central1 ist Standard für Firebase Functions)
-      final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
-      final callable = functions.httpsCallable('updateUserEmail');
+      print('📧 [AuthRepository] Updating own email...');
+      print('   Current email: ${user.email}');
+      print('   New email: $newEmail');
 
-      print('📤 [AuthRepository] Sending request to Cloud Function...');
+      // Re-authenticate with current password first
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      print('✅ [AuthRepository] Re-authentication successful');
 
-      final result = await callable.call({
-        'userId': userId,
-        'newEmail': newEmail,
-      });
+      // Send verification email to new address and update
+      await user.verifyBeforeUpdateEmail(newEmail);
+      print('✅ [AuthRepository] Verification email sent to $newEmail');
 
-      print('═══════════════════════════════════════════════════════════');
-      print('✅ [AuthRepository] Cloud Function SUCCESS!');
-      print('   Response data: ${result.data}');
-      print('═══════════════════════════════════════════════════════════');
+      // Update Firestore with new email
+      await usersCollection.doc(user.uid).update({'email': newEmail});
+      print('✅ [AuthRepository] Firestore email updated');
 
       return right(unit);
-    } on FirebaseFunctionsException catch (e, stackTrace) {
-      print('═══════════════════════════════════════════════════════════');
-      print('❌ [AuthRepository] FirebaseFunctionsException!');
-      print('   Code: ${e.code}');
-      print('   Message: ${e.message}');
-      print('   Details: ${e.details}');
-      print('   Plugin: ${e.plugin}');
-      print('   StackTrace: $stackTrace');
-      print('═══════════════════════════════════════════════════════════');
-
-      switch (e.code) {
-        case 'already-exists':
-          return left(EmailAlreadyInUseFailure());
-        case 'permission-denied':
-          return left(InsufficientPermisssons());
-        case 'not-found':
-          return left(UserNotFoundFailure(message: 'Benutzer nicht gefunden'));
-        case 'invalid-argument':
-          return left(
-              InvalidEmailFailure(message: e.message ?? 'Ungültige E-Mail'));
-        default:
-          return left(UnexpectedAuthFailure());
+    } on FirebaseAuthException catch (e) {
+      print('❌ [AuthRepository] FirebaseAuthException: ${e.code}');
+      if (e.code == "wrong-password" || e.code == "invalid-credential") {
+        return left(InvalidCredential(message: "Falsches Passwort"));
+      } else if (e.code == "email-already-in-use") {
+        return left(EmailAlreadyInUseFailure());
+      } else if (e.code == "invalid-email") {
+        return left(InvalidEmailFailure(message: "Ungültige E-Mail-Adresse"));
+      } else if (e.code == "requires-recent-login") {
+        return left(InsufficientPermisssons());
       }
-    } catch (e, stackTrace) {
-      print('═══════════════════════════════════════════════════════════');
-      print('❌ [AuthRepository] UNEXPECTED ERROR!');
-      print('   Type: ${e.runtimeType}');
-      print('   Error: $e');
-      print('   StackTrace: $stackTrace');
-      print('═══════════════════════════════════════════════════════════');
-      return left(UnexpectedAuthFailure());
+      return left(ServerFailure());
+    } catch (e) {
+      print('❌ [AuthRepository] Unexpected error: $e');
+      return left(mapFirebaseError<AuthFailure>(
+        e,
+        insufficientPermissions: InsufficientPermisssons(),
+        unexpected: UnexpectedAuthFailure(),
+        notFound: UserNotFoundFailure(message: "Benutzer nicht gefunden"),
+      ));
     }
   }
 }

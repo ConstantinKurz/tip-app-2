@@ -56,6 +56,7 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
       rank: event.rank ?? state.rank,
       score: event.score ?? state.score,
       jokerSum: event.jokerSum ?? state.jokerSum,
+      sixer: event.sixer ?? state.sixer,
     ));
   }
 
@@ -81,40 +82,8 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
 
     emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
 
-    // Check if email has changed - if so, use Cloud Function to update Firebase Auth
-    final emailChanged = event.currentUser != null &&
-        event.user!.email != event.currentUser!.email;
-
-    print('📧 [AuthformBloc] Email changed: $emailChanged');
-
-    if (emailChanged) {
-      print('📧 [AuthformBloc] Calling Cloud Function to update email...');
-      // First update email in Firebase Auth via Cloud Function
-      final emailResult = await authRepository.updateUserEmailAsAdmin(
-        userId: event.user!.id,
-        newEmail: event.user!.email,
-      );
-
-      print(
-          '📧 [AuthformBloc] Cloud Function result: ${emailResult.isRight() ? "SUCCESS" : "FAILED"}');
-
-      // If email update failed, stop here
-      if (emailResult.isLeft()) {
-        print('❌ [AuthformBloc] Email update failed, stopping...');
-        emit(state.copyWith(
-          isSubmitting: false,
-          authFailureOrSuccessOption: optionOf(emailResult),
-        ));
-        return;
-      }
-    }
-
-    print('📝 [AuthformBloc] Updating user in Firestore...');
-    // Update the rest of the user data in Firestore
+    // Update user data in Firestore (email change not allowed for other users)
     final failureOrSuccess = await authRepository.updateUser(user: event.user!);
-
-    print(
-        '📝 [AuthformBloc] Firestore update result: ${failureOrSuccess.isRight() ? "SUCCESS" : "FAILED"}');
 
     emit(state.copyWith(
       isSubmitting: false,
@@ -128,14 +97,41 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
   ) async {
     emit(state.copyWith(isSubmitting: true, showValidationMessages: false));
 
-    // Zuerst das Passwort aktualisieren, falls angegeben
+    // Check if email changed
+    final emailChanged = event.user.email != event.currentUser.email;
+
+    // If email changed, require password and update email
+    if (emailChanged) {
+      if (event.currentPassword == null || event.currentPassword!.isEmpty) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessOption: optionOf(left(InvalidCredential(
+              message: 'Passwort erforderlich um E-Mail zu ändern'))),
+        ));
+        return;
+      }
+
+      final emailResult = await authRepository.updateOwnEmail(
+        newEmail: event.user.email,
+        currentPassword: event.currentPassword!,
+      );
+
+      if (emailResult.isLeft()) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessOption: optionOf(emailResult),
+        ));
+        return;
+      }
+    }
+
+    // Update password if provided
     if (event.currentPassword != null && event.newPassword != null) {
       final passwordResult = await authRepository.updatePassword(
         currentPassword: event.currentPassword!,
         newPassword: event.newPassword!,
       );
 
-      // Bei Passwort-Fehler sofort abbrechen
       if (passwordResult.isLeft()) {
         emit(state.copyWith(
           isSubmitting: false,
@@ -145,7 +141,7 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
       }
     }
 
-    // Dann User-Daten aktualisieren
+    // Update user data in Firestore
     final userResult = await authRepository.updateUser(user: event.user);
 
     emit(state.copyWith(

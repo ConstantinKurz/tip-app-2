@@ -30,10 +30,10 @@ abstract class AuthRepository {
     required String email,
   });
 
-  /// Updates a user's email in Firebase Authentication (Admin only)
-  /// Uses Cloud Function to bypass client-side restrictions
-  Future<Either<AuthFailure, Unit>> updateUserEmailAsAdmin({
-    required String userId,
+  /// Updates the current user's own email in Firebase Authentication
+  /// Sends a verification email to the new address
+  Future<Either<AuthFailure, Unit>> updateOwnEmail({
     required String newEmail,
+    required String currentPassword,
   });
 }

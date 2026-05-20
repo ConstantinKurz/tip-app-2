@@ -112,47 +112,47 @@ class MyMenuBar extends StatelessWidget {
               //     }
               //   },
               // ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                tooltip: "Clear Data",
-                onPressed: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      title: const Text("⚠️ Achtung"),
-                      content: const Text(
-                          "Bist du sicher, dass du alle Daten außer deinem eigenen User löschen willst?"),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text("Abbrechen"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text("Ja, löschen"),
-                        ),
-                      ],
-                    ),
-                  );
+              // IconButton(
+              //   icon: const Icon(Icons.delete_outline),
+              //   tooltip: "Clear Data",
+              //   onPressed: () async {
+              //     final confirm = await showDialog<bool>(
+              //       context: context,
+              //       builder: (_) => AlertDialog(
+              //         title: const Text("⚠️ Achtung"),
+              //         content: const Text(
+              //             "Bist du sicher, dass du alle Daten außer deinem eigenen User löschen willst?"),
+              //         actions: [
+              //           TextButton(
+              //             onPressed: () => Navigator.of(context).pop(false),
+              //             child: const Text("Abbrechen"),
+              //           ),
+              //           ElevatedButton(
+              //             style: ElevatedButton.styleFrom(
+              //               backgroundColor: Colors.red,
+              //             ),
+              //             onPressed: () => Navigator.of(context).pop(true),
+              //             child: const Text("Ja, löschen"),
+              //           ),
+              //         ],
+              //       ),
+              //     );
 
-                  if (confirm == true) {
-                    try {
-                      await clearDatabaseExceptUser();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text("✅ Datenbank erfolgreich geleert")),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("❌ Fehler beim Löschen: $e")),
-                      );
-                    }
-                  }
-                },
-              ),
+              //     if (confirm == true) {
+              //       try {
+              //         await clearDatabaseExceptUser();
+              //         ScaffoldMessenger.of(context).showSnackBar(
+              //           const SnackBar(
+              //               content: Text("✅ Datenbank erfolgreich geleert")),
+              //         );
+              //       } catch (e) {
+              //         ScaffoldMessenger.of(context).showSnackBar(
+              //           SnackBar(content: Text("❌ Fehler beim Löschen: $e")),
+              //         );
+              //       }
+              //     }
+              //   },
+              // ),
               const SizedBox(width: 12),
               if (isAuthenticated) ...[
                 const UserButton(),

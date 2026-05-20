@@ -39,17 +39,28 @@ class _CommunityTipListState extends State<CommunityTipList> {
 
   void _scrollToCurrentUser() {
     final sortedUsers = List<AppUser>.from(widget.users)
-      ..sort((a, b) => b.score.compareTo(a.score));
+      ..sort((a, b) {
+        final scoreComparison = b.score.compareTo(a.score);
+        if (scoreComparison != 0) return scoreComparison;
+
+        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+        if (jokerComparison != 0) return jokerComparison;
+
+        final sixersComparison = b.sixer.compareTo(a.sixer);
+        if (sixersComparison != 0) return sixersComparison;
+
+        return a.name.compareTo(b.name);
+      });
+
     final currentUserIndex =
         sortedUsers.indexWhere((u) => u.id == widget.currentUserId);
 
-    if (currentUserIndex > 0 && _scrollController.hasClients) {
-      final targetOffset = currentUserIndex * _itemHeight;
-      _scrollController.animateTo(
-        targetOffset,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    if (currentUserIndex >= 0 && _scrollController.hasClients) {
+      // Zentriere User mit 2-3 Usern darüber
+      final targetOffset = (currentUserIndex - 2) * _itemHeight;
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final finalOffset = targetOffset.clamp(0.0, maxScroll);
+      _scrollController.jumpTo(finalOffset);
     }
   }
 
@@ -63,9 +74,20 @@ class _CommunityTipListState extends State<CommunityTipList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // ✅ FIX: Sortiere User nach Score (absteigend) für korrektes Ranking
+    // ✅ FIX: Sortiere User nach gleicher Logik wie Rangliste
     final sortedUsers = List<AppUser>.from(widget.users)
-      ..sort((a, b) => b.score.compareTo(a.score));
+      ..sort((a, b) {
+        final scoreComparison = b.score.compareTo(a.score);
+        if (scoreComparison != 0) return scoreComparison;
+
+        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+        if (jokerComparison != 0) return jokerComparison;
+
+        final sixersComparison = b.sixer.compareTo(a.sixer);
+        if (sixersComparison != 0) return sixersComparison;
+
+        return a.name.compareTo(b.name);
+      });
 
     return ListView.separated(
       controller: _scrollController,

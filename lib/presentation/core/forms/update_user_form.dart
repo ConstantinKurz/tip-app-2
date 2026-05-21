@@ -122,9 +122,10 @@ class UpdateUserForm extends StatelessWidget {
                       .add(UserFormFieldUpdatedEvent(username: value)),
                 ),
                 const SizedBox(height: 16),
-                // --- E-Mail Feld ---
+                // --- E-Mail Feld (read-only for admin edits) ---
                 TextFormField(
                   controller: emailController,
+                  readOnly: true,
                   style: const TextStyle(color: Colors.white),
                   cursorColor: Colors.white,
                   validator: _validateEmail,
@@ -135,9 +136,6 @@ class UpdateUserForm extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onChanged: (value) => context
-                      .read<AuthformBloc>()
-                      .add(UserFormFieldUpdatedEvent(email: value)),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

@@ -5,7 +5,7 @@ import 'package:flutter_web/application/tips/form/tipform_bloc.dart';
 
 class TipScoreField extends StatelessWidget {
   final TextEditingController controller;
-  final TextEditingController otherController; 
+  final TextEditingController otherController;
   final String scoreType;
   final String userId;
   final String matchId;
@@ -31,7 +31,7 @@ class TipScoreField extends StatelessWidget {
       builder: (context, state) {
         final isDisabled = state.isTipLimitReached;
         final bool readOnly = this.readOnly || isDisabled;
-        
+
         return SizedBox(
           width: 50,
           child: TextFormField(
@@ -40,7 +40,7 @@ class TipScoreField extends StatelessWidget {
             readOnly: readOnly,
             style: themeData.textTheme.bodyLarge,
             cursorColor: themeData.colorScheme.onPrimary,
-            maxLength: 1,
+            maxLength: 2,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
@@ -55,24 +55,28 @@ class TipScoreField extends StatelessWidget {
             onChanged: readOnly
                 ? null
                 : (value) {
-                    final currentHome = scoreType == 'home' 
+                    final currentHome = scoreType == 'home'
                         ? (value.isEmpty ? null : int.tryParse(value))
-                        : (otherController.text.isEmpty ? null : int.tryParse(otherController.text));
-                    
-                    final currentGuest = scoreType == 'guest' 
+                        : (otherController.text.isEmpty
+                            ? null
+                            : int.tryParse(otherController.text));
+
+                    final currentGuest = scoreType == 'guest'
                         ? (value.isEmpty ? null : int.tryParse(value))
-                        : (otherController.text.isEmpty ? null : int.tryParse(otherController.text));
+                        : (otherController.text.isEmpty
+                            ? null
+                            : int.tryParse(otherController.text));
 
                     context.read<TipFormBloc>().add(
-                      TipFormFieldUpdatedEvent(
-                        matchId: matchId,
-                        userId: userId,
-                        tipHome: currentHome,
-                        tipGuest: currentGuest,
-                        joker: state.joker,
-                        matchDay: matchDay,
-                      ),
-                    );
+                          TipFormFieldUpdatedEvent(
+                            matchId: matchId,
+                            userId: userId,
+                            tipHome: currentHome,
+                            tipGuest: currentGuest,
+                            joker: state.joker,
+                            matchDay: matchDay,
+                          ),
+                        );
                   },
           ),
         );

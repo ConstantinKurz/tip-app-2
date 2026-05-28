@@ -205,7 +205,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
                                 ),
                                 const SizedBox(width: 2),
                                 SizedBox(
-                                  width: 34,
+                                  width: 20,
                                   child: Text('${user.score}p',
                                       style:
                                           theme.textTheme.bodySmall?.copyWith(
@@ -228,17 +228,13 @@ class _CommunityTipListState extends State<CommunityTipList> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (tip == null) const SizedBox(width: 20),
-                        if (tip?.joker == true)
-                          const Padding(
-                            padding: EdgeInsets.only(right: 4.0),
-                            child:
-                                Icon(Icons.star, color: Colors.amber, size: 16),
-                          ),
-                        if (tip?.joker != true)
-                          const SizedBox(
-                            width: 20,
-                          ),
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: tip?.joker == true
+                              ? Icon(Icons.star, color: Colors.amber, size: 16)
+                              : null,
+                        ),
                         Text(
                           (tip?.tipHome != null && tip?.tipGuest != null)
                               ? '${tip?.tipHome} : ${tip?.tipGuest}'

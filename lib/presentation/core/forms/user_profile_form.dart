@@ -125,7 +125,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
       return "Bitte geben Sie eine E-Mail ein";
     }
     final emailRegex =
-        RegExp(r"^[a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+        RegExp(r"^[a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+");
     if (!emailRegex.hasMatch(value)) {
       return "Bitte geben Sie eine gültige E-Mail ein";
     }
@@ -301,9 +301,9 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         .add(UserFormFieldUpdatedEvent(email: value));
                   },
                 ),
-                
+
                 // Password field for email change (only visible when email changed)
-                if (_emailChanged) ...[                  
+                if (_emailChanged) ...[
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: emailPasswordController,
@@ -313,11 +313,15 @@ class _UserProfileFormState extends State<UserProfileForm> {
                     decoration: InputDecoration(
                       labelText: "Passwort für E-Mail-Änderung",
                       hintText: "Aktuelles Passwort eingeben",
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                      prefixIcon: const Icon(Icons.lock_outline, color: Colors.orangeAccent),
+                      hintStyle:
+                          TextStyle(color: Colors.white.withOpacity(0.5)),
+                      prefixIcon: const Icon(Icons.lock_outline,
+                          color: Colors.orangeAccent),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _showEmailPassword ? Icons.visibility : Icons.visibility_off,
+                          _showEmailPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.white,
                         ),
                         onPressed: () {
@@ -328,15 +332,18 @@ class _UserProfileFormState extends State<UserProfileForm> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Colors.orangeAccent),
+                        borderSide:
+                            const BorderSide(color: Colors.orangeAccent),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Colors.orangeAccent),
+                        borderSide:
+                            const BorderSide(color: Colors.orangeAccent),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Colors.orangeAccent, width: 2),
+                        borderSide: const BorderSide(
+                            color: Colors.orangeAccent, width: 2),
                       ),
                     ),
                   ),
@@ -645,18 +652,23 @@ class _UserProfileFormState extends State<UserProfileForm> {
 
                                 // For email change: use emailPasswordController
                                 // For password change: use currentPasswordController
-                                final passwordForEmail = _emailChanged && emailPasswordController.text.isNotEmpty
+                                final passwordForEmail = _emailChanged &&
+                                        emailPasswordController.text.isNotEmpty
                                     ? emailPasswordController.text
                                     : null;
-                                final passwordForPasswordChange = _showPasswordFields && currentPasswordController.text.isNotEmpty
-                                    ? currentPasswordController.text
-                                    : null;
+                                final passwordForPasswordChange =
+                                    _showPasswordFields &&
+                                            currentPasswordController
+                                                .text.isNotEmpty
+                                        ? currentPasswordController.text
+                                        : null;
 
                                 context.read<AuthformBloc>().add(
                                       UpdateUserWithPasswordEvent(
                                         user: updatedUser,
                                         currentUser: widget.user,
-                                        currentPassword: passwordForEmail ?? passwordForPasswordChange,
+                                        currentPassword: passwordForEmail ??
+                                            passwordForPasswordChange,
                                         newPassword: _showPasswordFields &&
                                                 newPasswordController
                                                     .text.isNotEmpty

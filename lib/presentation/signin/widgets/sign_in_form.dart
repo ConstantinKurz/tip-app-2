@@ -32,7 +32,7 @@ class _SignInFormState extends State<SignInForm> {
 
   String? validateEmail(String? input) {
     const emailRegex =
-        r"""^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+""";
+        r"""^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+""";
 
     if (input == null || input.isEmpty) {
       return "Bitte gebe eine E-Mail ein";
@@ -122,8 +122,7 @@ class _SignInFormState extends State<SignInForm> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text("Bitte melde Dich an",
-                  style: themeData.textTheme.bodySmall),
+              Text("Bitte melde Dich an", style: themeData.textTheme.bodySmall),
               const SizedBox(height: 80),
               TextFormField(
                 controller: emailController,

@@ -4,6 +4,26 @@ import 'package:flutter_web/presentation/core/menu/drawer.dart';
 import 'package:flutter_web/presentation/core/menu/menu_bar.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
+// Custom animator without animation for instant show/hide
+class _NoAnimationFloatingActionButtonAnimator
+    extends FloatingActionButtonAnimator {
+  @override
+  Offset getOffset(
+      {required Offset begin, required Offset end, required double progress}) {
+    return progress < 1.0 ? begin : end;
+  }
+
+  @override
+  Animation<double> getRotationAnimation({required Animation<double> parent}) {
+    return Tween<double>(begin: 1.0, end: 1.0).animate(parent);
+  }
+
+  @override
+  Animation<double> getScaleAnimation({required Animation<double> parent}) {
+    return Tween<double>(begin: 1.0, end: 1.0).animate(parent);
+  }
+}
+
 class PageTemplate extends StatelessWidget {
   final bool isAuthenticated;
   final Widget child;
@@ -31,6 +51,7 @@ class PageTemplate extends StatelessWidget {
       body: child,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
+      floatingActionButtonAnimator: _NoAnimationFloatingActionButtonAnimator(),
     );
   }
 }

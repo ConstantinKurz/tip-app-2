@@ -275,6 +275,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width < 800;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
@@ -295,15 +296,25 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                       Expanded(
                         child: TextField(
                           controller: _searchController,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isMobile ? 14 : 16,
+                          ),
                           cursorColor: Colors.white,
                           decoration: InputDecoration(
+                            contentPadding: isMobile
+                                ? const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10)
+                                : null,
                             hintText: widget.hintText ??
                                 "Nach Teams, Spielphase oder Matchtag suchen...",
                             hintStyle:
                                 TextStyle(color: Colors.white.withOpacity(0.7)),
-                            prefixIcon:
-                                const Icon(Icons.search, color: Colors.white),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Colors.white,
+                              size: isMobile ? 20 : 24,
+                            ),
                             suffixIcon: (_searchQuery.isNotEmpty ||
                                     _activeFilter != null)
                                 ? IconButton(
@@ -371,8 +382,8 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
-                          height: 40,
-                          width: 40,
+                          height: isMobile ? 32 : 40,
+                          width: isMobile ? 32 : 40,
                           decoration: BoxDecoration(
                             color: _isButtonHovered
                                 ? Colors.white
@@ -385,6 +396,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                           ),
                           child: Icon(
                             _isExpanded ? Icons.close : Icons.filter_list,
+                            size: isMobile ? 18 : 24,
                             color:
                                 _isButtonHovered ? Colors.black : Colors.white,
                           ),
@@ -466,6 +478,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
   /// Filter-Chip Button mit Hover-Effekt
   Widget _buildFilterChip(String label, String filter, ThemeData themeData) {
     final isSelected = _activeFilter == filter;
+    final isMobile = MediaQuery.of(context).size.width < 800;
     bool isHovered = false;
 
     return StatefulBuilder(
@@ -478,7 +491,9 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
             onTap: () => _onFilterChipSelected(filter),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: isMobile
+                  ? const EdgeInsets.symmetric(horizontal: 10, vertical: 5)
+                  : const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color:
                     isSelected || isHovered ? Colors.white : Colors.transparent,
@@ -495,7 +510,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                 style: TextStyle(
                   color: isSelected || isHovered ? Colors.black : Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: isMobile ? 12 : 14,
                 ),
               ),
             ),

@@ -23,15 +23,11 @@ class PageTemplate extends StatelessWidget {
     final themeData = Theme.of(context);
     final responsiveValue = ResponsiveWrapper.of(context);
     return Scaffold(
-      drawer: const CustomDrawer(),
       backgroundColor: themeData.scaffoldBackgroundColor,
-      appBar: responsiveValue.isSmallerThan(DESKTOP)
-          ? const PreferredSize(
-              preferredSize: Size(double.infinity, 60), child: CustomAppBar())
-          : PreferredSize(
-              preferredSize: const Size(double.infinity, 66),
-              child: MyMenuBar(isAuthenticated: isAuthenticated),
-            ),
+      appBar: PreferredSize(
+        preferredSize: const Size(double.infinity, 66),
+        child: MyMenuBar(isAuthenticated: isAuthenticated),
+      ),
       body: child,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,

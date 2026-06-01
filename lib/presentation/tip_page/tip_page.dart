@@ -153,29 +153,33 @@ class _TipPageState extends State<TipPage> {
         : 16.0;
 
     final isMobile = screenWidth < 800;
+    final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
-        child: ElevatedButton.icon(
-          onPressed: () {
-            Routemaster.of(context).push('/home');
-          },
-          icon: const Icon(Icons.home),
-          label: const Text('Home', overflow: TextOverflow.ellipsis),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: themeData.colorScheme.onPrimary,
-            foregroundColor: themeData.colorScheme.primary,
-            textStyle: themeData.textTheme.bodyLarge,
-            minimumSize: const Size(140, 48),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+      floatingActionButton: (isMobile && isKeyboardVisible)
+          ? null
+          : Padding(
+              padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Routemaster.of(context).push('/home');
+                },
+                icon: const Icon(Icons.home),
+                label: const Text('Home', overflow: TextOverflow.ellipsis),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeData.colorScheme.onPrimary,
+                  foregroundColor: themeData.colorScheme.primary,
+                  textStyle: themeData.textTheme.bodyLarge,
+                  minimumSize: const Size(140, 48),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       child: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         builder: (context, authState) {

@@ -7,6 +7,9 @@ class HomeLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 800;
+
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -14,14 +17,16 @@ class HomeLogo extends StatelessWidget {
           Routemaster.of(context).push(HomePage.homePagePath);
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: isMobile
+              ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
+              : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             'Shorty Tipp',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 24,
+              fontSize: isMobile ? 16 : 20,
               fontWeight: _isActive(context) ? FontWeight.w900 : FontWeight.bold,
               color: _isActive(context) 
                   ? Theme.of(context).colorScheme.onSurface

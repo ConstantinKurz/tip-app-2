@@ -24,6 +24,7 @@ import 'package:flutter_web/presentation/signup/signup_page.dart';
 import 'package:flutter_web/presentation/tip_details_page/tip_details_page.dart';
 import 'package:flutter_web/presentation/tip_page/tip_page.dart';
 import 'package:flutter_web/presentation/user_page/user_profile_page.dart';
+import 'package:flutter_web/presentation/rules_page/rules_page.dart';
 import 'package:flutter_web/theme.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -69,6 +70,7 @@ class AppRoutes {
   static const userTips = '/tips';
   static const userTipsDetail = '/tips-detail/:id';
   static const userProfile = '/profile';
+  static const rules = '/rules';
   static const dashboard = '/dashboard';
   static const adminUserTips = '/admin/user-tips/:userId';
   // Admin form pages
@@ -192,8 +194,10 @@ class MyApp extends StatelessWidget {
                       routes: {
                         AppRoutes.home: (_) => const MaterialPage(
                             child: HomePage(isAuthenticated: true)),
+                        AppRoutes.rules: (_) => const MaterialPage(
+                            child: RulesPage(isAuthenticated: true)),
                         AppRoutes.admin: (_) => isAdmin
-                            ? MaterialPage(
+                            ? const MaterialPage(
                                 child: AdminPage(isAuthenticated: true),
                               )
                             : const MaterialPage(
@@ -324,6 +328,9 @@ class MyApp extends StatelessWidget {
                         ),
                     AppRoutes.signup: (_) => const MaterialPage(
                           child: SignUpPage(isAuthenticated: false),
+                        ),
+                    AppRoutes.rules: (_) => const MaterialPage(
+                          child: RulesPage(isAuthenticated: false),
                         ),
                   },
                 );

@@ -22,6 +22,8 @@ class RankingSection extends StatelessWidget {
         if (teamState is TeamsControllerLoaded) {
           final themeData = Theme.of(context);
           final teams = teamState.teams;
+          final screenWidth = MediaQuery.of(context).size.width;
+          final isMobile = screenWidth < 800;
 
           // Sortiere nach Score (absteigend), bei Gleichstand nach Namen
           final sortedUsers = List<AppUser>.from(users)
@@ -46,7 +48,10 @@ class RankingSection extends StatelessWidget {
                 children: [
                   Text(
                     "Rangliste",
-                    style: themeData.textTheme.headlineSmall,
+                    style: isMobile
+                        ? themeData.textTheme.headlineSmall!
+                            .copyWith(fontSize: 14)
+                        : themeData.textTheme.headlineSmall!,
                   ),
                 ],
               ),
@@ -73,12 +78,13 @@ class RankingSection extends StatelessWidget {
                       // Zeige: 2 über dir, dich, 2 unter dir = 5 User total
                       int start = currentUserIndex - 2;
                       int end = currentUserIndex + 3;
-                      
+
                       // Begrenze end auf die Listengröße
                       if (end > sortedUsers.length) {
                         end = sortedUsers.length;
                         // Wenn am Ende, zeige mehr User von oben
-                        start = (sortedUsers.length - 5).clamp(0, sortedUsers.length);
+                        start = (sortedUsers.length - 5)
+                            .clamp(0, sortedUsers.length);
                       }
 
                       visibleUsers = sortedUsers.sublist(start, end);

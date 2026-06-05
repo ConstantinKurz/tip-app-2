@@ -46,6 +46,8 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     const matchDuration = 120;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 800;
 
     return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
       builder: (context, matchState) {
@@ -57,7 +59,8 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                 // Bei State-Typ-Wechsel immer rebuilden
                 if (previous.runtimeType != current.runtimeType) return true;
                 // Bei Loaded-States nur rebuilden wenn sich Tips ändern (nicht Stats)
-                if (previous is TipControllerLoaded && current is TipControllerLoaded) {
+                if (previous is TipControllerLoaded &&
+                    current is TipControllerLoaded) {
                   return previous.tips != current.tips;
                 }
                 return true;
@@ -91,15 +94,14 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                 }
 
                 final now = DateTime.now();
-                final upcomingMatches = matches
-                    .where((match) {
-                      final matchEndTime = match.matchDate
-                          .add(const Duration(minutes: matchDuration));
-                      return matchEndTime.isAfter(now);
-                    })
-                    .toList();
+                final upcomingMatches = matches.where((match) {
+                  final matchEndTime = match.matchDate
+                      .add(const Duration(minutes: matchDuration));
+                  return matchEndTime.isAfter(now);
+                }).toList();
 
-                upcomingMatches.sort((a, b) => a.matchDate.compareTo(b.matchDate));
+                upcomingMatches
+                    .sort((a, b) => a.matchDate.compareTo(b.matchDate));
                 final closestMatches = upcomingMatches.take(3).toList();
 
                 if (closestMatches.isEmpty) {
@@ -128,7 +130,10 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                       children: [
                         Text(
                           "Aktuelle Spiele",
-                          style: themeData.textTheme.headlineSmall,
+                          style: isMobile
+                              ? themeData.textTheme.headlineSmall!
+                                  .copyWith(fontSize: 14)
+                              : themeData.textTheme.headlineSmall!,
                         ),
                         TextButton(
                           onPressed: () {
@@ -182,21 +187,22 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                             );
                           },
                           child: BlocProvider<TipFormBloc>.value(
-                              value: _getTipFormBloc(match.id),
-                              child: _TipCardInitializer(
-                                matchId: match.id,
+                            value: _getTipFormBloc(match.id),
+                            child: _TipCardInitializer(
+                              matchId: match.id,
+                              userId: widget.userId,
+                              matchDay: match.matchDay,
+                              child: TipCard(
+                                key: ValueKey(
+                                    '${match.id}_${match.homeScore}_${match.guestScore}'),
                                 userId: widget.userId,
-                                matchDay: match.matchDay,
-                                child: TipCard(
-                                  key: ValueKey('${match.id}_${match.homeScore}_${match.guestScore}'),
-                                  userId: widget.userId,
-                                  tip: tip,
-                                  homeTeam: homeTeam,
-                                  guestTeam: guestTeam,
-                                  match: match,
-                                ),
+                                tip: tip,
+                                homeTeam: homeTeam,
+                                guestTeam: guestTeam,
+                                match: match,
                               ),
                             ),
+                          ),
                         ),
                       );
                     }).toList(),
@@ -303,17 +309,17 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
   bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
     if (tip.tipHome != null || tip.tipGuest != null) return false;
-    
+
     final phase = MatchPhase.fromMatchDay(widget.matchDay);
     if (!phase.hasTipLimit) return false;
-    
+
     if (phase == MatchPhase.groupStage) {
       final stats = tipState.matchDayStatistics[widget.matchDay];
       if (stats != null) {
         return stats.tippedGames >= phase.maxTips!;
       }
     }
-    
+
     return false;
   }
 
@@ -321,7 +327,8 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {
-      _initialized = true; // Vor dem Dispatch setzen um Mehrfachausführung zu verhindern
+      _initialized =
+          true; // Vor dem Dispatch setzen um Mehrfachausführung zu verhindern
 
       final bloc = context.read<TipFormBloc>();
       final controllerBloc = context.read<TipControllerBloc>();
@@ -360,7 +367,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
         // Reagieren wenn sich Tips oder Statistiken ändern
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
           return previous.tips != current.tips ||
-                 previous.matchDayStatistics != current.matchDayStatistics;
+              previous.matchDayStatistics != current.matchDayStatistics;
         }
         return current is TipControllerLoaded;
       },

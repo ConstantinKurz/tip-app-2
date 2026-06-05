@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
-import 'package:flutter_web/core/utils/clear_data.dart';
-import 'package:flutter_web/core/utils/setup_tournament.dart';
-import 'package:flutter_web/core/utils/simulate_from_db.dart';
 import 'package:flutter_web/presentation/admin_page/admin_page.dart';
 import 'package:flutter_web/presentation/core/buttons/signin_button.dart';
 import 'package:flutter_web/presentation/core/buttons/signout_button.dart';
 import 'package:flutter_web/presentation/core/menu/home_logo.dart';
-import 'package:flutter_web/presentation/core/menu/menu_item.dart';
 import 'package:flutter_web/presentation/core/buttons/user_button.dart';
+import 'package:flutter_web/presentation/rules_page/rules_page.dart';
+import 'package:routemaster/routemaster.dart';
 
 class MyMenuBar extends StatelessWidget {
   final bool isAuthenticated;
@@ -18,6 +16,8 @@ class MyMenuBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 800;
 
     return BlocBuilder<AuthControllerBloc, AuthControllerState>(
       builder: (context, authState) {
@@ -36,13 +36,21 @@ class MyMenuBar extends StatelessWidget {
           child: Row(
             children: [
               const HomeLogo(),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
+              // Menü-Items mit responsiver Größe
               if (isAdmin)
-                MenuItem(
-                  text: "Admin",
-                  inDrawer: false,
-                  path: AdminPage.adminPagePath,
+                _buildMenuItem(
+                  context,
+                  "Admin",
+                  AdminPage.adminPagePath,
+                  isMobile,
                 ),
+              _buildMenuItem(
+                context,
+                "Regeln",
+                RulesPage.rulesPagePath,
+                isMobile,
+              ),
               const Spacer(),
               // IconButton(
               //   icon: const Icon(Icons.spa_outlined),
@@ -165,6 +173,42 @@ class MyMenuBar extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMenuItem(
+    BuildContext context,
+    String text,
+    String path,
+    bool isMobile,
+  ) {
+    final themeData = Theme.of(context);
+    final currentRoutePath = Routemaster.of(context).currentRoute.path;
+    final isActive =
+        currentRoutePath == path || currentRoutePath.startsWith('$path/');
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          Routemaster.of(context).push(path);
+        },
+        child: Container(
+          padding: isMobile
+              ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
+              : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Text(
+            text,
+            style: themeData.textTheme.headlineLarge!.copyWith(
+              fontSize: isMobile ? 12 : 16,
+              fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
+              color: isActive
+                  ? themeData.colorScheme.onSurface
+                  : themeData.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

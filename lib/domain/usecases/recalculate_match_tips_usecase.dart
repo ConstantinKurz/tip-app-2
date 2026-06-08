@@ -10,7 +10,6 @@ import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/domain/repositories/user_repository.dart';
 import 'package:flutter_web/domain/usecases/tip_calculator_usecase.dart';
 
-
 class RecalculateMatchTipsUseCase {
   final TipRepository tipRepository;
   final UserRepository userRepository;
@@ -22,7 +21,7 @@ class RecalculateMatchTipsUseCase {
   Team? _cachedChampionTeam;
   String? _cachedChampionId;
   List<CustomMatch>? _cachedAllMatches;
-  
+
   // ✅ NEU: User-Cache für Batch-Operationen (vermeidet 1000+ getUserById Aufrufe)
   Map<String, dynamic>? _cachedUsersById;
 
@@ -35,7 +34,8 @@ class RecalculateMatchTipsUseCase {
 
   /// Lädt alle benötigten Daten einmal und cached sie
   Future<void> _loadSharedData() async {
-    if (_cachedAllMatches != null && _cachedUsersById != null) return; // Bereits geladen
+    if (_cachedAllMatches != null && _cachedUsersById != null)
+      return; // Bereits geladen
 
     // ✅ Lade alle User EINMAL (statt 1000+ einzelne getUserById Aufrufe)
     if (_cachedUsersById == null) {
@@ -47,7 +47,8 @@ class RecalculateMatchTipsUseCase {
         },
         (users) {
           _cachedUsersById = {for (var user in users) user.id: user};
-          print('📦 [RecalculateMatchTipsUseCase] ${users.length} User gecached (1 Read statt ${users.length * 104} Reads)');
+          print(
+              '📦 [RecalculateMatchTipsUseCase] ${users.length} User gecached (1 Read statt ${users.length * 104} Reads)');
         },
       );
     }
@@ -69,7 +70,8 @@ class RecalculateMatchTipsUseCase {
             .toList()
           ..sort((a, b) => b.matchDate.compareTo(a.matchDate));
 
-        _cachedFinalMatch = matchDay8Matches.isNotEmpty ? matchDay8Matches.first : null;
+        _cachedFinalMatch =
+            matchDay8Matches.isNotEmpty ? matchDay8Matches.first : null;
 
         if (_cachedFinalMatch != null) {
           final homeScore = _cachedFinalMatch!.homeScore ?? 0;
@@ -85,19 +87,22 @@ class RecalculateMatchTipsUseCase {
             final allTeamsResult = await teamRepository.getAll();
             allTeamsResult.fold(
               (failure) {
-                print('❌ Fehler beim Laden der Teams für Champion-Ermittlung: $failure');
+                print(
+                    '❌ Fehler beim Laden der Teams für Champion-Ermittlung: $failure');
               },
               (teams) {
                 final champion = teams.cast<Team?>().firstWhere(
-                  (t) => t != null && t.champion,
-                  orElse: () => null,
-                );
+                      (t) => t != null && t.champion,
+                      orElse: () => null,
+                    );
                 if (champion != null) {
                   _cachedChampionId = champion.id;
                   _cachedChampionTeam = champion;
-                  print('🏆 Champion bei Unentschieden aus Flag ermittelt: ${champion.name}');
+                  print(
+                      '🏆 Champion bei Unentschieden aus Flag ermittelt: ${champion.name}');
                 } else {
-                  print('⚠️ Finale unentschieden, aber kein Team als Champion markiert!');
+                  print(
+                      '⚠️ Finale unentschieden, aber kein Team als Champion markiert!');
                 }
               },
             );
@@ -105,7 +110,8 @@ class RecalculateMatchTipsUseCase {
 
           // Lade Champion-Team einmal (falls nicht bereits durch Unentschieden-Logik geladen)
           if (_cachedChampionId != null && _cachedChampionTeam == null) {
-            final championTeamResult = await teamRepository.getById(_cachedChampionId!);
+            final championTeamResult =
+                await teamRepository.getById(_cachedChampionId!);
             championTeamResult.fold(
               (failure) {},
               (team) {
@@ -165,15 +171,17 @@ class RecalculateMatchTipsUseCase {
 
             // 🏆 FINALE: Champion-Bonus nur für das ECHTE Finale (zeitlich letztes Spiel)
             // Nicht für das Spiel um Platz 3 (auch matchDay 8, aber früher)
-            if (_cachedFinalMatch != null && 
-                match.id == _cachedFinalMatch!.id && 
-                _cachedChampionId != null && 
+            if (_cachedFinalMatch != null &&
+                match.id == _cachedFinalMatch!.id &&
+                _cachedChampionId != null &&
                 _cachedChampionTeam != null) {
               // ✅ OPTIMIERT: Nutze gecachten User statt getUserById
               final cachedUser = _cachedUsersById?[tip.userId] as AppUser?;
-              if (cachedUser != null && cachedUser.championId == _cachedChampionId) {
+              if (cachedUser != null &&
+                  cachedUser.championId == _cachedChampionId) {
                 newPoints += _cachedChampionTeam!.winPoints;
-                print('🏆 [Finale] Champion-Bonus für ${cachedUser.name}: +${_cachedChampionTeam!.winPoints} → Total: $newPoints');
+                print(
+                    '🏆 [Finale] Champion-Bonus für ${cachedUser.name}: +${_cachedChampionTeam!.winPoints} → Total: $newPoints');
               }
             }
 
@@ -216,11 +224,20 @@ class RecalculateMatchTipsUseCase {
 
             for (final tip in tips) {
               totalScore += tip.points ?? 0;
-              
-              if (tip.joker) {
-                jokersUsed++;
+
+              // ✅ Zähle nur VERBRAUCHTE Joker (auf vergangene Spiele gesetzt)
+              if (tip.joker && tip.matchId != null) {
+                // Hole Match aus Cache und prüfe ob es bereits ein Ergebnis hat
+                final match = _cachedAllMatches?.firstWhere(
+                  (m) => m.id == tip.matchId,
+                  orElse: () => CustomMatch.empty(),
+                );
+                // Nur Joker zählen, die auf Spiele mit Ergebnis gesetzt wurden
+                if (match != null && match.id.isNotEmpty && match.hasResult) {
+                  jokersUsed++;
+                }
               }
-              
+
               if ((tip.points ?? 0) == 6 && !tip.joker) {
                 perfectPredictions++;
               }
@@ -239,7 +256,7 @@ class RecalculateMatchTipsUseCase {
                 sixer: perfectPredictions,
               );
               await userRepository.updateUser(updatedUser);
-              
+
               // ✅ Cache aktualisieren für nachfolgende Lookups
               _cachedUsersById![userId] = updatedUser;
             } else {
@@ -257,7 +274,7 @@ class RecalculateMatchTipsUseCase {
   Future<void> updateAllUserRankings() async {
     try {
       final allUsersResult = await userRepository.getAllUsers();
-      
+
       await allUsersResult.fold(
         (failure) async {
           print('❌ Fehler beim Laden aller User für Ranking-Update: $failure');
@@ -298,7 +315,8 @@ class RecalculateMatchTipsUseCase {
             await userRepository.updateUser(user);
           }
 
-          print('✅ Rankings für ${usersToUpdate.length}/${sortedUsers.length} User aktualisiert');
+          print(
+              '✅ Rankings für ${usersToUpdate.length}/${sortedUsers.length} User aktualisiert');
         },
       );
 
@@ -308,5 +326,130 @@ class RecalculateMatchTipsUseCase {
       print('❌ Fehler beim Ranking-Update: $e');
     }
   }
-}
 
+  /// ✅ NEU: Berechnet ALLE User-Statistiken neu (jokerSum, score, sixer)
+  /// UND korrigiert Tipp-Punkte für Spiele ohne Ergebnis!
+  Future<Either<TipFailure, Unit>> recalculateAllUserStatistics() async {
+    try {
+      print('🔄 Starte Neuberechnung aller User-Statistiken...');
+
+      // ✅ Lade shared data einmal (cached)
+      await _loadSharedData();
+
+      // Hole alle User
+      final allUsersResult = await userRepository.getAllUsers();
+
+      return await allUsersResult.fold(
+        (failure) async {
+          print('❌ Fehler beim Laden aller User: $failure');
+          return left(failure);
+        },
+        (allUsers) async {
+          int updatedUserCount = 0;
+          int correctedTipsCount = 0;
+
+          for (final user in allUsers) {
+            try {
+              final userTipsResult =
+                  await tipRepository.getTipsByUserId(user.id);
+
+              await userTipsResult.fold(
+                (failure) async {
+                  print(
+                      '❌ Fehler beim Laden der Tips für ${user.name}: $failure');
+                },
+                (tips) async {
+                  int totalScore = 0;
+                  int jokersUsed = 0;
+                  int perfectPredictions = 0;
+
+                  for (final tip in tips) {
+                    // ✅ Hole das Match für diesen Tipp
+                    final match = _cachedAllMatches?.firstWhere(
+                      (m) => m.id == tip.matchId,
+                      orElse: () => CustomMatch.empty(),
+                    );
+
+                    final matchHasResult =
+                        match != null && match.id.isNotEmpty && match.hasResult;
+
+                    // ✅ KORREKTUR: Wenn Match KEIN Ergebnis hat, aber Tipp hat Punkte → Reset!
+                    if (!matchHasResult &&
+                        tip.points != null &&
+                        tip.points != 0) {
+                      await tipRepository.updatePoints(
+                          tipId: tip.id, points: 0);
+                      correctedTipsCount++;
+                      print(
+                          '🔧 Tipp ${tip.id} korrigiert: Punkte auf 0 gesetzt (Match ohne Ergebnis)');
+                      // Punkte nicht zum Score addieren
+                    }
+                    // ✅ Wenn Match Ergebnis hat, Punkte neu berechnen
+                    else if (matchHasResult) {
+                      final newPoints = TipCalculator.calculatePoints(
+                        tipHome: tip.tipHome ?? 0,
+                        tipGuest: tip.tipGuest ?? 0,
+                        actualHome: match.homeScore ?? 0,
+                        actualGuest: match.guestScore ?? 0,
+                        hasJoker: tip.joker,
+                        phase: match.phase,
+                      );
+
+                      // Update Punkte wenn unterschiedlich
+                      if (tip.points != newPoints) {
+                        await tipRepository.updatePoints(
+                            tipId: tip.id, points: newPoints);
+                        correctedTipsCount++;
+                        print(
+                            '🔧 Tipp ${tip.id} korrigiert: ${tip.points} → $newPoints');
+                      }
+
+                      totalScore += newPoints;
+
+                      // Zähle Sechser (ohne Joker)
+                      if (newPoints == 6 && !tip.joker) {
+                        perfectPredictions++;
+                      }
+
+                      // Zähle verbrauchte Joker
+                      if (tip.joker) {
+                        jokersUsed++;
+                      }
+                    }
+                  }
+
+                  // Update User, wenn Werte unterschiedlich sind
+                  if (user.score != totalScore ||
+                      user.jokerSum != jokersUsed ||
+                      user.sixer != perfectPredictions) {
+                    final updatedUser = user.copyWith(
+                      score: totalScore,
+                      jokerSum: jokersUsed,
+                      sixer: perfectPredictions,
+                    );
+                    await userRepository.updateUser(updatedUser);
+                    updatedUserCount++;
+                    print(
+                        '✅ ${user.name}: Score=$totalScore, Joker=$jokersUsed, Sixer=$perfectPredictions');
+                  }
+                },
+              );
+            } catch (e) {
+              print('❌ Fehler bei User ${user.name}: $e');
+            }
+          }
+
+          print(
+              '✅ Neuberechnung abgeschlossen: $updatedUserCount User aktualisiert, $correctedTipsCount Tipps korrigiert');
+
+          // ✅ Cache leeren nach Neuberechnung
+          clearCache();
+
+          return right(unit);
+        },
+      );
+    } catch (e) {
+      return left(ServerFailure(message: e.toString()));
+    }
+  }
+}

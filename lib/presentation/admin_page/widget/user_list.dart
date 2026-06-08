@@ -186,8 +186,9 @@ class _UserListState extends State<UserList> {
                       Tooltip(
                         message: 'Rangliste neu berechnen',
                         child: IconButton(
-                          onPressed:
-                              _isRecalculating ? null : _recalculateAllStatistics,
+                          onPressed: _isRecalculating
+                              ? null
+                              : _recalculateAllStatistics,
                           icon: _isRecalculating
                               ? const SizedBox(
                                   width: 18,

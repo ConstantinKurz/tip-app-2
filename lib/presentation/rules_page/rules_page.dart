@@ -37,58 +37,23 @@ class _RulesPageState extends State<RulesPage> {
         return iframe;
       },
     );
+
+    // Auf Mobile direkt PDF öffnen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final isMobile = screenWidth < 800;
+      if (isMobile) {
+        html.window.open('WM2026%20onlineRegeln.pdf', '_blank');
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 800;
-
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
-      child: isMobile
-          ? _buildMobileView(context)
-          : SizedBox.expand(
-              child: HtmlElementView(viewType: _viewType),
-            ),
-    );
-  }
-
-  Widget _buildMobileView(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.picture_as_pdf, size: 80, color: Colors.grey),
-          const SizedBox(height: 24),
-          const Text(
-            'WM 2026 Regeln',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              'Tippe auf den Button, um das vollständige PDF mit allen Seiten zu öffnen.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {
-              html.window.open('WM2026%20onlineRegeln.pdf', '_blank');
-            },
-            icon: const Icon(Icons.open_in_new),
-            label: const Text('PDF öffnen'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black87,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+      child: SizedBox.expand(
+        child: HtmlElementView(viewType: _viewType),
       ),
     );
   }

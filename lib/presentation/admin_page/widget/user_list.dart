@@ -128,25 +128,20 @@ class _UserListState extends State<UserList> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            onPressed: _isRecalculating
-                                ? null
-                                : _recalculateAllStatistics,
-                            icon: _isRecalculating
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.refresh, size: 16),
-                            label:
-                                Text(_isRecalculating ? 'Berechne...' : 'Neu'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
+                          Tooltip(
+                            message: 'Rangliste neu berechnen',
+                            child: IconButton(
+                              onPressed: _isRecalculating
+                                  ? null
+                                  : _recalculateAllStatistics,
+                              icon: _isRecalculating
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.refresh),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -188,22 +183,19 @@ class _UserListState extends State<UserList> {
                       ),
                       const SizedBox(width: 16),
                       // Recalculate Statistics Button
-                      ElevatedButton.icon(
-                        onPressed:
-                            _isRecalculating ? null : _recalculateAllStatistics,
-                        icon: _isRecalculating
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.refresh, size: 18),
-                        label: Text(
-                            _isRecalculating ? 'Berechne...' : 'Neu berechnen'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
+                      Tooltip(
+                        message: 'Rangliste neu berechnen',
+                        child: IconButton(
+                          onPressed:
+                              _isRecalculating ? null : _recalculateAllStatistics,
+                          icon: _isRecalculating
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.refresh),
                         ),
                       ),
                       const SizedBox(width: 16),

@@ -29,15 +29,11 @@ class _RulesPageState extends State<RulesPage> {
       _viewType,
       (int viewId) {
         final iframe = html.IFrameElement()
-          ..src = 'WM2026%20onlineRegeln.pdf'
+          ..src = 'WM2026%20onlineRegeln.pdf#view=FitH'
           ..style.border = 'none'
           ..style.width = '100%'
           ..style.height = '100%'
-          ..style.overflow = 'auto'
-          ..style.display = 'block'
-          ..setAttribute('scrolling', 'auto')
-          ..setAttribute('allowFullscreen', 'true')
-          ..setAttribute('sandbox', 'allow-same-origin');
+          ..setAttribute('scrolling', 'yes');
         return iframe;
       },
     );
@@ -45,16 +41,54 @@ class _RulesPageState extends State<RulesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 800;
+
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SizedBox(
-            height: constraints.maxHeight,
-            width: constraints.maxWidth,
-            child: HtmlElementView(viewType: _viewType),
-          );
-        },
+      child: isMobile
+          ? _buildMobileView(context)
+          : SizedBox.expand(
+              child: HtmlElementView(viewType: _viewType),
+            ),
+    );
+  }
+
+  Widget _buildMobileView(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.picture_as_pdf, size: 80, color: Colors.grey),
+          const SizedBox(height: 24),
+          const Text(
+            'WM 2026 Regeln',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'Tippe auf den Button, um das vollständige PDF mit allen Seiten zu öffnen.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton.icon(
+            onPressed: () {
+              html.window.open('WM2026%20onlineRegeln.pdf', '_blank');
+            },
+            icon: const Icon(Icons.open_in_new),
+            label: const Text('PDF öffnen'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black87,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }

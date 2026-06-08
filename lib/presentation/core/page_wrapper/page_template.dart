@@ -45,7 +45,7 @@ class PageTemplate extends StatelessWidget {
     return Scaffold(
       backgroundColor: themeData.scaffoldBackgroundColor,
       appBar: PreferredSize(
-        preferredSize: const Size(double.infinity, 66),
+        preferredSize: const Size(double.infinity, 80),
         child: MyMenuBar(isAuthenticated: isAuthenticated),
       ),
       body: child,

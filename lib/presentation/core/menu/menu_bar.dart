@@ -195,12 +195,12 @@ class MyMenuBar extends StatelessWidget {
         },
         child: Container(
           padding: isMobile
-              ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
+              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
               : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Text(
             text,
             style: themeData.textTheme.headlineLarge!.copyWith(
-              fontSize: isMobile ? 12 : 16,
+              fontSize: isMobile ? 16 : 16,
               fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
               color: isActive
                   ? themeData.colorScheme.onSurface

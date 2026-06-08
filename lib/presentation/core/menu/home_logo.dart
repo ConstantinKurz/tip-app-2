@@ -18,7 +18,7 @@ class HomeLogo extends StatelessWidget {
         },
         child: Container(
           padding: isMobile
-              ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
+              ? const EdgeInsets.symmetric(horizontal: 8, vertical: 6)
               : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
@@ -26,13 +26,17 @@ class HomeLogo extends StatelessWidget {
           child: Text(
             'Shorty Tipp',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: isMobile ? 16 : 20,
-              fontWeight: _isActive(context) ? FontWeight.w900 : FontWeight.bold,
-              color: _isActive(context) 
-                  ? Theme.of(context).colorScheme.onSurface
-                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-              overflow: TextOverflow.ellipsis,
-            ),
+                  fontSize: isMobile ? 18 : 20,
+                  fontWeight:
+                      _isActive(context) ? FontWeight.w900 : FontWeight.bold,
+                  color: _isActive(context)
+                      ? Theme.of(context).colorScheme.onSurface
+                      : Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.7),
+                  overflow: TextOverflow.ellipsis,
+                ),
           ),
         ),
       ),
@@ -42,7 +46,8 @@ class HomeLogo extends StatelessWidget {
   bool _isActive(BuildContext context) {
     try {
       final currentRoutePath = Routemaster.of(context).currentRoute.path;
-      return currentRoutePath == '/' || currentRoutePath == HomePage.homePagePath;
+      return currentRoutePath == '/' ||
+          currentRoutePath == HomePage.homePagePath;
     } catch (_) {
       return false;
     }

@@ -34,8 +34,10 @@ class _RulesPageState extends State<RulesPage> {
           ..style.width = '100%'
           ..style.height = '100%'
           ..style.overflow = 'auto'
+          ..style.display = 'block'
           ..setAttribute('scrolling', 'auto')
-          ..setAttribute('allowFullscreen', 'true');
+          ..setAttribute('allowFullscreen', 'true')
+          ..setAttribute('sandbox', 'allow-same-origin');
         return iframe;
       },
     );
@@ -45,8 +47,14 @@ class _RulesPageState extends State<RulesPage> {
   Widget build(BuildContext context) {
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
-      child: SizedBox.expand(
-        child: HtmlElementView(viewType: _viewType),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SizedBox(
+            height: constraints.maxHeight,
+            width: constraints.maxWidth,
+            child: HtmlElementView(viewType: _viewType),
+          );
+        },
       ),
     );
   }

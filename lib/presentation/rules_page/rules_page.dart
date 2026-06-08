@@ -18,7 +18,8 @@ class RulesPage extends StatefulWidget {
 }
 
 class _RulesPageState extends State<RulesPage> {
-  final String _viewType = 'pdf-viewer-${DateTime.now().millisecondsSinceEpoch}';
+  final String _viewType =
+      'pdf-viewer-${DateTime.now().millisecondsSinceEpoch}';
 
   @override
   void initState() {
@@ -31,7 +32,10 @@ class _RulesPageState extends State<RulesPage> {
           ..src = 'WM2026%20onlineRegeln.pdf'
           ..style.border = 'none'
           ..style.width = '100%'
-          ..style.height = '100%';
+          ..style.height = '100%'
+          ..style.overflow = 'auto'
+          ..setAttribute('scrolling', 'auto')
+          ..setAttribute('allowFullscreen', 'true');
         return iframe;
       },
     );
@@ -41,7 +45,9 @@ class _RulesPageState extends State<RulesPage> {
   Widget build(BuildContext context) {
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
-      child: HtmlElementView(viewType: _viewType),
+      child: SizedBox.expand(
+        child: HtmlElementView(viewType: _viewType),
+      ),
     );
   }
 }

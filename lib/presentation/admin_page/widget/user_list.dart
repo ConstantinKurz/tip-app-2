@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web/constants.dart';
-
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/core/buttons/icon_button.dart';
 import 'package:flutter_web/presentation/admin_page/widget/user_item.dart';
+import 'package:flutter_web/domain/usecases/recalculate_match_tips_usecase.dart';
+import 'package:flutter_web/injections.dart';
 import 'package:routemaster/routemaster.dart';
 
 class UserList extends StatefulWidget {
@@ -25,6 +26,42 @@ class UserList extends StatefulWidget {
 
 class _UserListState extends State<UserList> {
   String _searchText = '';
+  bool _isRecalculating = false;
+
+  Future<void> _recalculateAllStatistics() async {
+    setState(() => _isRecalculating = true);
+
+    try {
+      final useCase = sl<RecalculateMatchTipsUseCase>();
+      final result = await useCase.recalculateAllUserStatistics();
+
+      if (mounted) {
+        result.fold(
+          (failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Fehler: $failure'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          },
+          (_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Rangliste neu berechnet!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRecalculating = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     List<AppUser> filteredUsers = widget.users.where((user) {
@@ -91,6 +128,28 @@ class _UserListState extends State<UserList> {
                             ),
                           ),
                           const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: _isRecalculating
+                                ? null
+                                : _recalculateAllStatistics,
+                            icon: _isRecalculating
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.refresh, size: 16),
+                            label:
+                                Text(_isRecalculating ? 'Berechne...' : 'Neu'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           FancyIconButton(
                             backgroundColor:
                                 themeData.colorScheme.primaryContainer,
@@ -127,9 +186,27 @@ class _UserListState extends State<UserList> {
                           },
                         ),
                       ),
-                      const SizedBox(
-                        width: 16,
+                      const SizedBox(width: 16),
+                      // Recalculate Statistics Button
+                      ElevatedButton.icon(
+                        onPressed:
+                            _isRecalculating ? null : _recalculateAllStatistics,
+                        icon: _isRecalculating
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.refresh, size: 18),
+                        label: Text(
+                            _isRecalculating ? 'Berechne...' : 'Neu berechnen'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
+                      const SizedBox(width: 16),
                       FancyIconButton(
                           backgroundColor:
                               themeData.colorScheme.primaryContainer,

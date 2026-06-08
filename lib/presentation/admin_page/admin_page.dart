@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
-import 'package:flutter_web/domain/usecases/recalculate_match_tips_usecase.dart';
-import 'package:flutter_web/injections.dart';
 import 'package:flutter_web/presentation/admin_page/widget/match_list.dart';
 import 'package:flutter_web/presentation/admin_page/widget/team_list.dart';
 import 'package:flutter_web/presentation/admin_page/widget/user_list.dart';
@@ -23,49 +21,12 @@ class AdminPage extends StatefulWidget {
 class _AdminPageState extends State<AdminPage> {
   late PageController _pageController;
   int _currentPageIndex = 0;
-  bool _isRecalculating = false;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
     _pageController.addListener(_onPageChanged);
-  }
-
-  Future<void> _recalculateAllStatistics() async {
-    setState(() => _isRecalculating = true);
-
-    try {
-      final useCase = sl<RecalculateMatchTipsUseCase>();
-      final result = await useCase.recalculateAllUserStatistics();
-
-      if (mounted) {
-        result.fold(
-          (failure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Fehler: $failure'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          },
-          (_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('✅ Alle Statistiken neu berechnet!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-            // Refresh user list
-            context.read<AuthControllerBloc>().add(AuthAllEvent());
-          },
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isRecalculating = false);
-      }
-    }
   }
 
   void _onPageChanged() {
@@ -142,44 +103,17 @@ class _AdminPageState extends State<AdminPage> {
             ],
           ),
         ),
-        // Recalculate button + Bottom tab indicator
+        // Bottom tab indicator
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Recalculate Statistics Button
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: ElevatedButton.icon(
-                  onPressed:
-                      _isRecalculating ? null : _recalculateAllStatistics,
-                  icon: _isRecalculating
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.refresh, size: 18),
-                  label: Text(_isRecalculating
-                      ? 'Berechne...'
-                      : 'Statistiken neu berechnen'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildTabButton(0, 'Tipper'),
-                  const SizedBox(width: 12),
-                  _buildTabButton(1, 'Matches'),
-                  const SizedBox(width: 12),
-                  _buildTabButton(2, 'Teams'),
-                ],
-              ),
+              _buildTabButton(0, 'Tipper'),
+              const SizedBox(width: 12),
+              _buildTabButton(1, 'Matches'),
+              const SizedBox(width: 12),
+              _buildTabButton(2, 'Teams'),
             ],
           ),
         ),
@@ -236,26 +170,6 @@ class _AdminPageState extends State<AdminPage> {
                 },
               ),
             ],
-          ),
-        ),
-        // Recalculate Statistics Button for Desktop
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: ElevatedButton.icon(
-            onPressed: _isRecalculating ? null : _recalculateAllStatistics,
-            icon: _isRecalculating
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.refresh, size: 18),
-            label: Text(
-                _isRecalculating ? 'Berechne...' : 'Rangliste neu berechnen'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
-            ),
           ),
         ),
       ],

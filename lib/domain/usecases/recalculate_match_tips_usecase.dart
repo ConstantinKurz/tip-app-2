@@ -278,7 +278,8 @@ class RecalculateMatchTipsUseCase {
 
       await allUsersResult.fold(
         (failure) async {
-          debugPrint('❌ Fehler beim Laden aller User für Ranking-Update: $failure');
+          debugPrint(
+              '❌ Fehler beim Laden aller User für Ranking-Update: $failure');
         },
         (users) async {
           // Sortiere mit komplexer Tiebreaker-Logik
@@ -288,13 +289,13 @@ class RecalculateMatchTipsUseCase {
               final scoreComparison = b.score.compareTo(a.score);
               if (scoreComparison != 0) return scoreComparison;
 
-              // 2. Bei gleichen Punkten: Weniger Joker = besser
-              final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
-              if (jokerComparison != 0) return jokerComparison;
-
-              // 3. Bei gleichen Jokern: Mehr Sechser = besser
+              // 2. Bei gleichen Punkten: Mehr Sechser = besser
               final sixersComparison = b.sixer.compareTo(a.sixer);
               if (sixersComparison != 0) return sixersComparison;
+
+              // 3. Bei gleichen 6ern: Weniger Joker = besser
+              final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+              if (jokerComparison != 0) return jokerComparison;
 
               // 4. Letzter Tiebreaker: Alphabetisch nach Namen
               return a.name.compareTo(b.name);

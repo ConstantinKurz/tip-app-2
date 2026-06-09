@@ -40,24 +40,49 @@ class _UserListState extends State<UserList> {
           (failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Fehler: $failure'),
+                content: Text('❌ Fehler: $failure'),
                 backgroundColor: Colors.red,
+                duration: const Duration(seconds: 4),
               ),
             );
+            // Spinner bleibt 2 Sekunden sichtbar nach Fehler
+            Future.delayed(const Duration(seconds: 2), () {
+              if (mounted) {
+                setState(() => _isRecalculating = false);
+              }
+            });
           },
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Rangliste neu berechnet!'),
+                content: Text('✅ Rangliste neu berechnet!'),
                 backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
               ),
             );
+            // Spinner bleibt 2 Sekunden sichtbar nach Erfolg
+            Future.delayed(const Duration(seconds: 2), () {
+              if (mounted) {
+                setState(() => _isRecalculating = false);
+              }
+            });
           },
         );
       }
-    } finally {
+    } catch (e) {
       if (mounted) {
-        setState(() => _isRecalculating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Fehler: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() => _isRecalculating = false);
+          }
+        });
       }
     }
   }
@@ -136,10 +161,12 @@ class _UserListState extends State<UserList> {
                                   : _recalculateAllStatistics,
                               icon: _isRecalculating
                                   ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
+                                      width: 24,
+                                      height: 24,
                                       child: CircularProgressIndicator(
-                                          strokeWidth: 2),
+                                        strokeWidth: 3,
+                                        color: Colors.white,
+                                      ),
                                     )
                                   : const Icon(Icons.refresh),
                             ),
@@ -191,10 +218,12 @@ class _UserListState extends State<UserList> {
                               : _recalculateAllStatistics,
                           icon: _isRecalculating
                               ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    color: Colors.white,
+                                  ),
                                 )
                               : const Icon(Icons.refresh),
                         ),

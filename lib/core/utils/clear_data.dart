@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -12,7 +13,7 @@ Future<void> clearDatabaseExceptUser() async {
   for (final doc in usersSnap.docs) {
     if (doc.id != keepUserId) {
       await firestore.collection('users').doc(doc.id).delete();
-      print('❌ User gelöscht: ${doc.id}');
+      debugPrint('❌ User gelöscht: ${doc.id}');
     }
   }
 
@@ -20,22 +21,22 @@ Future<void> clearDatabaseExceptUser() async {
   final teamsSnap = await firestore.collection('teams').get();
   for (final doc in teamsSnap.docs) {
     await firestore.collection('teams').doc(doc.id).delete();
-    print('❌ Team gelöscht: ${doc.id}');
+    debugPrint('❌ Team gelöscht: ${doc.id}');
   }
 
   // --- MATCHES löschen ---
   final matchesSnap = await firestore.collection('matches').get();
   for (final doc in matchesSnap.docs) {
     await firestore.collection('matches').doc(doc.id).delete();
-    print('❌ Match gelöscht: ${doc.id}');
+    debugPrint('❌ Match gelöscht: ${doc.id}');
   }
 
   // --- TIPS löschen ---
   final tipsSnap = await firestore.collection('tips').get();
   for (final doc in tipsSnap.docs) {
     await firestore.collection('tips').doc(doc.id).delete();
-    print('❌ Tipp gelöscht: ${doc.id}');
+    debugPrint('❌ Tipp gelöscht: ${doc.id}');
   }
 
-  print('✅ Datenbank aufgeräumt, User $keepUserId behalten.');
+  debugPrint('✅ Datenbank aufgeräumt, User $keepUserId behalten.');
 }

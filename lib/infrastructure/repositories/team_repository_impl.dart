@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/exception_mapping.dart';
@@ -64,10 +65,10 @@ class TeamRepositoryImpl implements TeamRepository {
   Future<Either<TeamFailure, List<Team>>> getAll() async {
     try {
       FirestoreLogger.logRead('teams', 'getAll');
-      print('📥 [TeamRepository] getAll called');
+      debugPrint('📥 [TeamRepository] getAll called');
       final snapshot = await teamsCollection.get();
       FirestoreLogger.logRead('teams', 'getAll (RESULT)', docId: '[${snapshot.docs.length} docs]');
-      print('✅ [TeamRepository] getAll: ${snapshot.docs.length} teams');
+      debugPrint('✅ [TeamRepository] getAll: ${snapshot.docs.length} teams');
       final teams = snapshot.docs
           .map((doc) => TeamModel.fromFirestore(doc).toDomain())
           .toList();
@@ -86,7 +87,7 @@ class TeamRepositoryImpl implements TeamRepository {
   Future<Either<TeamFailure, Team>> getById(String teamId) async {
     try {
       FirestoreLogger.logRead('teams', 'getById', docId: teamId);
-      print('📥 [TeamRepository] getById: $teamId');
+      debugPrint('📥 [TeamRepository] getById: $teamId');
       final doc = await teamsCollection.doc(teamId).get();
       if (!doc.exists) {
         return left(NotFoundFailure());
@@ -104,7 +105,7 @@ class TeamRepositoryImpl implements TeamRepository {
 
   @override
   Stream<Either<TeamFailure, List<Team>>> watchAllTeams() async* {
-    print('🎯 [TeamRepository] watchAllTeams STREAM STARTED');
+    debugPrint('🎯 [TeamRepository] watchAllTeams STREAM STARTED');
     FirestoreLogger.logRead('teams', 'watchAllTeams (STREAM)');
     
     int eventCount = 0;
@@ -113,7 +114,7 @@ class TeamRepositoryImpl implements TeamRepository {
         .map<Either<TeamFailure, List<Team>>>((snapshot) {
       eventCount++;
       FirestoreLogger.logRead('teams', 'watchAllTeams (EVENT #$eventCount)', docId: '[${snapshot.docs.length} docs]');
-      print('📥 [TeamRepository] watchAllTeams EVENT #$eventCount: ${snapshot.docs.length} teams');
+      debugPrint('📥 [TeamRepository] watchAllTeams EVENT #$eventCount: ${snapshot.docs.length} teams');
       try {
         final teams = snapshot.docs
             .map((doc) => TeamModel.fromFirestore(doc).toDomain())

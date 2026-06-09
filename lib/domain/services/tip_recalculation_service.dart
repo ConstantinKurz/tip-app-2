@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
@@ -24,13 +25,13 @@ class TipRecalculationService {
   /// Startet den Listener für Match-Änderungen
   /// Horcht auf watchAllMatches() Stream und reagiert auf neue Ergebnisse
   void startListening() {
-    print('🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
+    debugPrint('🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
 
     matchRepository.watchAllMatches().listen(
       (failureOrMatches) async {
         await failureOrMatches.fold(
           (failure) async {
-            print('❌ Fehler beim Überwachen von Matches: $failure');
+            debugPrint('❌ Fehler beim Überwachen von Matches: $failure');
           },
           (matches) async {
             final matchesWithResults =
@@ -58,7 +59,7 @@ class TipRecalculationService {
         );
       },
       onError: (e) {
-        print('❌ Stream-Fehler in TipRecalculationService: $e');
+        debugPrint('❌ Stream-Fehler in TipRecalculationService: $e');
       },
     );
   }
@@ -73,7 +74,7 @@ class TipRecalculationService {
       final matchesToProcess = List<CustomMatch>.from(_pendingMatches);
       _pendingMatches.clear();
 
-      print('🔄 ${matchesToProcess.length} Matches mit Ergebnis-Änderung werden verarbeitet...');
+      debugPrint('🔄 ${matchesToProcess.length} Matches mit Ergebnis-Änderung werden verarbeitet...');
       // Update Punkte für Matches
       for (final match in matchesToProcess) {
         await _recalculateForMatch(match);
@@ -90,7 +91,7 @@ class TipRecalculationService {
 
     result.fold(
       (failure) {
-        print('❌ Fehler bei Neuberechnung für ${match.id}: $failure');
+        debugPrint('❌ Fehler bei Neuberechnung für ${match.id}: $failure');
       },
       (_) {},
     );

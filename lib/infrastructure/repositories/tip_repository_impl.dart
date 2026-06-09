@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/exception_mapping.dart';
@@ -41,7 +42,7 @@ class TipRepositoryImpl implements TipRepository {
 
   @override
   Stream<Either<TipFailure, List<Tip>>> watchUserTips(String userId) async* {
-    print('🎯 [TipRepository] watchUserTips STREAM STARTED for user: $userId');
+    debugPrint('🎯 [TipRepository] watchUserTips STREAM STARTED for user: $userId');
     FirestoreLogger.logRead('tips', 'watchUserTips (STREAM)', docId: userId);
     
     int eventCount = 0;
@@ -53,7 +54,7 @@ class TipRepositoryImpl implements TipRepository {
         .map<Either<TipFailure, List<Tip>>>((snapshot) {
       eventCount++;
       FirestoreLogger.logRead('tips', 'watchUserTips (EVENT #$eventCount)', docId: '$userId [${snapshot.docs.length} docs]');
-      print('📥 [TipRepository] watchUserTips EVENT #$eventCount: ${snapshot.docs.length} tips for $userId');
+      debugPrint('📥 [TipRepository] watchUserTips EVENT #$eventCount: ${snapshot.docs.length} tips for $userId');
       try {
         final userTips = snapshot.docs
             .map((doc) => TipModel.fromFirestore(doc).toDomain())
@@ -116,7 +117,7 @@ class TipRepositoryImpl implements TipRepository {
 
   @override
   Stream<Either<TipFailure, Map<String, List<Tip>>>> watchAll() async* {
-    print('🎯 [TipRepository] watchAll STREAM STARTED');
+    debugPrint('🎯 [TipRepository] watchAll STREAM STARTED');
     FirestoreLogger.logRead('tips', 'watchAll (STREAM)');
     
     int eventCount = 0;
@@ -127,7 +128,7 @@ class TipRepositoryImpl implements TipRepository {
         .map<Either<TipFailure, Map<String, List<Tip>>>>((snapshot) {
       eventCount++;
       FirestoreLogger.logRead('tips', 'watchAll (EVENT #$eventCount)', docId: '[${snapshot.docs.length} docs]');
-      print('📥 [TipRepository] watchAll EVENT #$eventCount: ${snapshot.docs.length} tips total');
+      debugPrint('📥 [TipRepository] watchAll EVENT #$eventCount: ${snapshot.docs.length} tips total');
       try {
         final userTipsMap = <String, List<Tip>>{};
         for (var doc in snapshot.docs) {
@@ -165,7 +166,7 @@ class TipRepositoryImpl implements TipRepository {
     required int matchDay,
   }) async {
     FirestoreLogger.logRead('tips', 'getJokersUsedInMatchDay', docId: 'user=$userId, matchDay=$matchDay');
-    print('🃏 [TipRepository] getJokersUsedInMatchDay: user=$userId, matchDay=$matchDay');
+    debugPrint('🃏 [TipRepository] getJokersUsedInMatchDay: user=$userId, matchDay=$matchDay');
     
     try {
       // ✅ Bestimme die Phase und alle zugehörigen matchDays
@@ -307,7 +308,7 @@ class TipRepositoryImpl implements TipRepository {
     required int matchDay,
   }) async {
     FirestoreLogger.logRead('tips', 'getTippedGamesInMatchDay', docId: 'user=$userId, matchDay=$matchDay');
-    print('🎮 [TipRepository] getTippedGamesInMatchDay: user=$userId, matchDay=$matchDay');
+    debugPrint('🎮 [TipRepository] getTippedGamesInMatchDay: user=$userId, matchDay=$matchDay');
     
     try {
       // First, get all tips for the user that are not null on at least one field.
@@ -410,7 +411,7 @@ class TipRepositoryImpl implements TipRepository {
     required List<int> matchDays,
   }) async {
     FirestoreLogger.logRead('tips', 'getTippedGamesInMatchDays', docId: 'user=$userId, matchDays=$matchDays');
-    print('🎮 [TipRepository] getTippedGamesInMatchDays: user=$userId, matchDays=$matchDays');
+    debugPrint('🎮 [TipRepository] getTippedGamesInMatchDays: user=$userId, matchDays=$matchDays');
     
     try {
       // Hole alle Tips des Users mit gültigen Werten

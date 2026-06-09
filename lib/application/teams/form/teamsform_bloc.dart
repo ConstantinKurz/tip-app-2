@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/team_failures.dart';
@@ -80,7 +81,7 @@ class TeamsformBloc extends Bloc<TeamsformEvent, TeamsformState> {
 
   /// Berechnet das Finale-Match neu (für Champion-Punkte)
   Future<void> _recalculateFinalMatch() async {
-    print('🏆 Champion-Flag geändert - Berechne Finale neu...');
+    debugPrint('🏆 Champion-Flag geändert - Berechne Finale neu...');
     
     // Cache leeren damit neue Champion-Daten geladen werden
     recalculateMatchTipsUseCase.clearCache();
@@ -89,7 +90,7 @@ class TeamsformBloc extends Bloc<TeamsformEvent, TeamsformState> {
     final allMatchesResult = await matchRepository.getAllMatches();
     await allMatchesResult.fold(
       (failure) async {
-        print('❌ Fehler beim Laden der Matches: $failure');
+        debugPrint('❌ Fehler beim Laden der Matches: $failure');
       },
       (allMatches) async {
         final matchDay8Matches = allMatches
@@ -99,14 +100,14 @@ class TeamsformBloc extends Bloc<TeamsformEvent, TeamsformState> {
 
         if (matchDay8Matches.isNotEmpty) {
           final finalMatch = matchDay8Matches.first;
-          print('🏆 Berechne Finale neu: ${finalMatch.id}');
+          debugPrint('🏆 Berechne Finale neu: ${finalMatch.id}');
           
           await recalculateMatchTipsUseCase(match: finalMatch);
           await recalculateMatchTipsUseCase.updateAllUserRankings();
           
-          print('✅ Finale und Rankings neu berechnet');
+          debugPrint('✅ Finale und Rankings neu berechnet');
         } else {
-          print('ℹ️ Kein Finale-Match mit Ergebnis gefunden');
+          debugPrint('ℹ️ Kein Finale-Match mit Ergebnis gefunden');
         }
       },
     );

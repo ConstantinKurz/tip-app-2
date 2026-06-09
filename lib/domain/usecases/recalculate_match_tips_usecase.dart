@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
 import 'package:flutter_web/domain/entities/match.dart';
@@ -42,12 +43,12 @@ class RecalculateMatchTipsUseCase {
       final allUsersResult = await userRepository.getAllUsers();
       allUsersResult.fold(
         (failure) {
-          print('❌ Fehler beim Laden aller User: $failure');
+          debugPrint('❌ Fehler beim Laden aller User: $failure');
           _cachedUsersById = {};
         },
         (users) {
           _cachedUsersById = {for (var user in users) user.id: user};
-          print(
+          debugPrint(
               '📦 [RecalculateMatchTipsUseCase] ${users.length} User gecached (1 Read statt ${users.length * 104} Reads)');
         },
       );
@@ -58,7 +59,7 @@ class RecalculateMatchTipsUseCase {
     final allMatchesResult = await matchRepository.getAllMatches();
     await allMatchesResult.fold(
       (failure) async {
-        print('❌ Fehler beim Laden aller Matches: $failure');
+        debugPrint('❌ Fehler beim Laden aller Matches: $failure');
       },
       (allMatches) async {
         _cachedAllMatches = allMatches;
@@ -87,7 +88,7 @@ class RecalculateMatchTipsUseCase {
             final allTeamsResult = await teamRepository.getAll();
             allTeamsResult.fold(
               (failure) {
-                print(
+                debugPrint(
                     '❌ Fehler beim Laden der Teams für Champion-Ermittlung: $failure');
               },
               (teams) {
@@ -98,10 +99,10 @@ class RecalculateMatchTipsUseCase {
                 if (champion != null) {
                   _cachedChampionId = champion.id;
                   _cachedChampionTeam = champion;
-                  print(
+                  debugPrint(
                       '🏆 Champion bei Unentschieden aus Flag ermittelt: ${champion.name}');
                 } else {
-                  print(
+                  debugPrint(
                       '⚠️ Finale unentschieden, aber kein Team als Champion markiert!');
                 }
               },
@@ -180,7 +181,7 @@ class RecalculateMatchTipsUseCase {
               if (cachedUser != null &&
                   cachedUser.championId == _cachedChampionId) {
                 newPoints += _cachedChampionTeam!.winPoints;
-                print(
+                debugPrint(
                     '🏆 [Finale] Champion-Bonus für ${cachedUser.name}: +${_cachedChampionTeam!.winPoints} → Total: $newPoints');
               }
             }
@@ -215,7 +216,7 @@ class RecalculateMatchTipsUseCase {
 
         await userTipsResult.fold(
           (failure) async {
-            print('❌ Fehler beim Laden der Tips für $userId: $failure');
+            debugPrint('❌ Fehler beim Laden der Tips für $userId: $failure');
           },
           (tips) async {
             int totalScore = 0;
@@ -260,12 +261,12 @@ class RecalculateMatchTipsUseCase {
               // ✅ Cache aktualisieren für nachfolgende Lookups
               _cachedUsersById![userId] = updatedUser;
             } else {
-              print('⚠️ User $userId nicht im Cache gefunden');
+              debugPrint('⚠️ User $userId nicht im Cache gefunden');
             }
           },
         );
       } catch (e) {
-        print('❌ Fehler beim Berechnen der Scores für $userId: $e');
+        debugPrint('❌ Fehler beim Berechnen der Scores für $userId: $e');
       }
     }
   }
@@ -277,7 +278,7 @@ class RecalculateMatchTipsUseCase {
 
       await allUsersResult.fold(
         (failure) async {
-          print('❌ Fehler beim Laden aller User für Ranking-Update: $failure');
+          debugPrint('❌ Fehler beim Laden aller User für Ranking-Update: $failure');
         },
         (users) async {
           // Sortiere mit komplexer Tiebreaker-Logik
@@ -315,7 +316,7 @@ class RecalculateMatchTipsUseCase {
             await userRepository.updateUser(user);
           }
 
-          print(
+          debugPrint(
               '✅ Rankings für ${usersToUpdate.length}/${sortedUsers.length} User aktualisiert');
         },
       );
@@ -323,7 +324,7 @@ class RecalculateMatchTipsUseCase {
       // ✅ Cache leeren nach Ranking-Update
       clearCache();
     } catch (e) {
-      print('❌ Fehler beim Ranking-Update: $e');
+      debugPrint('❌ Fehler beim Ranking-Update: $e');
     }
   }
 
@@ -331,7 +332,7 @@ class RecalculateMatchTipsUseCase {
   /// UND korrigiert Tipp-Punkte für Spiele ohne Ergebnis!
   Future<Either<TipFailure, Unit>> recalculateAllUserStatistics() async {
     try {
-      print('🔄 Starte Neuberechnung aller User-Statistiken...');
+      debugPrint('🔄 Starte Neuberechnung aller User-Statistiken...');
 
       // ✅ Lade shared data einmal (cached)
       await _loadSharedData();
@@ -341,7 +342,7 @@ class RecalculateMatchTipsUseCase {
 
       return await allUsersResult.fold(
         (failure) async {
-          print('❌ Fehler beim Laden aller User: $failure');
+          debugPrint('❌ Fehler beim Laden aller User: $failure');
           return left(failure);
         },
         (allUsers) async {
@@ -355,7 +356,7 @@ class RecalculateMatchTipsUseCase {
 
               await userTipsResult.fold(
                 (failure) async {
-                  print(
+                  debugPrint(
                       '❌ Fehler beim Laden der Tips für ${user.name}: $failure');
                 },
                 (tips) async {
@@ -380,7 +381,7 @@ class RecalculateMatchTipsUseCase {
                       await tipRepository.updatePoints(
                           tipId: tip.id, points: 0);
                       correctedTipsCount++;
-                      print(
+                      debugPrint(
                           '🔧 Tipp ${tip.id} korrigiert: Punkte auf 0 gesetzt (Match ohne Ergebnis)');
                       // Punkte nicht zum Score addieren
                     }
@@ -400,7 +401,7 @@ class RecalculateMatchTipsUseCase {
                         await tipRepository.updatePoints(
                             tipId: tip.id, points: newPoints);
                         correctedTipsCount++;
-                        print(
+                        debugPrint(
                             '🔧 Tipp ${tip.id} korrigiert: ${tip.points} → $newPoints');
                       }
 
@@ -429,17 +430,17 @@ class RecalculateMatchTipsUseCase {
                     );
                     await userRepository.updateUser(updatedUser);
                     updatedUserCount++;
-                    print(
+                    debugPrint(
                         '✅ ${user.name}: Score=$totalScore, Joker=$jokersUsed, Sixer=$perfectPredictions');
                   }
                 },
               );
             } catch (e) {
-              print('❌ Fehler bei User ${user.name}: $e');
+              debugPrint('❌ Fehler bei User ${user.name}: $e');
             }
           }
 
-          print(
+          debugPrint(
               '✅ Neuberechnung abgeschlossen: $updatedUserCount User aktualisiert, $correctedTipsCount Tipps korrigiert');
 
           // ✅ Cache leeren nach Neuberechnung

@@ -64,17 +64,17 @@ class AuthformBloc extends Bloc<AuthFormEvent, AuthformState> {
     UpdateUserEvent event,
     Emitter<AuthformState> emit,
   ) async {
-    print('═══════════════════════════════════════════════════════════');
-    print('📝 [AuthformBloc] _onUpdateUser called');
-    print('   event.user: ${event.user?.name} (${event.user?.id})');
-    print(
+    debugPrint('═══════════════════════════════════════════════════════════');
+    debugPrint('📝 [AuthformBloc] _onUpdateUser called');
+    debugPrint('   event.user: ${event.user?.name} (${event.user?.id})');
+    debugPrint(
         '   event.currentUser: ${event.currentUser?.name} (${event.currentUser?.id})');
-    print('   event.user.email: ${event.user?.email}');
-    print('   event.currentUser.email: ${event.currentUser?.email}');
-    print('═══════════════════════════════════════════════════════════');
+    debugPrint('   event.user.email: ${event.user?.email}');
+    debugPrint('   event.currentUser.email: ${event.currentUser?.email}');
+    debugPrint('═══════════════════════════════════════════════════════════');
 
     if (event.user == null) {
-      print(
+      debugPrint(
           '⚠️ [AuthformBloc] event.user is null, showing validation messages');
       emit(state.copyWith(showValidationMessages: true, isSubmitting: false));
       return;

@@ -74,10 +74,10 @@ class _UserProfileFormState extends State<UserProfileForm> {
 
       final firstMatch = sortedMatches.isNotEmpty ? sortedMatches.first : null;
 
-      print('🔍 [UserProfileForm] Erstes Match ID: ${firstMatch?.id}');
-      print('🔍 [UserProfileForm] Match-Datum: ${firstMatch?.matchDate}');
-      print('🔍 [UserProfileForm] Jetzt: ${DateTime.now()}');
-      print(
+      debugPrint('🔍 [UserProfileForm] Erstes Match ID: ${firstMatch?.id}');
+      debugPrint('🔍 [UserProfileForm] Match-Datum: ${firstMatch?.matchDate}');
+      debugPrint('🔍 [UserProfileForm] Jetzt: ${DateTime.now()}');
+      debugPrint(
           '🔍 [UserProfileForm] Champion änderbar: ${firstMatch == null || firstMatch.matchDate.isAfter(DateTime.now())}');
 
       if (mounted) {
@@ -89,7 +89,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
         });
       }
     } catch (e) {
-      print('❌ [UserProfileForm] Fehler beim Laden der Matches: $e');
+      debugPrint('❌ [UserProfileForm] Fehler beim Laden der Matches: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;

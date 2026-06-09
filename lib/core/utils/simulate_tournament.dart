@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
@@ -14,7 +15,7 @@ Future<void> simulateTournamentResults() async {
   final firestore = FirebaseFirestore.instance;
   final random = Random();
 
-  print('🎲 Starte Ergebnis-Simulation...\n');
+  debugPrint('🎲 Starte Ergebnis-Simulation...\n');
 
   // Hole Repositories aus Service Locator
   final matchRepository = sl<MatchRepository>();
@@ -24,7 +25,7 @@ Future<void> simulateTournamentResults() async {
   final matchesResult = await matchRepository.getAllMatches();
   final matches = matchesResult.fold(
     (failure) {
-      print('❌ Fehler beim Laden der Matches: $failure');
+      debugPrint('❌ Fehler beim Laden der Matches: $failure');
       return <CustomMatch>[];
     },
     (matches) => matches,
@@ -42,19 +43,19 @@ Future<void> simulateTournamentResults() async {
 
   int processedMatches = 0;
 
-  print('📊 Simuliere ${matches.length} Matches...\n');
+  debugPrint('📊 Simuliere ${matches.length} Matches...\n');
 
   // Simuliere ALLE Matches (Gruppenphase + K.O.)
   for (final match in matches) {
     // Überspringe Matches die bereits Ergebnisse haben
     if (match.hasResult) {
-      print('⏭️  ${match.id} hat bereits Ergebnis');
+      debugPrint('⏭️  ${match.id} hat bereits Ergebnis');
       continue;
     }
 
     // Überspringe TBD-Matches (K.O.-Phase noch nicht festgelegt)
     if (match.homeTeamId == 'TBD' || match.guestTeamId == 'TBD') {
-      print('⏭️  ${match.id} wartet auf Team-Festlegung');
+      debugPrint('⏭️  ${match.id} wartet auf Team-Festlegung');
       continue;
     }
 
@@ -62,7 +63,7 @@ Future<void> simulateTournamentResults() async {
     final guestTeam = teams[match.guestTeamId];
 
     if (homeTeam == null || guestTeam == null) {
-      print('⚠️  Teams nicht gefunden für ${match.id}');
+      debugPrint('⚠️  Teams nicht gefunden für ${match.id}');
       continue;
     }
 
@@ -81,17 +82,17 @@ Future<void> simulateTournamentResults() async {
 
     await matchRepository.updateMatch(updatedMatch);
 
-    print('⚽ ${match.id}: ${result['home']} - ${result['guest']}');
+    debugPrint('⚽ ${match.id}: ${result['home']} - ${result['guest']}');
     processedMatches++;
   }
 
-  print('\n✅ $processedMatches Matches simuliert');
+  debugPrint('\n✅ $processedMatches Matches simuliert');
 
   // Erstelle Tipps für alle User (falls noch nicht vorhanden)
   await _createRealisticTips(firestore, matches, userIds, random, tipRepository);
 
-  print('\n🏆 Simulation abgeschlossen!');
-  print('ℹ️  Die Punkte werden automatisch durch den TipRecalculationService berechnet');
+  debugPrint('\n🏆 Simulation abgeschlossen!');
+  debugPrint('ℹ️  Die Punkte werden automatisch durch den TipRecalculationService berechnet');
 }
 
 /// Berechnet Match-Ergebnis basierend auf Team-Stärke
@@ -182,11 +183,11 @@ Future<void> _createRealisticTips(
     }
   }
 
-  print('✅ $totalTips Tipps erstellt');
-  print('📊 Joker-Verteilung:');
-  print('   - Vorrunde (1-3): max 3 Joker gesamt');
-  print('   - 16tel (4): max 4 Joker');
-  print('   - Achtel (5): max 2 Joker');
-  print('   - Viertel (6): max 1 Joker');
-  print('   - Halbfinale + Finale (7-8): max 2 Joker gesamt');
+  debugPrint('✅ $totalTips Tipps erstellt');
+  debugPrint('📊 Joker-Verteilung:');
+  debugPrint('   - Vorrunde (1-3): max 3 Joker gesamt');
+  debugPrint('   - 16tel (4): max 4 Joker');
+  debugPrint('   - Achtel (5): max 2 Joker');
+  debugPrint('   - Viertel (6): max 1 Joker');
+  debugPrint('   - Halbfinale + Finale (7-8): max 2 Joker gesamt');
 }

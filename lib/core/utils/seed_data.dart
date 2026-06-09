@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -30,7 +31,7 @@ Future<void> seedTestDataTwentyUsers() async {
         password: u['password'] as String,
       );
 
-      print('✅ Auth-User erstellt: ${u['email']}');
+      debugPrint('✅ Auth-User erstellt: ${u['email']}');
       userIds.add(cred.user!.uid);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
@@ -39,7 +40,7 @@ Future<void> seedTestDataTwentyUsers() async {
           password: u['password'] as String,
         );
         userIds.add(existingUser.user!.uid);
-        print('ℹ️ User existiert schon: ${u['email']}');
+        debugPrint('ℹ️ User existiert schon: ${u['email']}');
       } else {
         rethrow;
       }
@@ -167,10 +168,10 @@ Future<void> seedTestDataTwentyUsers() async {
     }
   }
 
-  print('✅ 20 User, ${_championPool.length} Teams, ${matchesData.length} Spiele und Tipps angelegt.');
-  print('📊 Vergangene Spiele: ${matchesData.where((m) => m['homeScore'] != null).length}');
-  print('🎯 Aktuelles Spiel: 1 (vor 30 Min gestartet)');
-  print('🔮 Zukünftige Spiele: ${matchesData.where((m) => m['homeScore'] == null && m['id'] != matchesData.firstWhere((m) => m['id'].toString().contains('CURRENT'))['id']).length}');
+  debugPrint('✅ 20 User, ${_championPool.length} Teams, ${matchesData.length} Spiele und Tipps angelegt.');
+  debugPrint('📊 Vergangene Spiele: ${matchesData.where((m) => m['homeScore'] != null).length}');
+  debugPrint('🎯 Aktuelles Spiel: 1 (vor 30 Min gestartet)');
+  debugPrint('🔮 Zukünftige Spiele: ${matchesData.where((m) => m['homeScore'] == null && m['id'] != matchesData.firstWhere((m) => m['id'].toString().contains('CURRENT'))['id']).length}');
 }
 
 // --- Pool an Teams (mindestens 8–10 für viele Matches) ---

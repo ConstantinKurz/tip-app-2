@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
@@ -12,7 +13,7 @@ Future<void> simulateGroupStageResults() async {
   final firestore = FirebaseFirestore.instance;
   final random = Random();
 
-  print('🏆 Starte Gruppenphase Simulation (matchDay 1-3)...\n');
+  debugPrint('🏆 Starte Gruppenphase Simulation (matchDay 1-3)...\n');
 
   // Hole Repositories aus Service Locator
   final matchRepository = sl<MatchRepository>();
@@ -23,7 +24,7 @@ Future<void> simulateGroupStageResults() async {
   final matchesResult = await matchRepository.getAllMatches();
   final matches = matchesResult.fold(
     (failure) {
-      print('❌ Fehler beim Laden der Matches: $failure');
+      debugPrint('❌ Fehler beim Laden der Matches: $failure');
       return <CustomMatch>[];
     },
     (matches) => matches,
@@ -40,10 +41,10 @@ Future<void> simulateGroupStageResults() async {
   final teamsSnap = await firestore.collection('teams').get();
   final teams = {for (var doc in teamsSnap.docs) doc.id: doc.data()};
 
-  print('📊 Gefunden: ${groupStageMatches.length} Matches, ${userIds.length} User\n');
+  debugPrint('📊 Gefunden: ${groupStageMatches.length} Matches, ${userIds.length} User\n');
 
   // ===== SCHRITT 1: Erst alle Tipps erstellen =====
-  print('📝 Erstelle Tipps für alle User...\n');
+  debugPrint('📝 Erstelle Tipps für alle User...\n');
   await _createGroupStageTips(
     firestore,
     groupStageMatches,
@@ -53,19 +54,19 @@ Future<void> simulateGroupStageResults() async {
   );
 
   // ===== SCHRITT 2: Dann Ergebnisse simulieren =====
-  print('\n⚽ Simuliere Ergebnisse...\n');
+  debugPrint('\n⚽ Simuliere Ergebnisse...\n');
   int processedMatches = 0;
 
   for (final match in groupStageMatches) {
     // Überspringe Matches die bereits Ergebnisse haben
     if (match.hasResult) {
-      print('⏭️  ${match.id} hat bereits Ergebnis');
+      debugPrint('⏭️  ${match.id} hat bereits Ergebnis');
       continue;
     }
 
     // Überspringe TBD-Matches
     if (match.homeTeamId == 'TBD' || match.guestTeamId == 'TBD') {
-      print('⏭️  ${match.id} wartet auf Team-Festlegung');
+      debugPrint('⏭️  ${match.id} wartet auf Team-Festlegung');
       continue;
     }
 
@@ -73,7 +74,7 @@ Future<void> simulateGroupStageResults() async {
     final guestTeam = teams[match.guestTeamId];
 
     if (homeTeam == null || guestTeam == null) {
-      print('⚠️  Teams nicht gefunden für ${match.id}');
+      debugPrint('⚠️  Teams nicht gefunden für ${match.id}');
       continue;
     }
 
@@ -91,20 +92,20 @@ Future<void> simulateGroupStageResults() async {
     );
 
     await matchRepository.updateMatch(updatedMatch);
-    print('⚽ ${match.id}: ${result['home']} - ${result['guest']}');
+    debugPrint('⚽ ${match.id}: ${result['home']} - ${result['guest']}');
     processedMatches++;
 
     // ===== SCHRITT 3: Punkte für dieses Match berechnen =====
     try {
       await recalculateUseCase(match: updatedMatch);
-      print('   ✅ Punkte neuberechnet');
+      debugPrint('   ✅ Punkte neuberechnet');
     } catch (e) {
-      print('   ❌ Fehler bei Neuberechnung: $e');
+      debugPrint('   ❌ Fehler bei Neuberechnung: $e');
     }
   }
 
-  print('\n✅ $processedMatches Matches der Gruppenphase simuliert');
-  print('🏆 Simulation der Gruppenphase abgeschlossen!');
+  debugPrint('\n✅ $processedMatches Matches der Gruppenphase simuliert');
+  debugPrint('🏆 Simulation der Gruppenphase abgeschlossen!');
 }
 
 /// Berechnet Match-Ergebnis basierend auf Team-Stärke
@@ -156,7 +157,7 @@ Future<void> _createGroupStageTips(
       }
     }
 
-    print('👤 User $userId: $jokerBudget Joker verfügbar');
+    debugPrint('👤 User $userId: $jokerBudget Joker verfügbar');
 
     for (final match in matches) {
       final tipId = '${userId}_${match.id}';
@@ -196,7 +197,7 @@ Future<void> _createGroupStageTips(
     }
   }
 
-  print('✅ $totalTips Tipps erstellt, $skippedTips übersprungen');
+  debugPrint('✅ $totalTips Tipps erstellt, $skippedTips übersprungen');
 }
 
 /// Generiert realistische Tipps basierend auf User-Strategie

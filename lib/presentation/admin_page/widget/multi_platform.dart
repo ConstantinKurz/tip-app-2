@@ -58,7 +58,7 @@ class MultiPlattform extends StatelessWidget {
                     height: 20,
                   ),
                   CallToAction(text: "See the target platforms", callBack: (){
-                    print("Button pressed");
+                    debugPrint("Button pressed");
                   },)
                 ],
               ),

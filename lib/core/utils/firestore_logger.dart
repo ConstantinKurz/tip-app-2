@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:web/web.dart' as web;
 
@@ -8,7 +9,7 @@ class FirestoreLogger {
   static const String _storageKey = 'firestore_logs';
 
   static Future<void> initialize() async {
-    print('📝 Firestore Logger initialized');
+    debugPrint('📝 Firestore Logger initialized');
     _loadFromLocalStorage();
   }
 
@@ -25,7 +26,7 @@ class FirestoreLogger {
         '[$timestamp] READ #$_readCount: $collection.$operation${docId != null ? ' ($docId)' : ''}';
 
     _readLog.add(logEntry);
-    print('🔍 $logEntry');
+    debugPrint('🔍 $logEntry');
     
     // ✅ Speichere in Local Storage
     _saveToLocalStorage();
@@ -46,7 +47,7 @@ class FirestoreLogger {
       final jsonString = jsonEncode(data);
       web.window.localStorage.setItem(_storageKey, jsonString);
     } catch (e) {
-      print('⚠️ Fehler beim Speichern: $e');
+      debugPrint('⚠️ Fehler beim Speichern: $e');
     }
   }
 
@@ -65,7 +66,7 @@ class FirestoreLogger {
         _readLog.addAll((decoded['readLog'] as List).cast<String>());
       }
     } catch (e) {
-      print('⚠️ Fehler beim Laden: $e');
+      debugPrint('⚠️ Fehler beim Laden: $e');
     }
   }
 
@@ -80,7 +81,7 @@ ${_readsByCollection.entries.map((e) => '║    ${e.key}: ${e.value} reads').joi
 ║                                        ║
 ╚════════════════════════════════════════╝
 ''';
-    print(summary);
+    debugPrint(summary);
   }
 
   /// Exportiert Logs als Download
@@ -96,7 +97,7 @@ ${_readsByCollection.entries.map((e) => '║    ${e.key}: ${e.value} reads').joi
       ..download = 'firestore_logs_${DateTime.now().toIso8601String()}.txt';
     
     anchor.click();
-    print('✅ Logs als .txt exportiert');
+    debugPrint('✅ Logs als .txt exportiert');
   }
 
   static Future<void> reset() async {
@@ -104,7 +105,7 @@ ${_readsByCollection.entries.map((e) => '║    ${e.key}: ${e.value} reads').joi
     _readsByCollection.clear();
     _readLog.clear();
     web.window.localStorage.removeItem(_storageKey);
-    print('🔄 Firestore Logger Reset');
+    debugPrint('🔄 Firestore Logger Reset');
   }
 
   static List<String> getLog() => List.from(_readLog);

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,7 +10,7 @@ Future<void> seedRealisticWMSimulation() async {
   final auth = FirebaseAuth.instance;
   final random = Random();
 
-  print('🏆 Starte realistische WM 2026 Simulation...\n');
+  debugPrint('🏆 Starte realistische WM 2026 Simulation...\n');
 
   // ===== 1. USER ERSTELLEN =====
   final testUsers = List.generate(20, (i) {
@@ -31,7 +32,7 @@ Future<void> seedRealisticWMSimulation() async {
         password: u['password'] as String,
       );
       userIds.add(cred.user!.uid);
-      print('✅ User erstellt: ${u['email']}');
+      debugPrint('✅ User erstellt: ${u['email']}');
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         final existing = await auth.signInWithEmailAndPassword(
@@ -39,7 +40,7 @@ Future<void> seedRealisticWMSimulation() async {
           password: u['password'] as String,
         );
         userIds.add(existing.user!.uid);
-        print('ℹ️ User existiert: ${u['email']}');
+        debugPrint('ℹ️ User existiert: ${u['email']}');
       }
     }
   }
@@ -134,7 +135,7 @@ Future<void> seedRealisticWMSimulation() async {
     });
   }
 
-  print('\n✅ ${allMatches.length} Matches erstellt');
+  debugPrint('\n✅ ${allMatches.length} Matches erstellt');
 
   // ===== 7. TIPPS ERSTELLEN MIT REALISTISCHEN MUSTERN & JOKER-LIMITS =====
   int totalTips = 0;
@@ -199,8 +200,8 @@ Future<void> seedRealisticWMSimulation() async {
     }
   }
 
-  print('✅ $totalTips Tipps erstellt');
-  print('\n🏆 WM 2026 Simulation erfolgreich abgeschlossen!');
+  debugPrint('✅ $totalTips Tipps erstellt');
+  debugPrint('\n🏆 WM 2026 Simulation erfolgreich abgeschlossen!');
 }
 
 // ===== HILFSFUNKTIONEN =====

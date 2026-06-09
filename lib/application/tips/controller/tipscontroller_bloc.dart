@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
@@ -52,21 +53,21 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   @override
   void onEvent(TipControllerEvent event) {
     _eventCount++;
-    print('📨 [TipControllerBloc] EVENT #$_eventCount: ${event.runtimeType}');
+    debugPrint('📨 [TipControllerBloc] EVENT #$_eventCount: ${event.runtimeType}');
     if (event is TipUpdateStatisticsEvent) {
-      print('   └─ matchDay: ${event.matchDay}, userId: ${event.userId}, forceRefresh: ${event.forceRefresh}');
+      debugPrint('   └─ matchDay: ${event.matchDay}, userId: ${event.userId}, forceRefresh: ${event.forceRefresh}');
     } else if (event is TipLoadForUserEvent) {
-      print('   └─ userId: ${event.userId}');
+      debugPrint('   └─ userId: ${event.userId}');
     }
     super.onEvent(event);
   }
 
   @override
   void onTransition(Transition<TipControllerEvent, TipControllerState> transition) {
-    print('🔄 [TipControllerBloc] TRANSITION:');
-    print('   Event: ${transition.event.runtimeType}');
-    print('   From: ${transition.currentState.runtimeType}');
-    print('   To: ${transition.nextState.runtimeType}');
+    debugPrint('🔄 [TipControllerBloc] TRANSITION:');
+    debugPrint('   Event: ${transition.event.runtimeType}');
+    debugPrint('   From: ${transition.currentState.runtimeType}');
+    debugPrint('   To: ${transition.nextState.runtimeType}');
     super.onTransition(transition);
   }
 
@@ -74,11 +75,11 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     TipLoadForUserEvent event,
     Emitter<TipControllerState> emit,
   ) async {
-    print('👤 [TipControllerBloc] _onLoadForUser: ${event.userId}');
+    debugPrint('👤 [TipControllerBloc] _onLoadForUser: ${event.userId}');
     
     // ✅ FIX: Reset stats cache und stream flag wenn User wechselt
     if (_currentUserId != event.userId) {
-      print('🔄 [TipControllerBloc] User changed: $_currentUserId → ${event.userId}, resetting stats');
+      debugPrint('🔄 [TipControllerBloc] User changed: $_currentUserId → ${event.userId}, resetting stats');
       _loadingMatchDays.clear();
       _isStreamActive = false;
     }
@@ -91,14 +92,14 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         .watchUserTips(event.userId)
         .listen(
           (tipResult) {
-            print('📥 [TipControllerBloc] Stream event received for user: ${event.userId}');
+            debugPrint('📥 [TipControllerBloc] Stream event received for user: ${event.userId}');
             add(TipUpdatedEvent(
               failureOrTip: tipResult,
               userId: event.userId,
             ));
           },
           onError: (_) {
-            print('❌ [TipControllerBloc] Stream error for user: ${event.userId}');
+            debugPrint('❌ [TipControllerBloc] Stream error for user: ${event.userId}');
             add(TipUpdatedEvent(
               failureOrTip: left(UnexpectedFailure()),
               userId: event.userId,
@@ -121,7 +122,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
             event.userId == _currentUserId) {
           currentStats = Map.from(currentState.matchDayStatistics);
         } else {
-          print('🧹 [TipControllerBloc] Clearing stats for new user: ${event.userId}');
+          debugPrint('🧹 [TipControllerBloc] Clearing stats for new user: ${event.userId}');
         }
 
         late Map<String, List<Tip>> tipMap;
@@ -147,7 +148,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     // ✅ FIX: Bei User-Wechsel (Admin wechselt) Stats zurücksetzen
     // Admin-Mode: _currentUserId auf null setzen bedeutet "alle User"
     if (_currentUserId != null) {
-      print('🔄 [TipControllerBloc] Switching to admin mode, resetting stats');
+      debugPrint('🔄 [TipControllerBloc] Switching to admin mode, resetting stats');
       _loadingMatchDays.clear();
       _isStreamActive = false;
     }
@@ -155,11 +156,11 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     
     // ✅ FIX: Verhindere Stream-Neustart wenn bereits aktiv
     if (_isStreamActive && state is TipControllerLoaded) {
-      print('⏭️  [TipControllerBloc] _onTipAllEvent SKIPPED: Stream already active');
+      debugPrint('⏭️  [TipControllerBloc] _onTipAllEvent SKIPPED: Stream already active');
       return;
     }
     
-    print('🎯 [TipControllerBloc] _onTipAllEvent: Starting watchAll stream');
+    debugPrint('🎯 [TipControllerBloc] _onTipAllEvent: Starting watchAll stream');
     _isStreamActive = true;
     emit(TipControllerLoading());
     await _tipStreamSub?.cancel();
@@ -185,7 +186,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     TipResetEvent event,
     Emitter<TipControllerState> emit,
   ) async {
-    print('🧹 [TipControllerBloc] RESET: Clearing all state');
+    debugPrint('🧹 [TipControllerBloc] RESET: Clearing all state');
     await _tipStreamSub?.cancel();
     _tipStreamSub = null;
     _loadingMatchDays.clear();
@@ -200,16 +201,16 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     TipLoadForMatchEvent event,
     Emitter<TipControllerState> emit,
   ) async {
-    print('🎯 [TipControllerBloc] _onLoadForMatch: ${event.matchId}');
+    debugPrint('🎯 [TipControllerBloc] _onLoadForMatch: ${event.matchId}');
     
     final result = await tipRepository.getTipsForMatch(event.matchId);
     
     result.fold(
       (failure) {
-        print('❌ [TipControllerBloc] Failed to load tips for match: ${event.matchId}');
+        debugPrint('❌ [TipControllerBloc] Failed to load tips for match: ${event.matchId}');
       },
       (tips) {
-        print('✅ [TipControllerBloc] Loaded ${tips.length} tips for match: ${event.matchId}');
+        debugPrint('✅ [TipControllerBloc] Loaded ${tips.length} tips for match: ${event.matchId}');
         
         final currentState = state;
         Map<String, List<Tip>> currentTips = {};
@@ -250,28 +251,28 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   ) async {
     final currentState = state;
 
-    print('📊 [TipControllerBloc] _onUpdateStatistics START:');
-    print('   matchDay: ${event.matchDay}');
-    print('   userId: ${event.userId}');
-    print('   forceRefresh: ${event.forceRefresh}');
-    print('   currentState: ${currentState.runtimeType}');
+    debugPrint('📊 [TipControllerBloc] _onUpdateStatistics START:');
+    debugPrint('   matchDay: ${event.matchDay}');
+    debugPrint('   userId: ${event.userId}');
+    debugPrint('   forceRefresh: ${event.forceRefresh}');
+    debugPrint('   currentState: ${currentState.runtimeType}');
 
     // Prüfe nur diesen einzelnen matchDay, nicht die ganze Phase
     if (!event.forceRefresh && currentState is TipControllerLoaded) {
       final currentStats = currentState.matchDayStatistics;
       if (currentStats.containsKey(event.matchDay)) {
-        print('   ⏭️  SKIPPED: Stats already loaded for matchDay ${event.matchDay}');
+        debugPrint('   ⏭️  SKIPPED: Stats already loaded for matchDay ${event.matchDay}');
         return;
       }
     }
 
     if (_loadingMatchDays.contains(event.matchDay)) {
-      print('   ⏭️  SKIPPED: Already loading matchDay ${event.matchDay}');
+      debugPrint('   ⏭️  SKIPPED: Already loading matchDay ${event.matchDay}');
       return;
     }
     
     _loadingMatchDays.add(event.matchDay);
-    print('   ✅ Loading stats for matchDay ${event.matchDay}');
+    debugPrint('   ✅ Loading stats for matchDay ${event.matchDay}');
 
     try {
       // ✅ OPTIMIERT: Matches einmal laden für alle KO-Phasen Calls
@@ -279,7 +280,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       List<CustomMatch>? preloadedMatches;
       if (event.matchDay >= 4) {
         preloadedMatches = await _getOrLoadMatches();
-        print('   📦 Preloaded ${preloadedMatches.length} matches for KO stats');
+        debugPrint('   📦 Preloaded ${preloadedMatches.length} matches for KO stats');
       }
 
       // ✅ NEU: Vorrunde (matchDay 1-3) teilen sich das 20-Tipp-Limit

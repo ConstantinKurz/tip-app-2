@@ -55,8 +55,8 @@ void main() async {
   final recalculationService = di.sl<TipRecalculationService>();
   recalculationService.startListening();
 
-  print('🚀 App gestartet - Neuberechnung Service aktiv');
-  print(
+  debugPrint('🚀 App gestartet - Neuberechnung Service aktiv');
+  debugPrint(
       '📊 Firestore Logging aktiv - Nutze FirestoreLogger.printSummary() für Statistiken');
 
   runApp(const MyApp());
@@ -132,7 +132,7 @@ class MyApp extends StatelessWidget {
             _tipBlocInitializedForUser = null;
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              print('🚪 [Main] Logout detected: Dispatching TipResetEvent');
+              debugPrint('🚪 [Main] Logout detected: Dispatching TipResetEvent');
               context.read<TipControllerBloc>().add(TipResetEvent());
             });
           }
@@ -150,11 +150,11 @@ class MyApp extends StatelessWidget {
 
               // ✅ FIX: Immer neu laden bei User-Wechsel (User-ID hat sich geändert)
               if (isAdmin) {
-                print(
+                debugPrint(
                     '👑 [Main] Admin: Dispatching TipAllEvent for user: $userId');
                 tipBloc.add(TipAllEvent());
               } else {
-                print(
+                debugPrint(
                     '👤 [Main] User: Dispatching TipLoadForUserEvent for user: $userId');
                 tipBloc.add(TipLoadForUserEvent(userId: userId!));
               }

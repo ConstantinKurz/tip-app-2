@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -8,7 +9,7 @@ Future<void> setupTournament() async {
   final firestore = FirebaseFirestore.instance;
   final auth = FirebaseAuth.instance;
 
-  print('🏆 Starte Turnier-Setup...\n');
+  debugPrint('🏆 Starte Turnier-Setup...\n');
 
   // ===== 1. USER ERSTELLEN =====
   final testUsers = List.generate(20, (i) {
@@ -30,7 +31,7 @@ Future<void> setupTournament() async {
         password: u['password'] as String,
       );
       userIds.add(cred.user!.uid);
-      print('✅ User erstellt: ${u['email']}');
+      debugPrint('✅ User erstellt: ${u['email']}');
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         final existing = await auth.signInWithEmailAndPassword(
@@ -38,7 +39,7 @@ Future<void> setupTournament() async {
           password: u['password'] as String,
         );
         userIds.add(existing.user!.uid);
-        print('ℹ️ User existiert: ${u['email']}');
+        debugPrint('ℹ️ User existiert: ${u['email']}');
       }
     }
   }
@@ -117,8 +118,8 @@ Future<void> setupTournament() async {
     await firestore.collection('matches').doc(match['id']).set(match);
   }
 
-  print('\n✅ ${allMatches.length} Matches erstellt');
-  print('✅ Setup abgeschlossen - bereit für Tipps!');
+  debugPrint('\n✅ ${allMatches.length} Matches erstellt');
+  debugPrint('✅ Setup abgeschlossen - bereit für Tipps!');
 }
 
 /// Erstellt Gruppen mit Match-Paarungen

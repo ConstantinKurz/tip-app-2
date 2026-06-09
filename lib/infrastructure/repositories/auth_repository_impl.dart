@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:faker/faker.dart';
@@ -109,7 +110,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return none();
     } else {
       FirestoreLogger.logRead('users', 'getSignedInUser', docId: user.uid);
-      print('📥 [AuthRepository] getSignedInUser: ${user.uid}');
+      debugPrint('📥 [AuthRepository] getSignedInUser: ${user.uid}');
       final userDoc = await usersCollection.doc(user.uid).get();
       if (userDoc.exists) {
         return some(UserModel.fromFirestore(userDoc).toDomain());
@@ -138,7 +139,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers() async* {
-    print('🎯 [AuthRepository] watchAllUsers STREAM STARTED');
+    debugPrint('🎯 [AuthRepository] watchAllUsers STREAM STARTED');
     FirestoreLogger.logRead('users', 'watchAllUsers (STREAM)');
 
     int eventCount = 0;
@@ -150,7 +151,7 @@ class AuthRepositoryImpl implements AuthRepository {
       eventCount++;
       FirestoreLogger.logRead('users', 'watchAllUsers (EVENT #$eventCount)',
           docId: '[${snapshot.docs.length} docs]');
-      print(
+      debugPrint(
           '📥 [AuthRepository] watchAllUsers EVENT #$eventCount: ${snapshot.docs.length} users');
       try {
         final users = snapshot.docs
@@ -258,11 +259,11 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<AuthFailure, List<AppUser>>> getAllUsers() async {
     try {
       FirestoreLogger.logRead('users', 'getAllUsers');
-      print('📥 [AuthRepository] getAllUsers called');
+      debugPrint('📥 [AuthRepository] getAllUsers called');
       final snapshot = await usersCollection.get();
       FirestoreLogger.logRead('users', 'getAllUsers (RESULT)',
           docId: '[${snapshot.docs.length} docs]');
-      print('✅ [AuthRepository] getAllUsers: ${snapshot.docs.length} users');
+      debugPrint('✅ [AuthRepository] getAllUsers: ${snapshot.docs.length} users');
       final users = snapshot.docs
           .map((doc) => UserModel.fromFirestore(doc).toDomain())
           .toList();
@@ -289,9 +290,9 @@ class AuthRepositoryImpl implements AuthRepository {
         return left(UserNotFoundFailure(message: "Kein Benutzer eingeloggt"));
       }
 
-      print('📧 [AuthRepository] Updating own email...');
-      print('   Current email: ${user.email}');
-      print('   New email: $newEmail');
+      debugPrint('📧 [AuthRepository] Updating own email...');
+      debugPrint('   Current email: ${user.email}');
+      debugPrint('   New email: $newEmail');
 
       // Re-authenticate with current password first
       final credential = EmailAuthProvider.credential(
@@ -299,19 +300,19 @@ class AuthRepositoryImpl implements AuthRepository {
         password: currentPassword,
       );
       await user.reauthenticateWithCredential(credential);
-      print('✅ [AuthRepository] Re-authentication successful');
+      debugPrint('✅ [AuthRepository] Re-authentication successful');
 
       // Send verification email to new address and update
       await user.verifyBeforeUpdateEmail(newEmail);
-      print('✅ [AuthRepository] Verification email sent to $newEmail');
+      debugPrint('✅ [AuthRepository] Verification email sent to $newEmail');
 
       // Update Firestore with new email
       await usersCollection.doc(user.uid).update({'email': newEmail});
-      print('✅ [AuthRepository] Firestore email updated');
+      debugPrint('✅ [AuthRepository] Firestore email updated');
 
       return right(unit);
     } on FirebaseAuthException catch (e) {
-      print('❌ [AuthRepository] FirebaseAuthException: ${e.code}');
+      debugPrint('❌ [AuthRepository] FirebaseAuthException: ${e.code}');
       if (e.code == "wrong-password" || e.code == "invalid-credential") {
         return left(InvalidCredential(message: "Falsches Passwort"));
       } else if (e.code == "email-already-in-use") {
@@ -323,7 +324,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return left(ServerFailure());
     } catch (e) {
-      print('❌ [AuthRepository] Unexpected error: $e');
+      debugPrint('❌ [AuthRepository] Unexpected error: $e');
       return left(mapFirebaseError<AuthFailure>(
         e,
         insufficientPermissions: InsufficientPermisssons(),

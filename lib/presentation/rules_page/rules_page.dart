@@ -38,11 +38,11 @@ class _RulesPageState extends State<RulesPage> {
       },
     );
 
-    // Auf echten Phones (< 600px) direkt PDF öffnen
+    // Auf Phones & Tablets (< 1024px) direkt PDF öffnen
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final screenWidth = MediaQuery.of(context).size.width;
-      final isPhone = screenWidth < 600; // Nur echte Phones, nicht iPad
-      if (isPhone) {
+      final isMobileOrTablet = screenWidth < 1024;
+      if (isMobileOrTablet) {
         html.window.open('WM2026%20onlineRegeln.pdf', '_blank');
       }
     });

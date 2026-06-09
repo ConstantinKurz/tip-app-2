@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
@@ -13,7 +14,7 @@ Future<void> simulateKnockoutStageResults() async {
   final firestore = FirebaseFirestore.instance;
   final random = Random();
 
-  print('🏆 Starte K.O.-Phase Simulation (matchDay 4-8)...\n');
+  debugPrint('🏆 Starte K.O.-Phase Simulation (matchDay 4-8)...\n');
 
   // Hole Repositories aus Service Locator
   final matchRepository = sl<MatchRepository>();
@@ -24,7 +25,7 @@ Future<void> simulateKnockoutStageResults() async {
   final matchesResult = await matchRepository.getAllMatches();
   final matches = matchesResult.fold(
     (failure) {
-      print('❌ Fehler beim Laden der Matches: $failure');
+      debugPrint('❌ Fehler beim Laden der Matches: $failure');
       return <CustomMatch>[];
     },
     (matches) => matches,
@@ -41,10 +42,10 @@ Future<void> simulateKnockoutStageResults() async {
   final teamsSnap = await firestore.collection('teams').get();
   final teams = {for (var doc in teamsSnap.docs) doc.id: doc.data()};
 
-  print('📊 Gefunden: ${knockoutStageMatches.length} Matches, ${userIds.length} User\n');
+  debugPrint('📊 Gefunden: ${knockoutStageMatches.length} Matches, ${userIds.length} User\n');
 
   // ===== SCHRITT 1: Erst alle Tipps erstellen =====
-  print('📝 Erstelle Tipps für alle User...\n');
+  debugPrint('📝 Erstelle Tipps für alle User...\n');
   await _createKnockoutStageTips(
     firestore,
     knockoutStageMatches,
@@ -54,19 +55,19 @@ Future<void> simulateKnockoutStageResults() async {
   );
 
   // ===== SCHRITT 2: Dann Ergebnisse simulieren =====
-  print('\n⚽ Simuliere Ergebnisse...\n');
+  debugPrint('\n⚽ Simuliere Ergebnisse...\n');
   int processedMatches = 0;
 
   for (final match in knockoutStageMatches) {
     // Überspringe Matches die bereits Ergebnisse haben
     if (match.hasResult) {
-      print('⏭️  ${match.id} hat bereits Ergebnis');
+      debugPrint('⏭️  ${match.id} hat bereits Ergebnis');
       continue;
     }
 
     // Überspringe TBD-Matches (K.O.-Phase noch nicht festgelegt)
     if (match.homeTeamId == 'TBD' || match.guestTeamId == 'TBD') {
-      print('⏭️  ${match.id} wartet auf Team-Festlegung');
+      debugPrint('⏭️  ${match.id} wartet auf Team-Festlegung');
       continue;
     }
 
@@ -74,7 +75,7 @@ Future<void> simulateKnockoutStageResults() async {
     final guestTeam = teams[match.guestTeamId];
 
     if (homeTeam == null || guestTeam == null) {
-      print('⚠️  Teams nicht gefunden für ${match.id}');
+      debugPrint('⚠️  Teams nicht gefunden für ${match.id}');
       continue;
     }
 
@@ -92,20 +93,20 @@ Future<void> simulateKnockoutStageResults() async {
     );
 
     await matchRepository.updateMatch(updatedMatch);
-    print('⚽ ${match.id}: ${result['home']} - ${result['guest']}');
+    debugPrint('⚽ ${match.id}: ${result['home']} - ${result['guest']}');
     processedMatches++;
 
     // ===== SCHRITT 3: Punkte für dieses Match berechnen =====
     try {
       await recalculateUseCase(match: updatedMatch);
-      print('   ✅ Punkte neuberechnet');
+      debugPrint('   ✅ Punkte neuberechnet');
     } catch (e) {
-      print('   ❌ Fehler bei Neuberechnung: $e');
+      debugPrint('   ❌ Fehler bei Neuberechnung: $e');
     }
   }
 
-  print('\n✅ $processedMatches Matches der K.O.-Phase simuliert');
-  print('🏆 Simulation der K.O.-Phase abgeschlossen!');
+  debugPrint('\n✅ $processedMatches Matches der K.O.-Phase simuliert');
+  debugPrint('🏆 Simulation der K.O.-Phase abgeschlossen!');
 }
 
 /// Berechnet Match-Ergebnis basierend auf Team-Stärke
@@ -168,7 +169,7 @@ Future<void> _createKnockoutStageTips(
       }
     }
 
-    print('👤 User $userId: Joker-Budget: $jokerBudgets');
+    debugPrint('👤 User $userId: Joker-Budget: $jokerBudgets');
 
     final userStrategy = random.nextInt(4);
 
@@ -215,7 +216,7 @@ Future<void> _createKnockoutStageTips(
     }
   }
 
-  print('✅ $totalTips Tipps erstellt, $skippedTips übersprungen');
+  debugPrint('✅ $totalTips Tipps erstellt, $skippedTips übersprungen');
 }
 
 /// Generiert Tipps für K.O.-Phase mit erhöhter Joker-Chance

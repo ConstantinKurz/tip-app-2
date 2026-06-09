@@ -73,7 +73,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
         state.authFailureOrSuccessOption!.fold(
             () {},
             (eitherFailureOrSuccess) => eitherFailureOrSuccess.fold((failure) {
-                  print(failure);
+                  debugPrint(failure.toString());
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       backgroundColor: Colors.redAccent,
                       content: Text(

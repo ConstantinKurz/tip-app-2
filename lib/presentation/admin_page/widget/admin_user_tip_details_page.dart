@@ -38,7 +38,7 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
   @override
   Widget build(BuildContext context) {
     _buildCount++;
-    print('🏗️  [AdminUserTipDetailsPage] BUILD #$_buildCount for user: ${widget.selectedUserId}');
+    debugPrint('🏗️  [AdminUserTipDetailsPage] BUILD #$_buildCount for user: ${widget.selectedUserId}');
     
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
@@ -51,14 +51,14 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         buildWhen: (previous, current) {
           final shouldBuild = previous.runtimeType != current.runtimeType;
-          print('   [AuthControllerBloc] buildWhen: $shouldBuild (${previous.runtimeType} -> ${current.runtimeType})');
+          debugPrint('   [AuthControllerBloc] buildWhen: $shouldBuild (${previous.runtimeType} -> ${current.runtimeType})');
           return shouldBuild;
         },
         builder: (context, authState) {
           return BlocBuilder<TipControllerBloc, TipControllerState>(
             buildWhen: (previous, current) {
               if (previous.runtimeType != current.runtimeType) {
-                print('   [TipControllerBloc] buildWhen: TRUE (type change: ${previous.runtimeType} -> ${current.runtimeType})');
+                debugPrint('   [TipControllerBloc] buildWhen: TRUE (type change: ${previous.runtimeType} -> ${current.runtimeType})');
                 return true;
               }
               
@@ -67,18 +67,18 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                 final currUserTips = current.tips[widget.selectedUserId] ?? [];
                 
                 if (prevUserTips.length != currUserTips.length) {
-                  print('   [TipControllerBloc] buildWhen: TRUE (tip count changed: ${prevUserTips.length} -> ${currUserTips.length})');
+                  debugPrint('   [TipControllerBloc] buildWhen: TRUE (tip count changed: ${prevUserTips.length} -> ${currUserTips.length})');
                   return true;
                 }
                 
                 for (int i = 0; i < prevUserTips.length; i++) {
                   if (prevUserTips[i] != currUserTips[i]) {
-                    print('   [TipControllerBloc] buildWhen: TRUE (tip changed at index $i)');
+                    debugPrint('   [TipControllerBloc] buildWhen: TRUE (tip changed at index $i)');
                     return true;
                   }
                 }
                 
-                print('   [TipControllerBloc] buildWhen: FALSE (no relevant changes)');
+                debugPrint('   [TipControllerBloc] buildWhen: FALSE (no relevant changes)');
                 return false;
               }
               
@@ -88,24 +88,24 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
               return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
                 buildWhen: (previous, current) {
                   if (previous.runtimeType != current.runtimeType) {
-                    print('   [MatchesControllerBloc] buildWhen: TRUE (type change)');
+                    debugPrint('   [MatchesControllerBloc] buildWhen: TRUE (type change)');
                     return true;
                   }
                   
                   if (previous is MatchesControllerLoaded && current is MatchesControllerLoaded) {
                     if (previous.matches.length != current.matches.length) {
-                      print('   [MatchesControllerBloc] buildWhen: TRUE (match count changed)');
+                      debugPrint('   [MatchesControllerBloc] buildWhen: TRUE (match count changed)');
                       return true;
                     }
                     
                     for (int i = 0; i < previous.matches.length; i++) {
                       if (previous.matches[i] != current.matches[i]) {
-                        print('   [MatchesControllerBloc] buildWhen: TRUE (match changed at index $i)');
+                        debugPrint('   [MatchesControllerBloc] buildWhen: TRUE (match changed at index $i)');
                         return true;
                       }
                     }
                     
-                    print('   [MatchesControllerBloc] buildWhen: FALSE (no changes)');
+                    debugPrint('   [MatchesControllerBloc] buildWhen: FALSE (no changes)');
                     return false;
                   }
                   
@@ -393,18 +393,18 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
   @override
   void initState() {
     super.initState();
-    print('🎬 [_AdminTipCardInitializer] INIT for match: ${widget.matchId}');
+    debugPrint('🎬 [_AdminTipCardInitializer] INIT for match: ${widget.matchId}');
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    print('🔄 [_AdminTipCardInitializer] didChangeDependencies for match: ${widget.matchId}');
-    print('   _initialized: $_initialized, _statsRequested: $_statsRequested');
+    debugPrint('🔄 [_AdminTipCardInitializer] didChangeDependencies for match: ${widget.matchId}');
+    debugPrint('   _initialized: $_initialized, _statsRequested: $_statsRequested');
     
     if (!_initialized) {
       _initialized = true;
-      print('   ✅ INITIALIZING match: ${widget.matchId}, matchDay: ${widget.matchDay}');
+      debugPrint('   ✅ INITIALIZING match: ${widget.matchId}, matchDay: ${widget.matchDay}');
 
       final formBloc = context.read<TipFormBloc>();
       final controllerBloc = context.read<TipControllerBloc>();
@@ -421,11 +421,11 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
       // Stats nur laden wenn nicht bereits vorhanden
       if (tipState is TipControllerLoaded) {
         final hasStats = tipState.matchDayStatistics.containsKey(widget.matchDay);
-        print('   hasStats for matchDay ${widget.matchDay}: $hasStats');
+        debugPrint('   hasStats for matchDay ${widget.matchDay}: $hasStats');
         
         if (!hasStats && !_statsRequested) {
           _statsRequested = true;
-          print('   📊 REQUESTING STATS for matchDay ${widget.matchDay}');
+          debugPrint('   📊 REQUESTING STATS for matchDay ${widget.matchDay}');
           
           controllerBloc.add(
             TipUpdateStatisticsEvent(
@@ -434,7 +434,7 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
             ),
           );
         } else {
-          print('   ⏭️  SKIPPING stats request (hasStats: $hasStats, already requested: $_statsRequested)');
+          debugPrint('   ⏭️  SKIPPING stats request (hasStats: $hasStats, already requested: $_statsRequested)');
         }
 
         // Tip-Daten direkt übergeben
@@ -449,7 +449,7 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
       } else {
         if (!_statsRequested) {
           _statsRequested = true;
-          print('   📊 REQUESTING STATS (TipControllerNotLoaded) for matchDay ${widget.matchDay}');
+          debugPrint('   📊 REQUESTING STATS (TipControllerNotLoaded) for matchDay ${widget.matchDay}');
           controllerBloc.add(
             TipUpdateStatisticsEvent(
               userId: widget.userId,
@@ -459,14 +459,14 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
         }
       }
     } else {
-      print('   ⏭️  SKIPPED: Already initialized');
+      debugPrint('   ⏭️  SKIPPED: Already initialized');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     _buildCount++;
-    print('🏗️  [_AdminTipCardInitializer] BUILD #$_buildCount for match: ${widget.matchId}');
+    debugPrint('🏗️  [_AdminTipCardInitializer] BUILD #$_buildCount for match: ${widget.matchId}');
     
     return BlocListener<TipControllerBloc, TipControllerState>(
       listenWhen: (previous, current) {
@@ -487,14 +487,14 @@ class _AdminTipCardInitializerState extends State<_AdminTipCardInitializer> {
           
           final shouldListen = prevTip != currTip ||
               previous.matchDayStatistics != current.matchDayStatistics;
-          print('   [_AdminTipCardInitializer] listenWhen for ${widget.matchId}: $shouldListen');
+          debugPrint('   [_AdminTipCardInitializer] listenWhen for ${widget.matchId}: $shouldListen');
           return shouldListen;
         }
         
         return false;
       },
       listener: (context, tipState) {
-        print('👂 [_AdminTipCardInitializer] LISTENER triggered for match: ${widget.matchId}');
+        debugPrint('👂 [_AdminTipCardInitializer] LISTENER triggered for match: ${widget.matchId}');
         if (tipState is TipControllerLoaded) {
           final formBloc = context.read<TipFormBloc>();
           final userTips = tipState.tips[widget.userId] ?? [];

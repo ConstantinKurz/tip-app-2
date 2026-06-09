@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_web/core/failures/tip_failures.dart';
@@ -17,7 +18,7 @@ class UserRepositoryImpl extends UserRepository {
   Future<Either<TipFailure, AppUser>> getUserById(String userId) async {
     try {
       FirestoreLogger.logRead('users', 'getUserById', docId: userId);
-      print('📥 [UserRepository] getUserById: $userId');
+      debugPrint('📥 [UserRepository] getUserById: $userId');
       final doc = await firebaseFirestore.collection(_collectionPath).doc(userId).get();
       
       if (!doc.exists) {
@@ -35,10 +36,10 @@ class UserRepositoryImpl extends UserRepository {
   Future<Either<TipFailure, List<AppUser>>> getAllUsers() async {
     try {
       FirestoreLogger.logRead('users', 'getAllUsers');
-      print('📥 [UserRepository] getAllUsers called');
+      debugPrint('📥 [UserRepository] getAllUsers called');
       final snapshot = await firebaseFirestore.collection(_collectionPath).get();
       FirestoreLogger.logRead('users', 'getAllUsers (RESULT)', docId: '[${snapshot.docs.length} docs]');
-      print('✅ [UserRepository] getAllUsers: ${snapshot.docs.length} users');
+      debugPrint('✅ [UserRepository] getAllUsers: ${snapshot.docs.length} users');
       final users = snapshot.docs
           .map((doc) => UserModel.fromJson(doc.data()).toDomain())
           .toList();
@@ -64,7 +65,7 @@ class UserRepositoryImpl extends UserRepository {
 
   @override
   Stream<Either<TipFailure, AppUser>> watchUserById(String userId) {
-    print('🎯 [UserRepository] watchUserById STREAM STARTED for: $userId');
+    debugPrint('🎯 [UserRepository] watchUserById STREAM STARTED for: $userId');
     FirestoreLogger.logRead('users', 'watchUserById (STREAM)', docId: userId);
     
     int eventCount = 0;
@@ -76,7 +77,7 @@ class UserRepositoryImpl extends UserRepository {
         .map<Either<TipFailure, AppUser>>((snapshot) {
       eventCount++;
       FirestoreLogger.logRead('users', 'watchUserById (EVENT #$eventCount)', docId: userId);
-      print('📥 [UserRepository] watchUserById EVENT #$eventCount: $userId');
+      debugPrint('📥 [UserRepository] watchUserById EVENT #$eventCount: $userId');
       if (!snapshot.exists) {
         return left(ServerFailure(message: 'User not found'));
       }

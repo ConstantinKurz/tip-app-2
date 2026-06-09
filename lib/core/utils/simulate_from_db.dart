@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
@@ -18,7 +19,7 @@ Future<void> simulateGroupStageFromDB() async {
   final firestore = FirebaseFirestore.instance;
   final random = Random();
 
-  print('🏆 Starte Gruppenphase Simulation (matchDay 1-3) mit DB-Daten...\n');
+  debugPrint('🏆 Starte Gruppenphase Simulation (matchDay 1-3) mit DB-Daten...\n');
 
   final matchRepository = sl<MatchRepository>();
   final tipRepository = sl<TipRepository>();
@@ -28,7 +29,7 @@ Future<void> simulateGroupStageFromDB() async {
   final matchesResult = await matchRepository.getAllMatches();
   final matches = matchesResult.fold(
     (failure) {
-      print('❌ Fehler beim Laden der Matches: $failure');
+      debugPrint('❌ Fehler beim Laden der Matches: $failure');
       return <CustomMatch>[];
     },
     (matches) => matches,
@@ -43,12 +44,12 @@ Future<void> simulateGroupStageFromDB() async {
   final teamIds = teams.keys.toList();
 
   if (groupStageMatches.isEmpty) {
-    print('⚠️  Keine Gruppenphase-Matches gefunden!');
+    debugPrint('⚠️  Keine Gruppenphase-Matches gefunden!');
     return;
   }
 
   if (teamIds.isEmpty) {
-    print('⚠️  Keine Teams gefunden! Bitte erst Teams anlegen.');
+    debugPrint('⚠️  Keine Teams gefunden! Bitte erst Teams anlegen.');
     return;
   }
 
@@ -58,7 +59,7 @@ Future<void> simulateGroupStageFromDB() async {
 
   // Erstelle simulierte User wenn weniger als 5 existieren
   if (userIds.length < 5) {
-    print('👥 Nur ${userIds.length} User gefunden - erstelle weitere simulierte User...\n');
+    debugPrint('👥 Nur ${userIds.length} User gefunden - erstelle weitere simulierte User...\n');
     final newUserIds = await _createSimulatedUsers(
       firestore, 
       teamIds, 
@@ -68,10 +69,10 @@ Future<void> simulateGroupStageFromDB() async {
     userIds.addAll(newUserIds);
   }
 
-  print('📊 Gefunden: ${groupStageMatches.length} Gruppenphase-Matches, ${teams.length} Teams, ${userIds.length} User\n');
+  debugPrint('📊 Gefunden: ${groupStageMatches.length} Gruppenphase-Matches, ${teams.length} Teams, ${userIds.length} User\n');
 
   // ===== SCHRITT 1: Tipps erstellen =====
-  print('📝 Erstelle Tipps für alle User...\n');
+  debugPrint('📝 Erstelle Tipps für alle User...\n');
   await _createGroupStageTips(
     firestore,
     groupStageMatches,
@@ -81,25 +82,25 @@ Future<void> simulateGroupStageFromDB() async {
   );
 
   // ===== SCHRITT 2: Ergebnisse simulieren =====
-  print('\n⚽ Simuliere Ergebnisse...\n');
+  debugPrint('\n⚽ Simuliere Ergebnisse...\n');
   int processedMatches = 0;
   int skippedMatches = 0;
 
-  print('📋 Prüfe ${groupStageMatches.length} Matches...');
+  debugPrint('📋 Prüfe ${groupStageMatches.length} Matches...');
 
   for (final match in groupStageMatches) {
-    print('   Prüfe Match: ${match.id} (hasResult: ${match.hasResult}, home: ${match.homeTeamId}, guest: ${match.guestTeamId})');
+    debugPrint('   Prüfe Match: ${match.id} (hasResult: ${match.hasResult}, home: ${match.homeTeamId}, guest: ${match.guestTeamId})');
     
     // Überspringe Matches die bereits Ergebnisse haben
     if (match.hasResult) {
-      print('⏭️  ${match.id} hat bereits Ergebnis: ${match.homeScore}-${match.guestScore}');
+      debugPrint('⏭️  ${match.id} hat bereits Ergebnis: ${match.homeScore}-${match.guestScore}');
       skippedMatches++;
       continue;
     }
 
     // Überspringe TBD-Matches
     if (match.homeTeamId == 'TBD' || match.guestTeamId == 'TBD') {
-      print('⏭️  ${match.id} wartet auf Team-Festlegung');
+      debugPrint('⏭️  ${match.id} wartet auf Team-Festlegung');
       skippedMatches++;
       continue;
     }
@@ -108,8 +109,8 @@ Future<void> simulateGroupStageFromDB() async {
     final guestTeam = teams[match.guestTeamId];
 
     if (homeTeam == null || guestTeam == null) {
-      print('⚠️  Teams nicht gefunden für ${match.id} (home: ${match.homeTeamId}, guest: ${match.guestTeamId})');
-      print('   Verfügbare Team-IDs: ${teams.keys.toList()}');
+      debugPrint('⚠️  Teams nicht gefunden für ${match.id} (home: ${match.homeTeamId}, guest: ${match.guestTeamId})');
+      debugPrint('   Verfügbare Team-IDs: ${teams.keys.toList()}');
       skippedMatches++;
       continue;
     }
@@ -128,20 +129,20 @@ Future<void> simulateGroupStageFromDB() async {
     );
 
     await matchRepository.updateMatch(updatedMatch);
-    print('⚽ ${match.id}: ${homeTeam['name']} ${result['home']} - ${result['guest']} ${guestTeam['name']}');
+    debugPrint('⚽ ${match.id}: ${homeTeam['name']} ${result['home']} - ${result['guest']} ${guestTeam['name']}');
     processedMatches++;
 
     // Punkte für dieses Match berechnen
     try {
       await recalculateUseCase(match: updatedMatch);
-      print('   ✅ Punkte neuberechnet');
+      debugPrint('   ✅ Punkte neuberechnet');
     } catch (e) {
-      print('   ❌ Fehler bei Neuberechnung: $e');
+      debugPrint('   ❌ Fehler bei Neuberechnung: $e');
     }
   }
 
-  print('\n✅ $processedMatches Matches simuliert, $skippedMatches übersprungen');
-  print('🏆 Gruppenphase Simulation abgeschlossen!');
+  debugPrint('\n✅ $processedMatches Matches simuliert, $skippedMatches übersprungen');
+  debugPrint('🏆 Gruppenphase Simulation abgeschlossen!');
 }
 
 /// Simuliert die K.O.-Phase (matchDay 4-8) mit echten DB-Daten
@@ -150,7 +151,7 @@ Future<void> simulateKnockoutStageFromDB() async {
   final firestore = FirebaseFirestore.instance;
   final random = Random();
 
-  print('🏆 Starte K.O.-Phase Simulation (matchDay 4-8) mit DB-Daten...\n');
+  debugPrint('🏆 Starte K.O.-Phase Simulation (matchDay 4-8) mit DB-Daten...\n');
 
   final matchRepository = sl<MatchRepository>();
   final teamRepository = sl<TeamRepository>();
@@ -161,7 +162,7 @@ Future<void> simulateKnockoutStageFromDB() async {
   var matchesResult = await matchRepository.getAllMatches();
   var matches = matchesResult.fold(
     (failure) {
-      print('❌ Fehler beim Laden der Matches: $failure');
+      debugPrint('❌ Fehler beim Laden der Matches: $failure');
       return <CustomMatch>[];
     },
     (matches) => matches,
@@ -176,12 +177,12 @@ Future<void> simulateKnockoutStageFromDB() async {
   final userIds = usersSnap.docs.map((doc) => doc.id).toList();
   
   // Debug: Zeige was in der DB steht
-  print('🔍 Debug - User Champion-IDs aus DB:');
+  debugPrint('🔍 Debug - User Champion-IDs aus DB:');
   for (final doc in usersSnap.docs) {
     final data = doc.data();
     final champId = data['champion_id'];
     final userName = data['name'] ?? doc.id;
-    print('   👤 $userName → Champion: "$champId"');
+    debugPrint('   👤 $userName → Champion: "$champId"');
   }
 
   final userChampionIds = usersSnap.docs
@@ -195,11 +196,11 @@ Future<void> simulateKnockoutStageFromDB() async {
   final teams = {for (var doc in teamsSnap.docs) doc.id: doc.data()};
   final teamIds = teams.keys.toList();
 
-  print('📊 Gefunden: ${knockoutMatches.length} K.O.-Matches, ${teams.length} Teams, ${userIds.length} User');
-  print('🎯 User-Champions (unique): $userChampionIds\n');
+  debugPrint('📊 Gefunden: ${knockoutMatches.length} K.O.-Matches, ${teams.length} Teams, ${userIds.length} User');
+  debugPrint('🎯 User-Champions (unique): $userChampionIds\n');
 
   if (knockoutMatches.isEmpty) {
-    print('⚠️  Keine K.O.-Matches gefunden!');
+    debugPrint('⚠️  Keine K.O.-Matches gefunden!');
     return;
   }
 
@@ -209,7 +210,7 @@ Future<void> simulateKnockoutStageFromDB() async {
   );
   
   if (hasTbdMatches) {
-    print('🔄 Weise Teams für K.O.-Matches zu...\n');
+    debugPrint('🔄 Weise Teams für K.O.-Matches zu...\n');
     await _assignKnockoutTeams(
       knockoutMatches,
       teamIds,
@@ -226,11 +227,11 @@ Future<void> simulateKnockoutStageFromDB() async {
     );
     knockoutMatches = matches.where((m) => m.matchDay >= 4).toList()
       ..sort((a, b) => a.matchDay.compareTo(b.matchDay));
-    print('');
+    debugPrint('');
   }
 
   // ===== SCHRITT 1: Tipps erstellen =====
-  print('📝 Erstelle Tipps für alle User...\n');
+  debugPrint('📝 Erstelle Tipps für alle User...\n');
   await _createKnockoutStageTips(
     firestore,
     knockoutMatches,
@@ -240,7 +241,7 @@ Future<void> simulateKnockoutStageFromDB() async {
   );
 
   // ===== SCHRITT 2: Ergebnisse simulieren =====
-  print('\n⚽ Simuliere Ergebnisse...\n');
+  debugPrint('\n⚽ Simuliere Ergebnisse...\n');
   int processedMatches = 0;
   int skippedMatches = 0;
   CustomMatch? finaleMatch;
@@ -248,7 +249,7 @@ Future<void> simulateKnockoutStageFromDB() async {
   for (final match in knockoutMatches) {
     // Überspringe Matches die bereits Ergebnisse haben
     if (match.hasResult) {
-      print('⏭️  ${match.id} (Tag ${match.matchDay}) hat bereits Ergebnis: ${match.homeScore}-${match.guestScore}');
+      debugPrint('⏭️  ${match.id} (Tag ${match.matchDay}) hat bereits Ergebnis: ${match.homeScore}-${match.guestScore}');
       skippedMatches++;
       
       // Speichere Finale für Champion-Bestimmung
@@ -260,7 +261,7 @@ Future<void> simulateKnockoutStageFromDB() async {
 
     // Überspringe TBD-Matches (sollte nach _assignKnockoutTeams nicht mehr vorkommen)
     if (match.homeTeamId == 'TBD' || match.guestTeamId == 'TBD') {
-      print('⏭️  ${match.id} (Tag ${match.matchDay}) wartet auf Team-Festlegung');
+      debugPrint('⏭️  ${match.id} (Tag ${match.matchDay}) wartet auf Team-Festlegung');
       skippedMatches++;
       continue;
     }
@@ -269,7 +270,7 @@ Future<void> simulateKnockoutStageFromDB() async {
     final guestTeam = teams[match.guestTeamId];
 
     if (homeTeam == null || guestTeam == null) {
-      print('⚠️  Teams nicht gefunden für ${match.id} (home: ${match.homeTeamId}, guest: ${match.guestTeamId})');
+      debugPrint('⚠️  Teams nicht gefunden für ${match.id} (home: ${match.homeTeamId}, guest: ${match.guestTeamId})');
       skippedMatches++;
       continue;
     }
@@ -280,7 +281,7 @@ Future<void> simulateKnockoutStageFromDB() async {
     // FINALE: User-Champion gewinnt garantiert!
     if (match.matchDay == 8) {
       result = _calculateFinaleResult(match, userChampionIds, random);
-      print('🏆 FINALE: User-Champion gewinnt!');
+      debugPrint('🏆 FINALE: User-Champion gewinnt!');
     } else {
       // Normale K.O.-Runde: Kein Unentschieden möglich
       result = _calculateKnockoutResult(
@@ -297,15 +298,15 @@ Future<void> simulateKnockoutStageFromDB() async {
     );
 
     await matchRepository.updateMatch(updatedMatch);
-    print('⚽ ${match.id} (Tag ${match.matchDay}): ${homeTeam['name']} ${result['home']} - ${result['guest']} ${guestTeam['name']}');
+    debugPrint('⚽ ${match.id} (Tag ${match.matchDay}): ${homeTeam['name']} ${result['home']} - ${result['guest']} ${guestTeam['name']}');
     processedMatches++;
 
     // Punkte für dieses Match berechnen
     try {
       await recalculateUseCase(match: updatedMatch);
-      print('   ✅ Punkte neuberechnet');
+      debugPrint('   ✅ Punkte neuberechnet');
     } catch (e) {
-      print('   ❌ Fehler bei Neuberechnung: $e');
+      debugPrint('   ❌ Fehler bei Neuberechnung: $e');
     }
 
     // Speichere Finale für Champion-Bestimmung
@@ -314,16 +315,16 @@ Future<void> simulateKnockoutStageFromDB() async {
     }
   }
 
-  print('\n✅ $processedMatches Matches simuliert, $skippedMatches übersprungen');
+  debugPrint('\n✅ $processedMatches Matches simuliert, $skippedMatches übersprungen');
 
   // ===== CHAMPION BESTIMMEN =====
   if (finaleMatch != null && finaleMatch.hasResult) {
     await _determineChampion(finaleMatch, teams, teamRepository);
   } else {
-    print('\n⚠️  Finale noch nicht gespielt - kein Champion bestimmt');
+    debugPrint('\n⚠️  Finale noch nicht gespielt - kein Champion bestimmt');
   }
 
-  print('🏆 K.O.-Phase Simulation abgeschlossen!');
+  debugPrint('🏆 K.O.-Phase Simulation abgeschlossen!');
 }
 
 // ==================== HELPER FUNCTIONS ====================
@@ -377,25 +378,25 @@ Future<void> _assignKnockoutTeams(
   Random random,
 ) async {
   if (teamIds.isEmpty) {
-    print('⚠️  Keine Teams verfügbar für Zuweisung!');
+    debugPrint('⚠️  Keine Teams verfügbar für Zuweisung!');
     return;
   }
 
   // Validiere: Nur User-Champions die auch als Team existieren
   final validUserChampions = userChampionIds.where((id) => teamIds.contains(id)).toSet();
   
-  print('   📋 Alle Team-IDs: $teamIds');
-  print('   📋 User-Champion-IDs (roh): $userChampionIds');
-  print('   📋 Valide User-Champions: $validUserChampions');
+  debugPrint('   📋 Alle Team-IDs: $teamIds');
+  debugPrint('   📋 User-Champion-IDs (roh): $userChampionIds');
+  debugPrint('   📋 Valide User-Champions: $validUserChampions');
 
   // Wähle einen User-Champion der garantiert ins Finale kommt
   String guaranteedChampion;
   if (validUserChampions.isNotEmpty) {
     guaranteedChampion = validUserChampions.elementAt(random.nextInt(validUserChampions.length));
-    print('🎯 Garantierter Finalist (User-Champion): $guaranteedChampion');
+    debugPrint('🎯 Garantierter Finalist (User-Champion): $guaranteedChampion');
   } else {
     guaranteedChampion = teamIds[random.nextInt(teamIds.length)];
-    print('⚠️  Kein valider User-Champion gefunden! Nutze zufälliges Team: $guaranteedChampion');
+    debugPrint('⚠️  Kein valider User-Champion gefunden! Nutze zufälliges Team: $guaranteedChampion');
   }
 
   // Gruppiere Matches nach matchDay
@@ -427,7 +428,7 @@ Future<void> _assignKnockoutTeams(
           (id) => id != guaranteedChampion,
           orElse: () => shuffledTeams[0],
         );
-        print('   🏆 Finale: $homeTeamId vs $guestTeamId (Champion garantiert)');
+        debugPrint('   🏆 Finale: $homeTeamId vs $guestTeamId (Champion garantiert)');
       } else {
         // Normale Runde: Zufällige Teams
         homeTeamId = shuffledTeams[teamIndex % shuffledTeams.length];
@@ -442,7 +443,7 @@ Future<void> _assignKnockoutTeams(
       );
 
       await matchRepository.updateMatch(updatedMatch);
-      print('   ✅ Tag $day: ${match.id} → $homeTeamId vs $guestTeamId');
+      debugPrint('   ✅ Tag $day: ${match.id} → $homeTeamId vs $guestTeamId');
     }
   }
 }
@@ -511,7 +512,7 @@ Future<void> _createGroupStageTips(
       }
     }
 
-    print('👤 User $userId: $jokerBudget Joker verfügbar');
+    debugPrint('👤 User $userId: $jokerBudget Joker verfügbar');
 
     int tipsCreatedForUser = 0;
     const maxTipsPerUser = 36; // Max 36 Tips pro User in Vorrunde
@@ -519,7 +520,7 @@ Future<void> _createGroupStageTips(
     for (final match in matches) {
       // Überspringe wenn 36 Tips bereits erstellt
       if (tipsCreatedForUser >= maxTipsPerUser) {
-        print('   ℹ️  Max $maxTipsPerUser Tips für diesen User erreicht');
+        debugPrint('   ℹ️  Max $maxTipsPerUser Tips für diesen User erreicht');
         break;
       }
 
@@ -566,7 +567,7 @@ Future<void> _createGroupStageTips(
     }
   }
 
-  print('✅ $totalTips Tipps erstellt, $skippedTips übersprungen');
+  debugPrint('✅ $totalTips Tipps erstellt, $skippedTips übersprungen');
 }
 
 /// Erstellt Tipps für K.O.-Phase mit Joker-Limits pro Phase
@@ -613,7 +614,7 @@ Future<void> _createKnockoutStageTips(
       }
     }
 
-    print('👤 User $userId: Joker-Budget: $jokerBudgets');
+    debugPrint('👤 User $userId: Joker-Budget: $jokerBudgets');
 
     for (final match in matches) {
       // Überspringe TBD-Matches
@@ -663,7 +664,7 @@ Future<void> _createKnockoutStageTips(
     }
   }
 
-  print('✅ $totalTips Tipps erstellt, $skippedTips übersprungen');
+  debugPrint('✅ $totalTips Tipps erstellt, $skippedTips übersprungen');
 }
 
 /// Generiert realistische Tipps basierend auf User-Strategie
@@ -780,7 +781,7 @@ Future<void> _determineChampion(
   Map<String, Map<String, dynamic>> teams,
   TeamRepository teamRepository,
 ) async {
-  print('\n🏆 Bestimme Champion...');
+  debugPrint('\n🏆 Bestimme Champion...');
 
   final homeScore = finaleMatch.homeScore ?? 0;
   final guestScore = finaleMatch.guestScore ?? 0;
@@ -794,11 +795,11 @@ Future<void> _determineChampion(
 
   final championData = teams[championId];
   if (championData == null) {
-    print('❌ Champion-Team nicht gefunden: $championId');
+    debugPrint('❌ Champion-Team nicht gefunden: $championId');
     return;
   }
 
-  print('🥇 Champion: ${championData['name']} (ID: $championId)');
+  debugPrint('🥇 Champion: ${championData['name']} (ID: $championId)');
 
   // Erstelle Team-Objekt und setze champion = true
   final championTeam = Team(
@@ -811,8 +812,8 @@ Future<void> _determineChampion(
 
   final result = await teamRepository.updateTeam(championTeam);
   result.fold(
-    (failure) => print('❌ Fehler beim Setzen des Champions: $failure'),
-    (_) => print('✅ ${championData['name']} als Champion in DB gesetzt!'),
+    (failure) => debugPrint('❌ Fehler beim Setzen des Champions: $failure'),
+    (_) => debugPrint('✅ ${championData['name']} als Champion in DB gesetzt!'),
   );
 }
 
@@ -838,7 +839,7 @@ Future<List<String>> _createSimulatedUsers(
     'Schulz', 'Hoffmann', 'Koch', 'Richter', 'Klein', 'Wolf', 'Schröder', 'Neumann',
   ];
 
-  print('👥 Erstelle $userCount simulierte User...\n');
+  debugPrint('👥 Erstelle $userCount simulierte User...\n');
 
   for (int i = 0; i < userCount; i++) {
     final id = uuid.v4();
@@ -863,10 +864,10 @@ Future<List<String>> _createSimulatedUsers(
     });
 
     userIds.add(id);
-    print('✅ User erstellt: $name (Champion: $championId)');
+    debugPrint('✅ User erstellt: $name (Champion: $championId)');
   }
 
-  print('\n✅ $userCount User erfolgreich erstellt!\n');
+  debugPrint('\n✅ $userCount User erfolgreich erstellt!\n');
   return userIds;
 }
 
@@ -877,14 +878,14 @@ Future<void> createTestMatches() async {
   final firestore = FirebaseFirestore.instance;
   final matchRepository = sl<MatchRepository>();
   
-  print('📋 Erstelle Test-Matches...\n');
+  debugPrint('📋 Erstelle Test-Matches...\n');
 
   // Hole Teams
   final teamsSnap = await firestore.collection('teams').get();
   final teamsList = teamsSnap.docs.map((doc) => doc.data()).toList();
   
   if (teamsList.length < 2) {
-    print('❌ Mindestens 2 Teams erforderlich!');
+    debugPrint('❌ Mindestens 2 Teams erforderlich!');
     return;
   }
 
@@ -908,9 +909,9 @@ Future<void> createTestMatches() async {
   );
 
   await matchRepository.createMatch(pastMatch);
-  print('✅ Test-Match aus Vergangenheit erstellt:');
-  print('   → $team1Name 2 - 1 $team2Name');
-  print('   → Hat bereits Ergebnis → sollte NICHT aktualisiert werden\n');
+  debugPrint('✅ Test-Match aus Vergangenheit erstellt:');
+  debugPrint('   → $team1Name 2 - 1 $team2Name');
+  debugPrint('   → Hat bereits Ergebnis → sollte NICHT aktualisiert werden\n');
 
   // Match 2: Heute ohne Ergebnis (soll simuliert werden)
   final futureMatch = CustomMatch(
@@ -924,9 +925,9 @@ Future<void> createTestMatches() async {
   );
 
   await matchRepository.updateMatch(futureMatch);
-  print('✅ Test-Match ohne Ergebnis erstellt:');
-  print('   → $team2Name vs $team1Name');
-  print('   → Kein Ergebnis → sollte simuliert werden\n');
+  debugPrint('✅ Test-Match ohne Ergebnis erstellt:');
+  debugPrint('   → $team2Name vs $team1Name');
+  debugPrint('   → Kein Ergebnis → sollte simuliert werden\n');
 
-  print('🏆 Test-Matches erfolgreich erstellt!');
+  debugPrint('🏆 Test-Matches erfolgreich erstellt!');
 }

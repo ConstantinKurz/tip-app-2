@@ -49,7 +49,7 @@ class _RulesPageState extends State<RulesPage> {
 
   bool _isMobileOrTablet(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    return screenWidth < 1024;
+    return screenWidth < 1280;
   }
 
   @override

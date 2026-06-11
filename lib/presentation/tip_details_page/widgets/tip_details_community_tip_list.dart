@@ -43,7 +43,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
         final scoreComparison = b.score.compareTo(a.score);
         if (scoreComparison != 0) return scoreComparison;
 
-        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+        final jokerComparison = b.jokerSum.compareTo(a.jokerSum);
         if (jokerComparison != 0) return jokerComparison;
 
         final sixersComparison = b.sixer.compareTo(a.sixer);
@@ -74,13 +74,13 @@ class _CommunityTipListState extends State<CommunityTipList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // ✅ FIX: Sortiere User nach gleicher Logik wie Rangliste
+    // ✅ FIX: Sortiere User nach gleicher Logik wie Rangliste (Score desc, Joker desc, 6er desc, Name asc)
     final sortedUsers = List<AppUser>.from(widget.users)
       ..sort((a, b) {
         final scoreComparison = b.score.compareTo(a.score);
         if (scoreComparison != 0) return scoreComparison;
 
-        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+        final jokerComparison = b.jokerSum.compareTo(a.jokerSum);
         if (jokerComparison != 0) return jokerComparison;
 
         final sixersComparison = b.sixer.compareTo(a.sixer);
@@ -88,6 +88,25 @@ class _CommunityTipListState extends State<CommunityTipList> {
 
         return a.name.compareTo(b.name);
       });
+
+    // Berechne Ränge (olympisches Ranking): Spieler mit gleichen score+jokerSum+sixer erhalten denselben Rang, nächster Rang = Position+1
+    final List<int> ranks = [];
+    for (var i = 0; i < sortedUsers.length; i++) {
+      if (i == 0) {
+        ranks.add(1);
+        continue;
+      }
+      final prev = sortedUsers[i - 1];
+      final curr = sortedUsers[i];
+      final isTie = curr.score == prev.score &&
+          curr.jokerSum == prev.jokerSum &&
+          curr.sixer == prev.sixer;
+      if (isTie) {
+        ranks.add(ranks[i - 1]);
+      } else {
+        ranks.add(i + 1);
+      }
+    }
 
     return ListView.separated(
       controller: _scrollController,
@@ -101,8 +120,8 @@ class _CommunityTipListState extends State<CommunityTipList> {
       ),
       itemBuilder: (context, index) {
         final user = sortedUsers[index];
-        // ✅ FIX: Rang basiert auf sortierter Position (1-basiert)
-        final displayRank = index + 1;
+        // ✅ FIX: Rang basiert auf sortierter Position mit Ties
+        final displayRank = ranks[index];
         final tip = widget.allTips[user.id]?.firstWhere(
           (t) => t.matchId == widget.match.id,
           orElse: () => Tip.empty(user.id),

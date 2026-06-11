@@ -25,13 +25,13 @@ class RankingSection extends StatelessWidget {
           final screenWidth = MediaQuery.of(context).size.width;
           final isMobile = screenWidth < 800;
 
-          // Sortiere nach Score (absteigend), bei Gleichstand nach Namen
+          // Sortiere nach Score (absteigend), bei Gleichstand nach Joker (absteigend), dann 6er (absteigend), dann Name
           final sortedUsers = List<AppUser>.from(users)
             ..sort((a, b) {
               final scoreComparison = b.score.compareTo(a.score);
               if (scoreComparison != 0) return scoreComparison;
 
-              final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+              final jokerComparison = b.jokerSum.compareTo(a.jokerSum);
               if (jokerComparison != 0) return jokerComparison;
 
               final sixersComparison = b.sixer.compareTo(a.sixer);
@@ -39,6 +39,27 @@ class RankingSection extends StatelessWidget {
 
               return a.name.compareTo(b.name);
             });
+
+          // Berechne globale Ränge (olympisches Ranking): gleiche Score/Joker/Sixer erhalten gleichen Rang, nächster Rang = Position+1
+          final List<int> globalRanks = [];
+          for (var i = 0; i < sortedUsers.length; i++) {
+            if (i == 0) {
+              globalRanks.add(1);
+              continue;
+            }
+            final prev = sortedUsers[i - 1];
+            final curr = sortedUsers[i];
+            final isTie = curr.score == prev.score &&
+                curr.jokerSum == prev.jokerSum &&
+                curr.sixer == prev.sixer;
+            if (isTie) {
+              // gleiche Position wie Vorgänger
+              globalRanks.add(globalRanks[i - 1]);
+            } else {
+              // nächster Rang: Listenposition + 1 (Ränge werden übersprungen)
+              globalRanks.add(i + 1);
+            }
+          }
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,7 +123,7 @@ class RankingSection extends StatelessWidget {
                           currentUserId: userId,
                           scrollToCurrentUser: rankingState.expanded,
                           globalUserIndices: visibleUsers
-                              .map((user) => sortedUsers.indexOf(user))
+                              .map((user) => globalRanks[sortedUsers.indexOf(user)])
                               .toList(),
                         ),
                         if (sortedUsers.length > 5)

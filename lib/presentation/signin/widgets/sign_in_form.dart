@@ -116,8 +116,6 @@ class _SignInFormState extends State<SignInForm> {
               );
             },
             (_) {
-              TextInput.finishAutofillContext();
-
               context.read<AuthBloc>().add(AuthCheckRequestedEvent());
               context.read<AuthControllerBloc>().add(AuthAllEvent());
             },
@@ -155,11 +153,12 @@ class _SignInFormState extends State<SignInForm> {
                       controller: emailController,
                       cursorColor: Theme.of(context).colorScheme.onPrimary,
                       style: Theme.of(context).textTheme.bodyLarge,
-                      autofillHints: const [AutofillHints.username],
+                      autofillHints: const [
+                        AutofillHints.email,
+                        AutofillHints.username,
+                      ],
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      autocorrect: false,
-                      enableSuggestions: true,
                       decoration: const InputDecoration(
                         labelText: "Email",
                         prefixIcon: Icon(Icons.email),
@@ -173,10 +172,7 @@ class _SignInFormState extends State<SignInForm> {
                       style: Theme.of(context).textTheme.bodyLarge,
                       obscureText: !_passwordVisible,
                       autofillHints: const [AutofillHints.password],
-                      keyboardType: TextInputType.visiblePassword,
                       textInputAction: TextInputAction.done,
-                      autocorrect: false,
-                      enableSuggestions: false,
                       decoration: InputDecoration(
                         labelText: "Passwort",
                         prefixIcon: const Icon(Icons.lock),
@@ -194,9 +190,6 @@ class _SignInFormState extends State<SignInForm> {
                         ),
                       ),
                       validator: validatePassword,
-                      onChanged: (value) {
-                        debugPrint("Password length: ${value.length}");
-                      },
                       onFieldSubmitted: (_) {
                         _submitLogin();
                       },

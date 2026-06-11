@@ -151,14 +151,14 @@ class _CommunityTipListState extends State<CommunityTipList> {
                                 ? championTeam.name
                                 : 'None',
                             child: SizedBox(
-                              width: 20,
-                              height: 20,
+                              width: 18,
+                              height: 18,
                               child: championTeam != null
                                   ? ClipOval(
                                       child: Flag.fromString(
                                         championTeam.flagCode,
-                                        height: 20,
-                                        width: 20,
+                                        height: 18,
+                                        width: 18,
                                         fit: BoxFit.cover,
                                       ),
                                     )
@@ -175,12 +175,12 @@ class _CommunityTipListState extends State<CommunityTipList> {
                                     ),
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 2),
                           Expanded(
                             child: Row(
                               children: [
                                 SizedBox(
-                                  width: 12,
+                                  width: 10,
                                   child: Text('${user.jokerSum}',
                                       style:
                                           theme.textTheme.bodySmall?.copyWith(
@@ -191,11 +191,11 @@ class _CommunityTipListState extends State<CommunityTipList> {
                                 ),
                                 const SizedBox(width: 1),
                                 const Icon(Icons.star,
-                                    size: 12, color: Colors.amber),
+                                    size: 10, color: Colors.amber),
                                 const SizedBox(width: 2),
                                 SizedBox(
-                                  width: 25,
-                                  child: Text('${user.sixer}×6',
+                                  width: 30,
+                                  child: Text('${user.sixer} 6er',
                                       style:
                                           theme.textTheme.bodySmall?.copyWith(
                                         fontWeight: FontWeight.w500,
@@ -205,7 +205,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
                                 ),
                                 const SizedBox(width: 2),
                                 SizedBox(
-                                  width: 20,
+                                  width: 18,
                                   child: Text('${user.score}p',
                                       style:
                                           theme.textTheme.bodySmall?.copyWith(
@@ -232,7 +232,8 @@ class _CommunityTipListState extends State<CommunityTipList> {
                           width: 20,
                           height: 20,
                           child: tip?.joker == true
-                              ? Icon(Icons.star, color: Colors.amber, size: 16)
+                              ? const Icon(Icons.star,
+                                  color: Colors.amber, size: 16)
                               : null,
                         ),
                         Text(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
@@ -71,7 +70,11 @@ class _SignInFormState extends State<SignInForm> {
     );
   }
 
-  void _submitLogin() {
+  Future<void> _submitLogin() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    if (!mounted) return;
+
     if (formKey.currentState!.validate()) {
       context.read<SignupformBloc>().add(
             SignInWithEmailAndPasswordPressed(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
 import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
@@ -124,49 +125,68 @@ class _SignInFormState extends State<SignInForm> {
               const SizedBox(height: 20),
               Text("Bitte melde Dich an", style: themeData.textTheme.bodySmall),
               const SizedBox(height: 80),
-              TextFormField(
-                controller: emailController,
-                cursorColor: Theme.of(context).colorScheme.onPrimary,
-                style: Theme.of(context).textTheme.bodyLarge,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  prefixIcon: Icon(Icons.email),
-                ),
-                validator: validateEmail,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: passwordController,
-                cursorColor: Theme.of(context).colorScheme.onPrimary,
-                style: Theme.of(context).textTheme.bodyLarge,
-                obscureText: !_passwordVisible,
-                decoration: InputDecoration(
-                  labelText: "Passwort",
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _passwordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+              // ✅ AutofillGroup: iOS/Safari erkennt zusammengehörige Felder
+              AutofillGroup(
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: emailController,
+                      cursorColor: Theme.of(context).colorScheme.onPrimary,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      // ✅ BEST PRACTICE: autofillHints für iOS Face ID / Keychain
+                      autofillHints: const [
+                        AutofillHints.email,
+                        AutofillHints.username
+                      ],
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: "Email",
+                        prefixIcon: Icon(Icons.email),
+                      ),
+                      validator: validateEmail,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _passwordVisible = !_passwordVisible;
-                      });
-                    },
-                  ),
-                ),
-                validator: validatePassword,
-                onFieldSubmitted: (_) {
-                  if (formKey.currentState!.validate()) {
-                    context.read<SignupformBloc>().add(
-                          SignInWithEmailAndPasswordPressed(
-                            email: emailController.text.trim(),
-                            password: passwordController.text,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: passwordController,
+                      cursorColor: Theme.of(context).colorScheme.onPrimary,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      obscureText: !_passwordVisible,
+                      // ✅ BEST PRACTICE: autofillHints für Passwort
+                      autofillHints: const [AutofillHints.password],
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(
+                        labelText: "Passwort",
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _passwordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
-                        );
-                  }
-                },
+                          onPressed: () {
+                            setState(() {
+                              _passwordVisible = !_passwordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: validatePassword,
+                      onFieldSubmitted: (_) {
+                        if (formKey.currentState!.validate()) {
+                          // ✅ BEST PRACTICE: Autofill-Kontext abschließen nach Login
+                          TextInput.finishAutofillContext();
+                          context.read<SignupformBloc>().add(
+                                SignInWithEmailAndPasswordPressed(
+                                  email: emailController.text.trim(),
+                                  password: passwordController.text,
+                                ),
+                              );
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 8),
               Align(
@@ -201,6 +221,8 @@ class _SignInFormState extends State<SignInForm> {
                             ? () {}
                             : () {
                                 if (formKey.currentState!.validate()) {
+                                  // ✅ BEST PRACTICE: Autofill-Kontext abschließen
+                                  TextInput.finishAutofillContext();
                                   context.read<SignupformBloc>().add(
                                         SignInWithEmailAndPasswordPressed(
                                           email: emailController.text.trim(),

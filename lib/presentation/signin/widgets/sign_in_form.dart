@@ -71,6 +71,24 @@ class _SignInFormState extends State<SignInForm> {
     );
   }
 
+  void _submitLogin() {
+    if (formKey.currentState!.validate()) {
+      context.read<SignupformBloc>().add(
+            SignInWithEmailAndPasswordPressed(
+              email: emailController.text.trim(),
+              password: passwordController.text,
+            ),
+          );
+    } else {
+      context.read<SignupformBloc>().add(
+            SignInWithEmailAndPasswordPressed(
+              email: null,
+              password: null,
+            ),
+          );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
@@ -98,6 +116,8 @@ class _SignInFormState extends State<SignInForm> {
               );
             },
             (_) {
+              TextInput.finishAutofillContext();
+
               context.read<AuthBloc>().add(AuthCheckRequestedEvent());
               context.read<AuthControllerBloc>().add(AuthAllEvent());
             },
@@ -123,7 +143,10 @@ class _SignInFormState extends State<SignInForm> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text("Bitte melde Dich an", style: themeData.textTheme.bodySmall),
+              Text(
+                "Bitte melde Dich an",
+                style: themeData.textTheme.bodySmall,
+              ),
               const SizedBox(height: 80),
               AutofillGroup(
                 child: Column(
@@ -135,6 +158,8 @@ class _SignInFormState extends State<SignInForm> {
                       autofillHints: const [AutofillHints.username],
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
+                      autocorrect: false,
+                      enableSuggestions: true,
                       decoration: const InputDecoration(
                         labelText: "Email",
                         prefixIcon: Icon(Icons.email),
@@ -147,9 +172,11 @@ class _SignInFormState extends State<SignInForm> {
                       cursorColor: Theme.of(context).colorScheme.onPrimary,
                       style: Theme.of(context).textTheme.bodyLarge,
                       obscureText: !_passwordVisible,
-                      // ✅ BEST PRACTICE: autofillHints für Passwort
                       autofillHints: const [AutofillHints.password],
+                      keyboardType: TextInputType.visiblePassword,
                       textInputAction: TextInputAction.done,
+                      autocorrect: false,
+                      enableSuggestions: false,
                       decoration: InputDecoration(
                         labelText: "Passwort",
                         prefixIcon: const Icon(Icons.lock),
@@ -167,17 +194,11 @@ class _SignInFormState extends State<SignInForm> {
                         ),
                       ),
                       validator: validatePassword,
+                      onChanged: (value) {
+                        debugPrint("Password length: ${value.length}");
+                      },
                       onFieldSubmitted: (_) {
-                        if (formKey.currentState!.validate()) {
-                          // ✅ BEST PRACTICE: Autofill-Kontext abschließen nach Login
-                          TextInput.finishAutofillContext();
-                          context.read<SignupformBloc>().add(
-                                SignInWithEmailAndPasswordPressed(
-                                  email: emailController.text.trim(),
-                                  password: passwordController.text,
-                                ),
-                              );
-                        }
+                        _submitLogin();
                       },
                     ),
                   ],
@@ -212,27 +233,7 @@ class _SignInFormState extends State<SignInForm> {
                         borderColor: primaryDark,
                         backgroundColor: primaryDark,
                         buttonText: "Anmelden",
-                        callback: state.isSubmitting
-                            ? () {}
-                            : () {
-                                if (formKey.currentState!.validate()) {
-                                  // ✅ BEST PRACTICE: Autofill-Kontext abschließen
-                                  TextInput.finishAutofillContext();
-                                  context.read<SignupformBloc>().add(
-                                        SignInWithEmailAndPasswordPressed(
-                                          email: emailController.text.trim(),
-                                          password: passwordController.text,
-                                        ),
-                                      );
-                                } else {
-                                  context.read<SignupformBloc>().add(
-                                        SignInWithEmailAndPasswordPressed(
-                                          email: null,
-                                          password: null,
-                                        ),
-                                      );
-                                }
-                              },
+                        callback: state.isSubmitting ? () {} : _submitLogin,
                       ),
               ),
               const SizedBox(height: 8),

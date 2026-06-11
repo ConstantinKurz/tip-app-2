@@ -125,7 +125,6 @@ class _SignInFormState extends State<SignInForm> {
               const SizedBox(height: 20),
               Text("Bitte melde Dich an", style: themeData.textTheme.bodySmall),
               const SizedBox(height: 80),
-              // ✅ AutofillGroup: iOS/Safari erkennt zusammengehörige Felder
               AutofillGroup(
                 child: Column(
                   children: [
@@ -133,11 +132,7 @@ class _SignInFormState extends State<SignInForm> {
                       controller: emailController,
                       cursorColor: Theme.of(context).colorScheme.onPrimary,
                       style: Theme.of(context).textTheme.bodyLarge,
-                      // ✅ BEST PRACTICE: autofillHints für iOS Face ID / Keychain
-                      autofillHints: const [
-                        AutofillHints.email,
-                        AutofillHints.username
-                      ],
+                      autofillHints: const [AutofillHints.username],
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(

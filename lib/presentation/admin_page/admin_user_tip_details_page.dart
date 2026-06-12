@@ -33,6 +33,17 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
   List<CustomMatch> _filteredMatches = [];
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TipControllerBloc>().add(
+            TipLoadForUserEvent(userId: widget.selectedUserId),
+          );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     const contentMaxWidth = 700.0;
@@ -103,7 +114,8 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                                     children: [
                                       Text(
                                         "Tipps von ${selectedUser.name}",
-                                        style: themeData.textTheme.headlineMedium
+                                        style: themeData
+                                            .textTheme.headlineMedium
                                             ?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -149,9 +161,10 @@ class _AdminUserTipDetailsPageState extends State<AdminUserTipDetailsPage> {
                                           final match = filteredMatches[index];
                                           final tip = userTips.firstWhere(
                                             (t) => t.matchId == match.id,
-                                            orElse: () => Tip.empty(widget
-                                                    .selectedUserId)
-                                                .copyWith(matchId: match.id),
+                                            orElse: () =>
+                                                Tip.empty(widget.selectedUserId)
+                                                    .copyWith(
+                                                        matchId: match.id),
                                           );
                                           final homeTeam = teams.firstWhere(
                                             (t) => t.id == match.homeTeamId,

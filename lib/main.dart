@@ -132,7 +132,8 @@ class MyApp extends StatelessWidget {
             _tipBlocInitializedForUser = null;
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              debugPrint('🚪 [Main] Logout detected: Dispatching TipResetEvent');
+              debugPrint(
+                  '🚪 [Main] Logout detected: Dispatching TipResetEvent');
               context.read<TipControllerBloc>().add(TipResetEvent());
             });
           }
@@ -149,15 +150,12 @@ class MyApp extends StatelessWidget {
               final tipBloc = context.read<TipControllerBloc>();
 
               // ✅ FIX: Immer neu laden bei User-Wechsel (User-ID hat sich geändert)
-              if (isAdmin) {
-                debugPrint(
-                    '👑 [Main] Admin: Dispatching TipAllEvent for user: $userId');
-                tipBloc.add(TipAllEvent());
-              } else {
-                debugPrint(
-                    '👤 [Main] User: Dispatching TipLoadForUserEvent for user: $userId');
-                tipBloc.add(TipLoadForUserEvent(userId: userId!));
-              }
+
+              debugPrint(
+                '👤 [Main] Dispatching TipLoadForUserEvent for user: $userId',
+              );
+
+              tipBloc.add(TipLoadForUserEvent(userId: userId!));
             });
           }
           return MaterialApp.router(

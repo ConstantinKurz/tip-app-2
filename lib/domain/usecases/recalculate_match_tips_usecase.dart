@@ -25,6 +25,7 @@ class RecalculateMatchTipsUseCase {
 
   // ✅ NEU: User-Cache für Batch-Operationen (vermeidet 1000+ getUserById Aufrufe)
   Map<String, dynamic>? _cachedUsersById;
+  final Set<String> _dirtyUserIds = {};
 
   RecalculateMatchTipsUseCase({
     required this.tipRepository,
@@ -132,6 +133,7 @@ class RecalculateMatchTipsUseCase {
     _cachedChampionId = null;
     _cachedAllMatches = null;
     _cachedUsersById = null;
+    _dirtyUserIds.clear();
   }
 
   /// Berechnet Punkte für alle Tips eines Matches neu
@@ -146,21 +148,18 @@ class RecalculateMatchTipsUseCase {
     try {
       // ✅ Lade shared data einmal (cached)
       await _loadSharedData();
-
-      // Hole alle Tips für dieses Match
       final allTips = await tipRepository.getTipsForMatch(match.id);
       final affectedUsers = <String>{};
+      final pointsToUpdate = <String, int>{};
 
       await allTips.fold(
         (failure) async {
           throw Exception('Tips konnten nicht geladen werden');
         },
         (tips) async {
-          // Berechne Punkte für alle Tips neu
           for (final tip in tips) {
             affectedUsers.add(tip.userId);
 
-            // Berechne Punkte neu mit TipCalculator
             int newPoints = TipCalculator.calculatePoints(
               tipHome: tip.tipHome ?? 0,
               tipGuest: tip.tipGuest ?? 0,
@@ -170,32 +169,47 @@ class RecalculateMatchTipsUseCase {
               phase: match.phase,
             );
 
-            // 🏆 FINALE: Champion-Bonus nur für das ECHTE Finale (zeitlich letztes Spiel)
-            // Nicht für das Spiel um Platz 3 (auch matchDay 8, aber früher)
             if (_cachedFinalMatch != null &&
                 match.id == _cachedFinalMatch!.id &&
                 _cachedChampionId != null &&
                 _cachedChampionTeam != null) {
-              // ✅ OPTIMIERT: Nutze gecachten User statt getUserById
               final cachedUser = _cachedUsersById?[tip.userId] as AppUser?;
+
               if (cachedUser != null &&
                   cachedUser.championId == _cachedChampionId) {
                 newPoints += _cachedChampionTeam!.winPoints;
+
                 debugPrint(
-                    '🏆 [Finale] Champion-Bonus für ${cachedUser.name}: +${_cachedChampionTeam!.winPoints} → Total: $newPoints');
+                  '🏆 [Finale] Champion-Bonus für ${cachedUser.name}: '
+                  '+${_cachedChampionTeam!.winPoints} → Total: $newPoints',
+                );
               }
             }
 
-            // Speichere Punkte, wenn unterschiedlich
             if (tip.points != newPoints) {
-              await tipRepository.updatePoints(
-                tipId: tip.id,
-                points: newPoints,
-              );
+              pointsToUpdate[tip.id] = newPoints;
             }
           }
         },
       );
+
+      if (pointsToUpdate.isNotEmpty) {
+        final updateResult = await tipRepository.updatePointsBatch(
+          pointsByTipId: pointsToUpdate,
+        );
+
+        updateResult.fold(
+          (failure) {
+            throw Exception(
+                'Tipp-Punkte konnten nicht batchweise aktualisiert werden');
+          },
+          (_) {
+            debugPrint(
+              '✅ ${pointsToUpdate.length} Tipp-Punkte batchweise aktualisiert',
+            );
+          },
+        );
+      }
 
       // ✅ Aktualisiere Score für alle betroffenen User (mit gecachten Daten)
       await _updateUserScores(affectedUsers);
@@ -206,7 +220,6 @@ class RecalculateMatchTipsUseCase {
     }
   }
 
-  /// Berechnet Statistiken für User neu - OPTIMIERT mit Cache
   Future<void> _updateUserScores(Set<String> userIds) async {
     if (userIds.isEmpty) return;
 
@@ -226,14 +239,12 @@ class RecalculateMatchTipsUseCase {
             for (final tip in tips) {
               totalScore += tip.points ?? 0;
 
-              // ✅ Zähle nur VERBRAUCHTE Joker (auf vergangene Spiele gesetzt)
               if (tip.joker && tip.matchId != null) {
-                // Hole Match aus Cache und prüfe ob es bereits ein Ergebnis hat
                 final match = _cachedAllMatches?.firstWhere(
                   (m) => m.id == tip.matchId,
                   orElse: () => CustomMatch.empty(),
                 );
-                // Nur Joker zählen, die auf Spiele mit Ergebnis gesetzt wurden
+
                 if (match != null && match.id.isNotEmpty && match.hasResult) {
                   jokersUsed++;
                 }
@@ -244,22 +255,24 @@ class RecalculateMatchTipsUseCase {
               }
             }
 
-            // ✅ OPTIMIERT: Nutze gecachten User statt getUserById
             final cachedUser = _cachedUsersById?[userId] as AppUser?;
-            if (cachedUser != null && cachedUser.id.isNotEmpty) {
-              // 🏆 Champion-Bonus ist jetzt bereits in den Finale-Tip-Punkten enthalten!
-              // (Wird direkt beim Tip-Punkte-Berechnen addiert, nicht mehr hier separat)
 
-              // Update User mit neuen Scores
+            if (cachedUser != null && cachedUser.id.isNotEmpty) {
               final updatedUser = cachedUser.copyWith(
                 score: totalScore,
                 jokerSum: jokersUsed,
                 sixer: perfectPredictions,
               );
-              await userRepository.updateUser(updatedUser);
 
-              // ✅ Cache aktualisieren für nachfolgende Lookups
-              _cachedUsersById![userId] = updatedUser;
+              final hasChanged = cachedUser.score != updatedUser.score ||
+                  cachedUser.jokerSum != updatedUser.jokerSum ||
+                  cachedUser.sixer != updatedUser.sixer;
+
+              if (hasChanged) {
+                // ✅ Nur Cache aktualisieren, noch NICHT Firestore schreiben.
+                _cachedUsersById![userId] = updatedUser;
+                _dirtyUserIds.add(userId);
+              }
             } else {
               debugPrint('⚠️ User $userId nicht im Cache gefunden');
             }
@@ -269,64 +282,117 @@ class RecalculateMatchTipsUseCase {
         debugPrint('❌ Fehler beim Berechnen der Scores für $userId: $e');
       }
     }
+
+    if (_dirtyUserIds.isNotEmpty) {
+      debugPrint(
+        '✅ Scores für ${_dirtyUserIds.length}/${userIds.length} User im Cache aktualisiert',
+      );
+    }
   }
 
-  /// Aktualisiert Rankings für alle User mit Tiebreaker-Logik - OPTIMIERT
+  /// Aktualisiert Rankings für alle User mit olympischer Ranking-Logik.
+  ///
+  /// Olympisches Ranking bedeutet:
+  /// - User mit identischen Ranking-Werten erhalten denselben Rang.
+  /// - Der nächste Rang überspringt entsprechend die belegten Plätze.
+  ///
+  /// Beispiel:
+  /// - Platz 1: User A
+  /// - Platz 1: User B
+  /// - Platz 3: User C
+  ///
+  /// Sortier- und Gleichstandslogik:
+  /// 1. Mehr Punkte = besser
+  /// 2. Mehr Sechser = besser
+  /// 3. Weniger Joker = besser
+  /// 4. Gleicher Name wird NICHT als Tiebreaker für gleiche Ränge verwendet.
+  ///    Name dient nur zur stabilen Anzeige innerhalb gleicher Gruppen.
   Future<void> updateAllUserRankings() async {
     try {
+      final cachedUsers = _cachedUsersById?.values.cast<AppUser>().toList();
+
+      if (cachedUsers != null && cachedUsers.isNotEmpty) {
+        await _updateRankingsForUsers(cachedUsers);
+        clearCache();
+        return;
+      }
+
       final allUsersResult = await userRepository.getAllUsers();
 
       await allUsersResult.fold(
         (failure) async {
           debugPrint(
-              '❌ Fehler beim Laden aller User für Ranking-Update: $failure');
+            '❌ Fehler beim Laden aller User für Ranking-Update: $failure',
+          );
         },
         (users) async {
-          // Sortiere mit komplexer Tiebreaker-Logik
-          final sortedUsers = List.from(users)
-            ..sort((a, b) {
-              // 1. Nach Punkten (höher = besser)
-              final scoreComparison = b.score.compareTo(a.score);
-              if (scoreComparison != 0) return scoreComparison;
-
-              // 2. Bei gleichen Punkten: Mehr Sechser = besser
-              final sixersComparison = b.sixer.compareTo(a.sixer);
-              if (sixersComparison != 0) return sixersComparison;
-
-              // 3. Bei gleichen 6ern: Weniger Joker = besser
-              final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
-              if (jokerComparison != 0) return jokerComparison;
-
-              // 4. Letzter Tiebreaker: Alphabetisch nach Namen
-              return a.name.compareTo(b.name);
-            });
-
-          // ✅ Sammle nur User mit geändertem Rang
-          final usersToUpdate = [];
-          for (int i = 0; i < sortedUsers.length; i++) {
-            final user = sortedUsers[i];
-            final newRank = i + 1;
-
-            if (user.rank != newRank) {
-              usersToUpdate.add(user.copyWith(rank: newRank));
-            }
-          }
-
-          // ✅ Update nur geänderte User
-          for (final user in usersToUpdate) {
-            await userRepository.updateUser(user);
-          }
-
-          debugPrint(
-              '✅ Rankings für ${usersToUpdate.length}/${sortedUsers.length} User aktualisiert');
+          await _updateRankingsForUsers(users);
         },
       );
 
-      // ✅ Cache leeren nach Ranking-Update
       clearCache();
     } catch (e) {
       debugPrint('❌ Fehler beim Ranking-Update: $e');
     }
+  }
+
+  Future<void> _updateRankingsForUsers(List<AppUser> users) async {
+    final sortedUsers = List<AppUser>.from(users)
+      ..sort((a, b) {
+        final scoreComparison = b.score.compareTo(a.score);
+        if (scoreComparison != 0) return scoreComparison;
+
+        final sixersComparison = b.sixer.compareTo(a.sixer);
+        if (sixersComparison != 0) return sixersComparison;
+
+        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+        if (jokerComparison != 0) return jokerComparison;
+
+        return a.name.compareTo(b.name);
+      });
+
+    final usersToUpdate = <AppUser>[];
+
+    int currentRank = 0;
+    AppUser? previousUser;
+
+    for (int i = 0; i < sortedUsers.length; i++) {
+      final user = sortedUsers[i];
+      final position = i + 1;
+
+      final isSameRankAsPrevious = previousUser != null &&
+          user.score == previousUser.score &&
+          user.sixer == previousUser.sixer &&
+          user.jokerSum == previousUser.jokerSum;
+
+      if (!isSameRankAsPrevious) {
+        currentRank = position;
+      }
+
+      previousUser = user;
+
+      final rankChanged = user.rank != currentRank;
+      final scoreChanged = _dirtyUserIds.contains(user.id);
+
+      if (rankChanged || scoreChanged) {
+        usersToUpdate.add(
+          user.copyWith(rank: currentRank),
+        );
+      }
+    }
+
+    debugPrint(
+      '📦 Users to update: ${usersToUpdate.length}/${sortedUsers.length}',
+    );
+
+    if (usersToUpdate.isNotEmpty) {
+      await userRepository.updateUsersBatch(usersToUpdate);
+    }
+
+    debugPrint(
+      '✅ Users für ${usersToUpdate.length}/${sortedUsers.length} User gemeinsam aktualisiert '
+      '(score + rank, olympisch)',
+    );
   }
 
   /// ✅ NEU: Berechnet ALLE User-Statistiken neu (jokerSum, score, sixer)

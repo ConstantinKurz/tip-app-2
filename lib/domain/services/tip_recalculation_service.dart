@@ -1,33 +1,56 @@
-import 'package:flutter/foundation.dart';
 import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/domain/usecases/recalculate_match_tips_usecase.dart';
 
-/// Service der auf Match-Änderungen horcht und automatisch Punkte neuberechnet
+/// Service der auf Match-Änderungen horcht und automatisch Punkte neuberechnet.
 class TipRecalculationService {
   final MatchRepository matchRepository;
   final RecalculateMatchTipsUseCase recalculateMatchTipsUseCase;
+  final FirebaseFirestore firebaseFirestore;
 
-  // Map zum Speichern des letzten Match-Status
   final Map<String, CustomMatch> _lastMatchesById = {};
-  
-  // ✅ Debounce Timer für Batch-Updates
+  final Map<String, CustomMatch> _pendingMatchesById = {};
+
+  StreamSubscription? _matchesSubscription;
   Timer? _debounceTimer;
-  final List<CustomMatch> _pendingMatches = [];
+
+  bool _isListening = false;
+  bool _isProcessing = false;
+  bool _hasInitialSnapshot = false;
+
+  final String _instanceId = DateTime.now().millisecondsSinceEpoch.toString();
+
   static const _debounceDuration = Duration(milliseconds: 500);
+  static const _lockDuration = Duration(seconds: 90);
 
   TipRecalculationService({
     required this.matchRepository,
     required this.recalculateMatchTipsUseCase,
+    required this.firebaseFirestore,
   });
 
-  /// Startet den Listener für Match-Änderungen
-  /// Horcht auf watchAllMatches() Stream und reagiert auf neue Ergebnisse
-  void startListening() {
-    debugPrint('🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
+  DocumentReference<Map<String, dynamic>> get _lockRef =>
+      firebaseFirestore.collection('system_locks').doc('ranking_recalculation');
 
-    matchRepository.watchAllMatches().listen(
+  void startListening() {
+    if (_isListening) {
+      debugPrint(
+        '⚠️ TipRecalculationService $_instanceId läuft bereits - startListening ignoriert',
+      );
+      return;
+    }
+
+    _isListening = true;
+
+    debugPrint(
+      '🎯 TipRecalculationService $_instanceId gestartet - Höre auf Match-Änderungen...',
+    );
+
+    _matchesSubscription = matchRepository.watchAllMatches().listen(
       (failureOrMatches) async {
         await failureOrMatches.fold(
           (failure) async {
@@ -35,57 +58,177 @@ class TipRecalculationService {
           },
           (matches) async {
             final matchesWithResults =
-                matches.where((m) => m.hasResult).toList();
+                matches.where((match) => match.hasResult).toList();
 
-            // Filter: Nur Matches mit Ergebnis-Änderung
-            final changedMatches = <CustomMatch>[];
-            for (final match in matchesWithResults) {
-              final lastMatch = _lastMatchesById[match.id];
-              if (lastMatch == null ||
-                  lastMatch.homeScore != match.homeScore ||
-                  lastMatch.guestScore != match.guestScore) {
-                changedMatches.add(match);
+            if (!_hasInitialSnapshot) {
+              for (final match in matchesWithResults) {
+                _lastMatchesById[match.id] = match;
               }
-              // Update Map mit aktuellem Match
-              _lastMatchesById[match.id] = match;
+
+              _hasInitialSnapshot = true;
+
+              debugPrint(
+                '📌 Service $_instanceId: Initialer Match-Snapshot gecached '
+                '(${matchesWithResults.length} Matches mit Ergebnis) - keine Recalculation',
+              );
+
+              return;
             }
 
-            if (changedMatches.isNotEmpty) {
-              // ✅ Sammle Änderungen und debounce
-              _pendingMatches.addAll(changedMatches);
+            for (final match in matchesWithResults) {
+              final lastMatch = _lastMatchesById[match.id];
+
+              final hasScoreChanged = lastMatch != null &&
+                  (lastMatch.homeScore != match.homeScore ||
+                      lastMatch.guestScore != match.guestScore);
+
+              _lastMatchesById[match.id] = match;
+
+              if (hasScoreChanged) {
+                _pendingMatchesById[match.id] = match;
+              }
+            }
+
+            if (_pendingMatchesById.isNotEmpty) {
               _scheduleProcessing();
             }
           },
         );
       },
-      onError: (e) {
-        debugPrint('❌ Stream-Fehler in TipRecalculationService: $e');
+      onError: (error) {
+        debugPrint('❌ Stream-Fehler in TipRecalculationService: $error');
       },
     );
   }
 
-  /// ✅ Debounced Verarbeitung der Matches
   void _scheduleProcessing() {
     _debounceTimer?.cancel();
+
     _debounceTimer = Timer(_debounceDuration, () async {
-      if (_pendingMatches.isEmpty) return;
-
-      // Kopiere und leere die Liste
-      final matchesToProcess = List<CustomMatch>.from(_pendingMatches);
-      _pendingMatches.clear();
-
-      debugPrint('🔄 ${matchesToProcess.length} Matches mit Ergebnis-Änderung werden verarbeitet...');
-      // Update Punkte für Matches
-      for (final match in matchesToProcess) {
-        await _recalculateForMatch(match);
+      if (_isProcessing) {
+        debugPrint(
+          '⏳ Service $_instanceId: Recalculation läuft bereits - neuer Durchlauf wird danach geplant',
+        );
+        return;
       }
-      // Dann rufe ranking update auf.
-      // ✅ Ranking nur EINMAL nach allen Updates!
-      await recalculateMatchTipsUseCase.updateAllUserRankings();
+
+      if (_pendingMatchesById.isEmpty) {
+        return;
+      }
+
+      _isProcessing = true;
+
+      final matchesToProcess = _pendingMatchesById.values.toList();
+      _pendingMatchesById.clear();
+
+      final hasLock = await _tryAcquireLock();
+
+      if (!hasLock) {
+        debugPrint(
+          '🔒 Service $_instanceId: Recalculation übersprungen - anderer Client rechnet bereits',
+        );
+
+        _isProcessing = false;
+        return;
+      }
+
+      try {
+        debugPrint(
+          '🔄 Service $_instanceId verarbeitet ${matchesToProcess.length} Matches mit Ergebnis-Änderung...',
+        );
+
+        for (final match in matchesToProcess) {
+          await _recalculateForMatch(match);
+        }
+
+        debugPrint(
+          '🏁 Service $_instanceId startet updateAllUserRankings',
+        );
+
+        await recalculateMatchTipsUseCase.updateAllUserRankings();
+      } finally {
+        await _releaseLock();
+
+        _isProcessing = false;
+
+        if (_pendingMatchesById.isNotEmpty) {
+          _scheduleProcessing();
+        }
+      }
     });
   }
 
-  /// Neuberechnet Punkte für ein einzelnes Match
+  Future<bool> _tryAcquireLock() async {
+    try {
+      final now = DateTime.now();
+      final lockedUntil = now.add(_lockDuration);
+
+      return await firebaseFirestore.runTransaction<bool>((transaction) async {
+        final snapshot = await transaction.get(_lockRef);
+        final data = snapshot.data();
+
+        final existingLockedUntil = data?['lockedUntil'];
+
+        if (existingLockedUntil is Timestamp) {
+          final existingDate = existingLockedUntil.toDate();
+
+          if (existingDate.isAfter(now)) {
+            debugPrint(
+              '🔒 Service $_instanceId: Lock ist belegt bis $existingDate von ${data?['ownerId']}',
+            );
+            return false;
+          }
+        }
+
+        transaction.set(
+          _lockRef,
+          {
+            'ownerId': _instanceId,
+            'lockedUntil': Timestamp.fromDate(lockedUntil),
+            'startedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+
+        debugPrint(
+          '🔓 Service $_instanceId: Lock erhalten bis $lockedUntil',
+        );
+
+        return true;
+      });
+    } catch (e) {
+      debugPrint('❌ Service $_instanceId: Lock konnte nicht geholt werden: $e');
+      return false;
+    }
+  }
+
+  Future<void> _releaseLock() async {
+    try {
+      final snapshot = await _lockRef.get();
+      final data = snapshot.data();
+
+      if (data?['ownerId'] != _instanceId) {
+        debugPrint(
+          '⚠️ Service $_instanceId: Lock wird nicht freigegeben, weil Owner abweicht',
+        );
+        return;
+      }
+
+      await _lockRef.set(
+        {
+          'lockedUntil': Timestamp.fromDate(DateTime.now()),
+          'finishedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+      debugPrint('🔓 Service $_instanceId: Lock freigegeben');
+    } catch (e) {
+      debugPrint(
+          '❌ Service $_instanceId: Lock konnte nicht freigegeben werden: $e');
+    }
+  }
+
   Future<void> _recalculateForMatch(CustomMatch match) async {
     final result = await recalculateMatchTipsUseCase(match: match);
 
@@ -95,5 +238,18 @@ class TipRecalculationService {
       },
       (_) {},
     );
+  }
+
+  Future<void> dispose() async {
+    _debounceTimer?.cancel();
+    await _matchesSubscription?.cancel();
+
+    _matchesSubscription = null;
+    _isListening = false;
+    _isProcessing = false;
+    _hasInitialSnapshot = false;
+
+    _lastMatchesById.clear();
+    _pendingMatchesById.clear();
   }
 }

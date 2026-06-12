@@ -14,4 +14,6 @@ abstract class UserRepository {
 
   /// Beobachtet einen User anhand seiner ID
   Stream<Either<TipFailure, AppUser>> watchUserById(String userId);
+
+  Future<Either<TipFailure, Unit>> updateUsersBatch(List<AppUser> users);
 }

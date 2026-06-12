@@ -40,14 +40,15 @@ class _CommunityTipListState extends State<CommunityTipList> {
   void _scrollToCurrentUser() {
     final sortedUsers = List<AppUser>.from(widget.users)
       ..sort((a, b) {
+        // Olympische Ordnung: Score desc, Sixer desc, Joker asc, Name
         final scoreComparison = b.score.compareTo(a.score);
         if (scoreComparison != 0) return scoreComparison;
 
-        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
-        if (jokerComparison != 0) return jokerComparison;
-
         final sixersComparison = b.sixer.compareTo(a.sixer);
         if (sixersComparison != 0) return sixersComparison;
+
+        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+        if (jokerComparison != 0) return jokerComparison;
 
         return a.name.compareTo(b.name);
       });
@@ -56,10 +57,18 @@ class _CommunityTipListState extends State<CommunityTipList> {
         sortedUsers.indexWhere((u) => u.id == widget.currentUserId);
 
     if (currentUserIndex >= 0 && _scrollController.hasClients) {
-      // Zentriere User mit 2-3 Usern darüber
-      final targetOffset = (currentUserIndex - 2) * _itemHeight;
+      // Berechne dynamische Overlay-Höhe (z.B. TipCard + Padding) und ziehe sie ab,
+      // damit der fokussierte Eintrag nicht hinter der Card verschwindet.
+      final screenHeight = MediaQuery.of(context).size.height;
+      final overlayHeight = (screenHeight * 0.28).clamp(120.0, 280.0);
+
+      // Ziel: Zeige den User mit ~2 Einträgen darüber, aber berücksichtige die Overlay-Höhe
+      var targetOffset = (currentUserIndex - 2) * _itemHeight - overlayHeight;
+      if (targetOffset < 0) targetOffset = 0;
+
       final maxScroll = _scrollController.position.maxScrollExtent;
       final finalOffset = targetOffset.clamp(0.0, maxScroll);
+
       _scrollController.jumpTo(finalOffset);
     }
   }
@@ -74,20 +83,37 @@ class _CommunityTipListState extends State<CommunityTipList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // ✅ FIX: Sortiere User nach gleicher Logik wie Rangliste
+    // ✅ FIX: Sortiere User nach olympischer Logik (Score, Sixer, Joker, Name)
     final sortedUsers = List<AppUser>.from(widget.users)
       ..sort((a, b) {
         final scoreComparison = b.score.compareTo(a.score);
         if (scoreComparison != 0) return scoreComparison;
 
-        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
-        if (jokerComparison != 0) return jokerComparison;
-
         final sixersComparison = b.sixer.compareTo(a.sixer);
         if (sixersComparison != 0) return sixersComparison;
 
+        final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+        if (jokerComparison != 0) return jokerComparison;
+
         return a.name.compareTo(b.name);
       });
+
+    // Berechne olympische Ränge (gleiche Werte -> gleicher Rang, nächster Rang = Position+1)
+    final List<int> globalRanks = [];
+    for (var i = 0; i < sortedUsers.length; i++) {
+      if (i == 0) {
+        globalRanks.add(1);
+        continue;
+      }
+      final prev = sortedUsers[i - 1];
+      final curr = sortedUsers[i];
+      final isTie = curr.score == prev.score && curr.sixer == prev.sixer && curr.jokerSum == prev.jokerSum;
+      if (isTie) {
+        globalRanks.add(globalRanks[i - 1]);
+      } else {
+        globalRanks.add(i + 1);
+      }
+    }
 
     return ListView.separated(
       controller: _scrollController,
@@ -102,7 +128,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
       itemBuilder: (context, index) {
         final user = sortedUsers[index];
         // ✅ FIX: Rang basiert auf sortierter Position (1-basiert)
-        final displayRank = index + 1;
+        final displayRank = globalRanks.isNotEmpty ? globalRanks[index] : index + 1;
         final tip = widget.allTips[user.id]?.firstWhere(
           (t) => t.matchId == widget.match.id,
           orElse: () => Tip.empty(user.id),

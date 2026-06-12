@@ -25,12 +25,22 @@ class RankingSection extends StatelessWidget {
           final screenWidth = MediaQuery.of(context).size.width;
           final isMobile = screenWidth < 800;
 
-          // Sortiere nach Score (absteigend), bei Gleichstand nach Namen
+          // ✅ Sortiere mit Olympischer Ordnung (Score → Seifers → Joker → Name)
           final sortedUsers = List<AppUser>.from(users)
             ..sort((a, b) {
-              final rankComparison = a.rank.compareTo(b.rank);
-              if (rankComparison != 0) return rankComparison;
+              // 1. Nach Punkten (höher = besser)
+              final scoreComparison = b.score.compareTo(a.score);
+              if (scoreComparison != 0) return scoreComparison;
 
+              // 2. Bei gleichen Punkten: Mehr Seifers = besser
+              final sixersComparison = b.sixer.compareTo(a.sixer);
+              if (sixersComparison != 0) return sixersComparison;
+
+              // 3. Bei gleichen 6ern: Weniger Joker = besser
+              final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+              if (jokerComparison != 0) return jokerComparison;
+
+              // 4. Letzter Tiebreaker: Alphabetisch nach Namen
               return a.name.compareTo(b.name);
             });
 

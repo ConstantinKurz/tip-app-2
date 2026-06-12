@@ -200,6 +200,7 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                         match: match,
                                         currentUserId: userId,
                                         teams: teamState.teams,
+                                        matches: matchState.matches,
                                       ),
                                     ),
                                   ),

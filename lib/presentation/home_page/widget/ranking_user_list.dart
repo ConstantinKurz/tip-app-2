@@ -1,5 +1,9 @@
 import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web/application/matches/controller/matchescontroller_bloc.dart';
+import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
+import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/entities/team.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -30,13 +34,32 @@ class RankingUserList extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
-    return ScrollablePositionedList.builder(
+    return BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
+      builder: (context, matchState) {
+        return BlocBuilder<TipControllerBloc, TipControllerState>(
+          builder: (context, tipState) {
+            final tipsMap = tipState is TipControllerLoaded ? tipState.tips : <String, List<dynamic>>{};
+            final matches = matchState is MatchesControllerLoaded ? matchState.matches : [];
+
+        return ScrollablePositionedList.builder(
       initialScrollIndex: initialScrollIndex,
       itemCount: users.length,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final user = users[index];
+            final userTips = tipsMap[user.id] ?? [];
+            // Zähle nur Tipps von Matches mit Ergebnis (abgeschlossen)
+            final tipsSetCount = userTips.where((t) {
+              final matchForTip = matches.firstWhere(
+                (m) => m.id == t.matchId,
+                orElse: () => CustomMatch.empty(),
+              );
+              return (t.tipHome != null || t.tipGuest != null) &&
+                  matchForTip != null &&
+                  matchForTip.homeScore != null &&
+                  matchForTip.guestScore != null;
+            }).length;
         final isCurrentUser = currentUserId == user.id;
         final champion =
             teams.where((element) => element.id == user.championId).firstOrNull;
@@ -56,7 +79,7 @@ class RankingUserList extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
             child: isMobile
-                ? Column(
+                      ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // First row: Rank + Name + Score
@@ -129,6 +152,12 @@ class RankingUserList extends StatelessWidget {
                                 style: textTheme.bodySmall,
                                 overflow: TextOverflow.ellipsis),
                           ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text('$tipsSetCount ${tipsSetCount == 1 ? 'Tipp' : 'Tipps'}',
+                                style: textTheme.bodySmall,
+                                overflow: TextOverflow.ellipsis),
+                          ),
                         ],
                       ),
                     ],
@@ -187,10 +216,12 @@ class RankingUserList extends StatelessWidget {
                               width: 48,
                               child: Row(
                                 children: [
-                                  Text('${user.jokerSum}',
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      )),
+                                  Text(
+                                    '${user.jokerSum}',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   const SizedBox(width: 2),
                                   const Icon(Icons.star,
                                       size: 14, color: Colors.amber),
@@ -202,15 +233,26 @@ class RankingUserList extends StatelessWidget {
                               width: 48,
                               child: Row(
                                 children: [
-                                  Text('${user.sixer}',
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      )),
+                                  Text(
+                                    '${user.sixer}',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   Text(' 6er', style: textTheme.bodySmall),
                                 ],
                               ),
                             ),
                             const SizedBox(width: 16),
+                            SizedBox(
+                              width: 64,
+                              child: Text(
+                                '$tipsSetCount ${tipsSetCount == 1 ? 'Tipp' : 'Tipps'}',
+                                style: textTheme.bodySmall,
+                                textAlign: TextAlign.end,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             SizedBox(
                               width: 60,
                               child: Text(
@@ -227,6 +269,10 @@ class RankingUserList extends StatelessWidget {
                     ],
                   ),
           ),
+        );
+      },
+    );
+          },
         );
       },
     );

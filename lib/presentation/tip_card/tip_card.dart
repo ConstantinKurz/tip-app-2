@@ -142,7 +142,7 @@ class _TipCardState extends State<TipCard> {
                         formState.tipGuest != null &&
                         (widget.isAdmin ||
                             widget.match.matchDate
-                                .subtract(const Duration(minutes: 3))
+                                .subtract(const Duration(minutes: 1))
                                 .isAfter(DateTime.now())))
                     ? () {
                         final tipId = '${widget.userId}_${widget.match.id}';
@@ -174,7 +174,7 @@ class _TipCardState extends State<TipCard> {
                   // Sperre 3 Minuten vor Spielbeginn
                   readOnly: !widget.isAdmin &&
                       widget.match.matchDate
-                          .subtract(const Duration(minutes: 3))
+                          .subtract(const Duration(minutes: 1))
                           .isBefore(DateTime.now())),
               if (widget.footer != null) ...[
                 const SizedBox(height: 16),

@@ -41,10 +41,7 @@ class RankingUserList extends StatelessWidget {
         final champion =
             teams.where((element) => element.id == user.championId).firstOrNull;
         final textTheme = Theme.of(context).textTheme;
-        final globalRank =
-            globalUserIndices.isNotEmpty && index < globalUserIndices.length
-                ? globalUserIndices[index] + 1
-                : index + 1;
+        final globalRank = user.rank;
 
         return Container(
           decoration: isCurrentUser

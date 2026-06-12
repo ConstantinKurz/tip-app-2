@@ -28,10 +28,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
+
     const contentMaxWidth = 700.0;
+
     final horizontalMargin = (screenWidth > contentMaxWidth)
         ? (screenWidth - contentMaxWidth) / 2
         : 16.0;
+
     final isMobile = screenWidth < 800;
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
@@ -40,7 +43,9 @@ class _HomePageState extends State<HomePage> {
       child: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         builder: (context, authState) {
           if (authState is! AuthControllerLoaded) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
           final userId = authState.signedInUser?.id ?? '';
@@ -51,26 +56,32 @@ class _HomePageState extends State<HomePage> {
               isAuthenticated: widget.isAuthenticated,
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: contentMaxWidth),
+                  constraints: const BoxConstraints(
+                    maxWidth: contentMaxWidth,
+                  ),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        BlocProvider(
-                          create: (_) => sl<RankingBloc>(),
-                          child: BlocListener<RankingBloc, RankingState>(
-                            listener: (context, state) {
-                              if (!state.expanded) {
-                                Scrollable.ensureVisible(
-                                  _rankingSectionKey.currentContext!,
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-                            },
-                            child: RankingSection(userId: userId, users: users),
+                        BlocListener<RankingBloc, RankingState>(
+                          listener: (context, state) {
+                            final rankingContext =
+                                _rankingSectionKey.currentContext;
+
+                            if (!state.expanded && rankingContext != null) {
+                              Scrollable.ensureVisible(
+                                rankingContext,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            }
+                          },
+                          child: RankingSection(
+                            key: _rankingSectionKey,
+                            userId: userId,
+                            users: users,
                           ),
                         ),
                         UpcomingTipSection(
@@ -85,22 +96,28 @@ class _HomePageState extends State<HomePage> {
             floatingActionButton: (isMobile && isKeyboardVisible)
                 ? null
                 : Padding(
-                    padding:
-                        EdgeInsets.only(right: horizontalMargin, bottom: 16),
+                    padding: EdgeInsets.only(
+                      right: horizontalMargin,
+                      bottom: 16,
+                    ),
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Routemaster.of(context).push('/tips');
                       },
                       icon: const Icon(Icons.list_alt),
-                      label:
-                          const Text('Tipps', overflow: TextOverflow.ellipsis),
+                      label: const Text(
+                        'Tipps',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeData.colorScheme.onPrimary,
                         foregroundColor: themeData.colorScheme.primary,
                         textStyle: themeData.textTheme.bodyLarge,
                         minimumSize: const Size(140, 48),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),

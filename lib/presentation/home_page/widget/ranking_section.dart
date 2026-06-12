@@ -28,14 +28,8 @@ class RankingSection extends StatelessWidget {
           // Sortiere nach Score (absteigend), bei Gleichstand nach Namen
           final sortedUsers = List<AppUser>.from(users)
             ..sort((a, b) {
-              final scoreComparison = b.score.compareTo(a.score);
-              if (scoreComparison != 0) return scoreComparison;
-
-              final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
-              if (jokerComparison != 0) return jokerComparison;
-
-              final sixersComparison = b.sixer.compareTo(a.sixer);
-              if (sixersComparison != 0) return sixersComparison;
+              final rankComparison = a.rank.compareTo(b.rank);
+              if (rankComparison != 0) return rankComparison;
 
               return a.name.compareTo(b.name);
             });

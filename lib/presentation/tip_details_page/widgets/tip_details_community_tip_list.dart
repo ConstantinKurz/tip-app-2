@@ -205,7 +205,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
                                 ),
                                 const SizedBox(width: 2),
                                 SizedBox(
-                                  width: 18,
+                                  width: 20,
                                   child: Text('${user.score}p',
                                       style:
                                           theme.textTheme.bodySmall?.copyWith(

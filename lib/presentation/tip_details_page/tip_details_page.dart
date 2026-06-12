@@ -36,8 +36,10 @@ class TipDetailsPage extends StatefulWidget {
 class _TipDetailsPageState extends State<TipDetailsPage> {
   TipFormBloc? _tipFormBloc;
   bool _statsLoaded = false;
-  bool _matchTipsLoaded = false; // ✅ Tracking ob Match-Tips geladen wurden
-  String? _lastMatchId; // ✅ Track matchId to reset on change
+  bool _matchTipsLoaded = false;
+  String? _lastMatchId;
+
+  CommunityRankingMode _rankingMode = CommunityRankingMode.total;
 
   @override
   void dispose() {
@@ -71,16 +73,15 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                         final userId = authState.signedInUser?.id ?? '';
                         final tips = tipState.tips;
                         final userTips = tips[userId] ?? [];
+
                         final tip = userTips.firstWhere(
                           (t) => t.id == widget.tipId,
                           orElse: () => Tip.empty(userId),
                         );
 
-                        // If tip does not exist matchId within tip is still empty. Get it from tipId.
                         final splitIndex = widget.tipId.indexOf('_');
                         final matchId = widget.tipId.substring(splitIndex + 1);
 
-                        // ✅ Reset flags wenn matchId wechselt
                         if (_lastMatchId != matchId) {
                           _lastMatchId = matchId;
                           _statsLoaded = false;
@@ -91,10 +92,12 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                           (m) => m.id == matchId,
                           orElse: () => CustomMatch.empty(),
                         );
+
                         final homeTeam = teamState.teams.firstWhere(
                           (t) => t.id == match.homeTeamId,
                           orElse: () => Team.empty(),
                         );
+
                         final guestTeam = teamState.teams.firstWhere(
                           (t) => t.id == match.guestTeamId,
                           orElse: () => Team.empty(),
@@ -102,6 +105,8 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
 
                         if (!_statsLoaded && match.id.isNotEmpty) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (!mounted) return;
+
                             context.read<TipControllerBloc>().add(
                                   TipUpdateStatisticsEvent(
                                     userId: userId,
@@ -109,20 +114,22 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                   ),
                                 );
                           });
+
                           _statsLoaded = true;
                         }
 
-                        // ✅ NEU: Lade alle Tips für dieses Match (für CommunityTipList)
                         if (!_matchTipsLoaded && match.id.isNotEmpty) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (!mounted) return;
+
                             context.read<TipControllerBloc>().add(
                                   TipLoadForMatchEvent(matchId: match.id),
                                 );
                           });
+
                           _matchTipsLoaded = true;
                         }
 
-                        // Create TipFormBloc once for this match
                         _tipFormBloc ??= sl<TipFormBloc>();
 
                         return PageTemplate(
@@ -132,10 +139,10 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                               constraints: const BoxConstraints(maxWidth: 700),
                               child: Column(
                                 children: [
-                                  // Non-scrolling header section
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
+                                      horizontal: 16,
+                                    ),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       crossAxisAlignment:
@@ -154,8 +161,11 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                                       returnFilter != null
                                                           ? '&filter=${Uri.encodeComponent(returnFilter)}'
                                                           : '';
-                                                  Routemaster.of(context).replace(
-                                                      '/tips?returnIndex=$returnIndex$filterParam');
+
+                                                  Routemaster.of(context)
+                                                      .replace(
+                                                    '/tips?returnIndex=$returnIndex$filterParam',
+                                                  );
                                                 } else {
                                                   Routemaster.of(context)
                                                       .replace('/home');
@@ -164,6 +174,15 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                             ),
                                           ],
                                         ),
+                                        _RankingModeToggle(
+                                          value: _rankingMode,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _rankingMode = value;
+                                            });
+                                          },
+                                        ),
+                                        const SizedBox(height: 10),
                                         BlocProvider<TipFormBloc>.value(
                                           value: _tipFormBloc!,
                                           child: _TipCardInitializer(
@@ -183,7 +202,6 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                       ],
                                     ),
                                   ),
-                                  // Scrollable CommunityTipList takes remaining space
                                   Expanded(
                                     child: Padding(
                                       padding: EdgeInsets.only(
@@ -201,6 +219,7 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                         currentUserId: userId,
                                         teams: teamState.teams,
                                         matches: matchState.matches,
+                                        rankingMode: _rankingMode,
                                       ),
                                     ),
                                   ),
@@ -211,7 +230,6 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                         );
                       }
 
-                      // Show loading indicator while data is loading
                       return Center(
                         child: CircularProgressIndicator(
                           color:
@@ -230,7 +248,102 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
   }
 }
 
-/// Wrapper widget that initializes TipFormBloc only once
+class _RankingModeToggle extends StatelessWidget {
+  final CommunityRankingMode value;
+  final ValueChanged<CommunityRankingMode> onChanged;
+
+  const _RankingModeToggle({
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isTotalSelected = value == CommunityRankingMode.total;
+    final isMatchSelected = value == CommunityRankingMode.match;
+
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: Colors.black,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _RankingPill(
+              label: 'Gesamt',
+              selected: isTotalSelected,
+              onTap: () => onChanged(CommunityRankingMode.total),
+            ),
+            const SizedBox(width: 3),
+            _RankingPill(
+              label: 'Spiel',
+              selected: isMatchSelected,
+              onTap: () => onChanged(CommunityRankingMode.match),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RankingPill extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _RankingPill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          height: 30,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          alignment: Alignment.center,
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            style: TextStyle(
+              fontSize: 12,
+              height: 1,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.15,
+              color: selected ? Colors.black : Colors.white,
+            ),
+            child: Text(label),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Wrapper widget that initializes TipFormBloc only once.
 class _TipCardInitializer extends StatefulWidget {
   final String matchId;
   final String userId;
@@ -251,7 +364,6 @@ class _TipCardInitializer extends StatefulWidget {
 class _TipCardInitializerState extends State<_TipCardInitializer> {
   bool _initialized = false;
 
-  /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
   bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
     if (tip.tipHome != null || tip.tipGuest != null) return false;
 
@@ -260,6 +372,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
 
     if (phase == MatchPhase.groupStage) {
       final stats = tipState.matchDayStatistics[widget.matchDay];
+
       if (stats != null) {
         return stats.tippedGames >= phase.maxTips!;
       }
@@ -271,6 +384,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     if (!_initialized) {
       _initialized = true;
 
@@ -278,28 +392,32 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
       final controllerBloc = context.read<TipControllerBloc>();
       final tipState = controllerBloc.state;
 
-      bloc.add(TipFormInitializedEvent(
-        matchId: widget.matchId,
-        userId: widget.userId,
-        matchDay: widget.matchDay,
-      ));
+      bloc.add(
+        TipFormInitializedEvent(
+          matchId: widget.matchId,
+          userId: widget.userId,
+          matchDay: widget.matchDay,
+        ),
+      );
 
-      // Tip-Daten aus TipControllerBloc an TipFormBloc übergeben
       if (tipState is TipControllerLoaded) {
         final userTips = tipState.tips[widget.userId] ?? [];
+
         final tip = userTips.firstWhere(
           (t) => t.matchId == widget.matchId,
           orElse: () => Tip.empty(widget.userId),
         );
 
-        bloc.add(TipFormExternalUpdateEvent(
-          matchId: widget.matchId,
-          matchDay: widget.matchDay,
-          tipHome: tip.tipHome,
-          tipGuest: tip.tipGuest,
-          joker: tip.joker,
-          isTipLimitReached: _isTipLimitReached(tipState, tip),
-        ));
+        bloc.add(
+          TipFormExternalUpdateEvent(
+            matchId: widget.matchId,
+            matchDay: widget.matchDay,
+            tipHome: tip.tipHome,
+            tipGuest: tip.tipGuest,
+            joker: tip.joker,
+            isTipLimitReached: _isTipLimitReached(tipState, tip),
+          ),
+        );
       }
     }
   }
@@ -312,25 +430,29 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
           return previous.tips != current.tips ||
               previous.matchDayStatistics != current.matchDayStatistics;
         }
+
         return current is TipControllerLoaded;
       },
       listener: (context, tipState) {
         if (tipState is TipControllerLoaded) {
           final formBloc = context.read<TipFormBloc>();
           final userTips = tipState.tips[widget.userId] ?? [];
+
           final tip = userTips.firstWhere(
             (t) => t.matchId == widget.matchId,
             orElse: () => Tip.empty(widget.userId),
           );
 
-          formBloc.add(TipFormExternalUpdateEvent(
-            matchId: widget.matchId,
-            matchDay: widget.matchDay,
-            tipHome: tip.tipHome,
-            tipGuest: tip.tipGuest,
-            joker: tip.joker,
-            isTipLimitReached: _isTipLimitReached(tipState, tip),
-          ));
+          formBloc.add(
+            TipFormExternalUpdateEvent(
+              matchId: widget.matchId,
+              matchDay: widget.matchDay,
+              tipHome: tip.tipHome,
+              tipGuest: tip.tipGuest,
+              joker: tip.joker,
+              isTipLimitReached: _isTipLimitReached(tipState, tip),
+            ),
+          );
         }
       },
       child: widget.child,

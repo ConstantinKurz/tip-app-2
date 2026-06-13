@@ -8,7 +8,6 @@ class RankingLegendButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return IconButton(
-      tooltip: 'Legende',
       icon: Icon(
         Icons.help_outline,
         size: 20,
@@ -19,7 +18,6 @@ class RankingLegendButton extends StatelessWidget {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: const Text('Ranglisten-Legende'),
               content: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

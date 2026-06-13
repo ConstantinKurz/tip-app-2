@@ -369,7 +369,6 @@ class _CommunityTipLegendButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return IconButton(
-      tooltip: 'Icon-Erklärung',
       icon: Icon(
         Icons.help_outline,
         size: 22,
@@ -380,7 +379,6 @@ class _CommunityTipLegendButton extends StatelessWidget {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: const Text('Icon-Erklärung'),
               content: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -417,7 +415,10 @@ class _CommunityTipLegendButton extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Verstanden'),
+                  child: const Text(
+                    'Verstanden',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             );

@@ -309,6 +309,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
                         jokerSum: user.jokerSum,
                         sixer: user.sixer,
                         tippedCount: tippedCount,
+                        totalPoints: totalPoints,
                         matchPoints: matchPoints,
                         tip: tip,
                       )
@@ -342,6 +343,7 @@ class _CommunityMobileRow extends StatelessWidget {
   final int jokerSum;
   final int sixer;
   final int tippedCount;
+  final int totalPoints;
   final int matchPoints;
   final Tip? tip;
 
@@ -352,6 +354,7 @@ class _CommunityMobileRow extends StatelessWidget {
     required this.jokerSum,
     required this.sixer,
     required this.tippedCount,
+    required this.totalPoints,
     required this.matchPoints,
     required this.tip,
   });
@@ -360,6 +363,9 @@ class _CommunityMobileRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final foregroundColor = theme.textTheme.bodySmall?.color ?? Colors.white;
+
+    final hasTip = tip?.tipHome != null && tip?.tipGuest != null;
+    final tipText = hasTip ? '${tip?.tipHome}:${tip?.tipGuest}' : '–';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,44 +412,67 @@ class _CommunityMobileRow extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 7),
-        Row(
-          children: [
-            championFlag,
-            const SizedBox(width: 8),
-            _CompactStatIcon(
-              icon: Icons.star,
-              color: Colors.amber,
-              value: '$jokerSum',
-              tooltip: 'Joker',
-            ),
-            const SizedBox(width: 9),
-            _CompactStatIcon(
-              icon: Icons.adjust,
-              color: foregroundColor,
-              value: '$sixer',
-              tooltip: '6er',
-            ),
-            const SizedBox(width: 9),
-            _CompactStatIcon(
-              icon: Icons.edit_note,
-              color: foregroundColor,
-              value: '$tippedCount',
-              tooltip: 'Tipps',
-            ),
-            const Spacer(),
-            Text(
-              tip?.tipHome != null && tip?.tipGuest != null
-                  ? 'Tipp ${tip?.tipHome}:${tip?.tipGuest}'
-                  : 'Tipp –',
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.w700,
-                color: tip?.tipHome != null && tip?.tipGuest != null
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.onSurface.withOpacity(0.45),
+        SizedBox(
+          height: 22,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    championFlag,
+                    const SizedBox(width: 8),
+                    _CompactStatIcon(
+                      icon: Icons.star,
+                      color: Colors.amber,
+                      value: '$jokerSum',
+                      tooltip: 'Joker',
+                    ),
+                    const SizedBox(width: 8),
+                    _CompactStatIcon(
+                      icon: Icons.adjust,
+                      color: foregroundColor,
+                      value: '$sixer',
+                      tooltip: '6er',
+                    ),
+                    const SizedBox(width: 8),
+                    _CompactStatIcon(
+                      icon: Icons.edit_note,
+                      color: foregroundColor,
+                      value: '$tippedCount',
+                      tooltip: 'Tipps',
+                    ),
+                    const SizedBox(width: 8),
+                    _CompactStatIcon(
+                      icon: Icons.emoji_events,
+                      color: foregroundColor,
+                      value: '$totalPoints',
+                      tooltip: 'Gesamtpunkte',
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  color: theme.scaffoldBackgroundColor,
+                  child: Text(
+                    tipText,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w600,
+                      color: tip?.tipHome != null && tip?.tipGuest != null
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.onSurface.withOpacity(0.4),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

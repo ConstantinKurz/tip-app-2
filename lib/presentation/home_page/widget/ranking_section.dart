@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/ranking/ranking_bloc.dart';
 import 'package:flutter_web/application/teams/controller/teams_controller_bloc.dart';
 import 'package:flutter_web/domain/entities/user.dart';
+import 'package:flutter_web/presentation/home_page/widget/ranking_legend_button.dart';
 import 'package:flutter_web/presentation/home_page/widget/ranking_user_list.dart';
 
 class RankingSection extends StatelessWidget {
@@ -67,13 +68,17 @@ class RankingSection extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Rangliste",
-                    style: isMobile
-                        ? themeData.textTheme.headlineSmall!
-                            .copyWith(fontSize: 14)
-                        : themeData.textTheme.headlineSmall!,
-                  ),
+                  Row(children: [
+                    Text(
+                      "Rangliste",
+                      style: isMobile
+                          ? themeData.textTheme.headlineSmall!
+                              .copyWith(fontSize: 14)
+                          : themeData.textTheme.headlineSmall!,
+                    ),
+                    const SizedBox(width: 6),
+                    const RankingLegendButton(),
+                  ]),
                 ],
               ),
               const SizedBox(height: 12),
@@ -123,7 +128,8 @@ class RankingSection extends StatelessWidget {
                           currentUserId: userId,
                           scrollToCurrentUser: rankingState.expanded,
                           globalUserIndices: visibleUsers
-                              .map((user) => globalRanks[sortedUsers.indexOf(user)])
+                              .map((user) =>
+                                  globalRanks[sortedUsers.indexOf(user)])
                               .toList(),
                         ),
                         if (sortedUsers.length > 5)

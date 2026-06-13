@@ -149,40 +149,60 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                           CrossAxisAlignment.stretch,
                                       children: [
                                         const SizedBox(height: 24),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.close),
-                                              onPressed: () {
-                                                if (returnIndex != null) {
-                                                  final filterParam =
-                                                      returnFilter != null
-                                                          ? '&filter=${Uri.encodeComponent(returnFilter)}'
-                                                          : '';
 
-                                                  Routemaster.of(context)
-                                                      .replace(
-                                                    '/tips?returnIndex=$returnIndex$filterParam',
-                                                  );
-                                                } else {
-                                                  Routemaster.of(context)
-                                                      .replace('/home');
-                                                }
-                                              },
-                                            ),
-                                          ],
+                                        // Header:
+                                        // left = legend
+                                        // center = ranking toggle
+                                        // right = close
+                                        SizedBox(
+                                          height: 44,
+                                          child: Stack(
+                                            alignment: Alignment.center,
+                                            children: [
+                                              const Align(
+                                                alignment: Alignment.centerLeft,
+                                                child:
+                                                    _CommunityTipLegendButton(),
+                                              ),
+                                              Center(
+                                                child: _RankingModeToggle(
+                                                  value: _rankingMode,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      _rankingMode = value;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                              Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: IconButton(
+                                                  icon: const Icon(Icons.close),
+                                                  onPressed: () {
+                                                    if (returnIndex != null) {
+                                                      final filterParam =
+                                                          returnFilter != null
+                                                              ? '&filter=${Uri.encodeComponent(returnFilter)}'
+                                                              : '';
+
+                                                      Routemaster.of(context)
+                                                          .replace(
+                                                        '/tips?returnIndex=$returnIndex$filterParam',
+                                                      );
+                                                    } else {
+                                                      Routemaster.of(context)
+                                                          .replace('/home');
+                                                    }
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        _RankingModeToggle(
-                                          value: _rankingMode,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _rankingMode = value;
-                                            });
-                                          },
-                                        ),
+
                                         const SizedBox(height: 10),
+
                                         BlocProvider<TipFormBloc>.value(
                                           value: _tipFormBloc!,
                                           child: _TipCardInitializer(
@@ -198,6 +218,7 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                             ),
                                           ),
                                         ),
+
                                         const SizedBox(height: 24),
                                       ],
                                     ),
@@ -262,35 +283,32 @@ class _RankingModeToggle extends StatelessWidget {
     final isTotalSelected = value == CommunityRankingMode.total;
     final isMatchSelected = value == CommunityRankingMode.match;
 
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        height: 36,
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
+    return Container(
+      height: 34,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
           color: Colors.black,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: Colors.black,
-            width: 1,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _RankingPill(
+            label: 'Gesamt',
+            selected: isTotalSelected,
+            onTap: () => onChanged(CommunityRankingMode.total),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _RankingPill(
-              label: 'Gesamt',
-              selected: isTotalSelected,
-              onTap: () => onChanged(CommunityRankingMode.total),
-            ),
-            const SizedBox(width: 3),
-            _RankingPill(
-              label: 'Spiel',
-              selected: isMatchSelected,
-              onTap: () => onChanged(CommunityRankingMode.match),
-            ),
-          ],
-        ),
+          const SizedBox(width: 3),
+          _RankingPill(
+            label: 'Spiel',
+            selected: isMatchSelected,
+            onTap: () => onChanged(CommunityRankingMode.match),
+          ),
+        ],
       ),
     );
   }
@@ -318,8 +336,8 @@ class _RankingPill extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
-          height: 30,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             color: selected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(999),
@@ -329,9 +347,9 @@ class _RankingPill extends StatelessWidget {
             duration: const Duration(milliseconds: 160),
             curve: Curves.easeOut,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               height: 1,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               letterSpacing: -0.15,
               color: selected ? Colors.black : Colors.white,
             ),
@@ -339,6 +357,124 @@ class _RankingPill extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CommunityTipLegendButton extends StatelessWidget {
+  const _CommunityTipLegendButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return IconButton(
+      tooltip: 'Icon-Erklärung',
+      icon: Icon(
+        Icons.help_outline,
+        size: 22,
+        color: theme.colorScheme.onSurface.withOpacity(0.85),
+      ),
+      onPressed: () {
+        showDialog<void>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Icon-Erklärung'),
+              content: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _CommunityLegendRow(
+                    icon: Icons.star,
+                    iconColor: Colors.amber,
+                    title: 'Joker',
+                    description: 'Anzahl eingesetzter Joker.',
+                  ),
+                  SizedBox(height: 12),
+                  _CommunityLegendRow(
+                    icon: Icons.adjust,
+                    iconColor: Colors.white,
+                    title: '6er',
+                    description: 'Anzahl exakter Tipps.',
+                  ),
+                  SizedBox(height: 12),
+                  _CommunityLegendRow(
+                    icon: Icons.edit_note,
+                    iconColor: Colors.white,
+                    title: 'Tipps',
+                    description:
+                        'Anzahl gewerteter Tipps für abgeschlossene Spiele.',
+                  ),
+                  SizedBox(height: 12),
+                  _CommunityLegendRow(
+                    icon: Icons.emoji_events,
+                    iconColor: Colors.white,
+                    title: 'Gesamtpunkte',
+                    description: 'Gesammelte Punkte in der gesamten Rangliste.',
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Verstanden'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CommunityLegendRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String description;
+
+  const _CommunityLegendRow({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: iconColor,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

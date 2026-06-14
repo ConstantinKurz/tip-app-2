@@ -38,7 +38,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _currentUserKey = GlobalKey();
 
-  static const double _estimatedMobileItemHeight = 58.0;
+  static const double _estimatedMobileItemHeight = 70.0;
   static const double _estimatedDesktopItemHeight = 72.0;
 
   @override
@@ -89,6 +89,30 @@ class _CommunityTipListState extends State<CommunityTipList> {
     return _tipForUserAndCurrentMatch(user)?.points ?? 0;
   }
 
+  int _compareByTotalRanking(AppUser a, AppUser b) {
+    final scoreComparison = b.score.compareTo(a.score);
+    if (scoreComparison != 0) return scoreComparison;
+
+    final sixersComparison = b.sixer.compareTo(a.sixer);
+    if (sixersComparison != 0) return sixersComparison;
+
+    final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+    if (jokerComparison != 0) return jokerComparison;
+
+    return a.name.compareTo(b.name);
+  }
+
+  bool _isTotalTie(AppUser a, AppUser b) {
+    return a.score == b.score && a.sixer == b.sixer && a.jokerSum == b.jokerSum;
+  }
+
+  bool _isMatchTie(AppUser a, AppUser b) {
+    return _matchPointsForUser(a) == _matchPointsForUser(b) &&
+        a.score == b.score &&
+        a.sixer == b.sixer &&
+        a.jokerSum == b.jokerSum;
+  }
+
   List<AppUser> _sortedUsers() {
     final sortedUsers = List<AppUser>.from(widget.users);
 
@@ -99,25 +123,16 @@ class _CommunityTipListState extends State<CommunityTipList> {
 
         if (pointsComparison != 0) return pointsComparison;
 
-        return a.name.compareTo(b.name);
+        // Wichtig:
+        // Bei gleicher Match-Punktzahl wird NICHT nach getippten Spielen sortiert,
+        // sondern nach denselben Tie-Breakern wie beim Gesamt-Ranking.
+        return _compareByTotalRanking(a, b);
       });
 
       return sortedUsers;
     }
 
-    sortedUsers.sort((a, b) {
-      final scoreComparison = b.score.compareTo(a.score);
-      if (scoreComparison != 0) return scoreComparison;
-
-      final sixersComparison = b.sixer.compareTo(a.sixer);
-      if (sixersComparison != 0) return sixersComparison;
-
-      final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
-      if (jokerComparison != 0) return jokerComparison;
-
-      return a.name.compareTo(b.name);
-    });
-
+    sortedUsers.sort(_compareByTotalRanking);
     return sortedUsers;
   }
 
@@ -125,11 +140,6 @@ class _CommunityTipListState extends State<CommunityTipList> {
     final ranks = <int>[];
 
     for (var i = 0; i < sortedUsers.length; i++) {
-      if (widget.rankingMode == CommunityRankingMode.match) {
-        ranks.add(i + 1);
-        continue;
-      }
-
       if (i == 0) {
         ranks.add(1);
         continue;
@@ -138,9 +148,9 @@ class _CommunityTipListState extends State<CommunityTipList> {
       final prev = sortedUsers[i - 1];
       final curr = sortedUsers[i];
 
-      final isTie = curr.score == prev.score &&
-          curr.sixer == prev.sixer &&
-          curr.jokerSum == prev.jokerSum;
+      final isTie = widget.rankingMode == CommunityRankingMode.match
+          ? _isMatchTie(curr, prev)
+          : _isTotalTie(curr, prev);
 
       if (isTie) {
         ranks.add(ranks[i - 1]);
@@ -413,9 +423,10 @@ class _CommunityMobileRow extends StatelessWidget {
         ),
         const SizedBox(height: 7),
         SizedBox(
-          height: 22,
+          height: 30,
           child: Stack(
             alignment: Alignment.center,
+            clipBehavior: Clip.none,
             children: [
               Align(
                 alignment: Alignment.centerLeft,
@@ -456,18 +467,22 @@ class _CommunityMobileRow extends StatelessWidget {
               ),
               Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
                   color: theme.scaffoldBackgroundColor,
                   child: Text(
                     tipText,
-                    style: theme.textTheme.bodyLarge?.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontFamily: 'monospace',
-                      fontWeight: FontWeight.w600,
-                      color: tip?.tipHome != null && tip?.tipGuest != null
+                      fontSize: 13,
+                      height: 1.15,
+                      fontWeight: FontWeight.w800,
+                      color: hasTip
                           ? theme.colorScheme.onSurface
-                          : theme.colorScheme.onSurface.withOpacity(0.4),
+                          : theme.colorScheme.onSurface.withOpacity(0.45),
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.visible,
+                    maxLines: 1,
+                    softWrap: false,
                   ),
                 ),
               ),

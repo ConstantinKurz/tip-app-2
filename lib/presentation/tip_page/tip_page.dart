@@ -34,30 +34,30 @@ class TipPage extends StatefulWidget {
 
 class _TipPageState extends State<TipPage> {
   List<CustomMatch> _filteredMatches = [];
-  String? _currentFilter; // ✅ Track current filter for navigation
+  String? _currentFilter;
   final Map<String, TipFormBloc> _tipFormBlocs = {};
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
-  final Set<int> _loadedMatchDays = {}; // Tracking der geladenen Statistiken
-  String? _lastUserId; // ✅ Track user to reset on user change
-  bool _initialStatsLoaded = false; // ✅ Track initial stats load
-  Key? _listKey; // ✅ Key für die Liste, ändert sich wenn returnIndex vorhanden
+  final Set<int> _loadedMatchDays = {};
+  String? _lastUserId;
+  bool _initialStatsLoaded = false;
+  Key? _listKey;
 
   @override
   void initState() {
     super.initState();
-    // ✅ Setze einmaligen Key wenn wir von Detail-Page zurückkommen
+
     if (widget.initialScrollIndex != null) {
       _listKey = ValueKey('list_${widget.initialScrollIndex}');
     }
-    // ✅ Apply initial filter if returning from details
+
     _currentFilter = widget.initialFilter;
   }
 
   @override
   void dispose() {
-    for (var bloc in _tipFormBlocs.values) {
+    for (final bloc in _tipFormBlocs.values) {
       bloc.close();
     }
     super.dispose();
@@ -70,39 +70,36 @@ class _TipPageState extends State<TipPage> {
     return _tipFormBlocs[matchId]!;
   }
 
-  /// ✅ Reset state when user changes
   void _checkAndResetForUser(String userId) {
     if (_lastUserId != userId) {
       _loadedMatchDays.clear();
       _initialStatsLoaded = false;
       _lastUserId = userId;
+
       debugPrint(
-          '🔄 [TipPage] User changed: $_lastUserId → $userId, resetting stats');
+        '🔄 [TipPage] User changed: $_lastUserId → $userId, resetting stats',
+      );
     }
   }
 
-  /// ✅ Findet Index des nächsten Spiels oder aktuell laufenden Spiels
   int _findCurrentOrNextMatchIndex(List<CustomMatch> matches) {
     final now = DateTime.now();
-    const matchDuration = 120; // Minuten
+    const matchDuration = 120;
 
-    // Finde erstes Spiel das noch läuft oder in der Zukunft liegt
-    for (int i = 0; i < matches.length; i++) {
+    for (var i = 0; i < matches.length; i++) {
       final match = matches[i];
-      final matchEndTime =
-          match.matchDate.add(const Duration(minutes: matchDuration));
+      final matchEndTime = match.matchDate.add(
+        const Duration(minutes: matchDuration),
+      );
 
-      // Spiel läuft noch oder ist in der Zukunft
       if (matchEndTime.isAfter(now)) {
         return i;
       }
     }
 
-    // Fallback: Springe zum letzten Spiel
     return matches.isEmpty ? 0 : matches.length - 1;
   }
 
-  /// ✅ Lädt Statistiken für alle matchDays die in gefilterten Matches vorkommen
   void _loadMissingStatistics(
     List<CustomMatch> filteredMatches,
     String userId,
@@ -110,17 +107,13 @@ class _TipPageState extends State<TipPage> {
   ) {
     if (filteredMatches.isEmpty) return;
 
-    // Extrahiere alle eindeutigen matchDays aus gefilterten Matches
     final newMatchDays = filteredMatches.map((m) => m.matchDay).toSet();
-
-    // Finde matchDays die noch nicht geladen wurden
     final missingMatchDays = newMatchDays.difference(_loadedMatchDays);
 
     if (missingMatchDays.isNotEmpty) {
       try {
         final tipsBloc = context.read<TipControllerBloc>();
 
-        // Lade Statistiken für alle fehlenden matchDays
         for (final matchDay in missingMatchDays) {
           tipsBloc.add(
             TipUpdateStatisticsEvent(
@@ -130,10 +123,8 @@ class _TipPageState extends State<TipPage> {
           );
         }
 
-        // Merke die neuen matchDays als geladen (kein setState nötig - nur tracking)
         _loadedMatchDays.addAll(missingMatchDays);
 
-        // Debug-Info
         debugPrint(
           '📊 [TipPage] Statistiken geladen für Spieltage: $missingMatchDays',
         );
@@ -148,7 +139,8 @@ class _TipPageState extends State<TipPage> {
     final themeData = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     const contentMaxWidth = 700.0;
-    final horizontalMargin = (screenWidth > contentMaxWidth)
+
+    final horizontalMargin = screenWidth > contentMaxWidth
         ? (screenWidth - contentMaxWidth) / 2
         : 16.0;
 
@@ -157,23 +149,31 @@ class _TipPageState extends State<TipPage> {
 
     return PageTemplate(
       isAuthenticated: widget.isAuthenticated,
-      floatingActionButton: (isMobile && isKeyboardVisible)
+      floatingActionButton: isMobile && isKeyboardVisible
           ? null
           : Padding(
-              padding: EdgeInsets.only(right: horizontalMargin, bottom: 16),
+              padding: EdgeInsets.only(
+                right: horizontalMargin,
+                bottom: 16,
+              ),
               child: ElevatedButton.icon(
                 onPressed: () {
                   Routemaster.of(context).push('/home');
                 },
                 icon: const Icon(Icons.home),
-                label: const Text('Home', overflow: TextOverflow.ellipsis),
+                label: const Text(
+                  'Home',
+                  overflow: TextOverflow.ellipsis,
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: themeData.colorScheme.onPrimary,
                   foregroundColor: themeData.colorScheme.primary,
                   textStyle: themeData.textTheme.bodyLarge,
                   minimumSize: const Size(140, 48),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -197,7 +197,6 @@ class _TipPageState extends State<TipPage> {
                         final matches = matchState.matches;
                         final teams = teamState.teams;
 
-                        // ✅ Reset bei User-Wechsel
                         _checkAndResetForUser(userId);
 
                         if (matches.isEmpty || teams.isEmpty) {
@@ -209,18 +208,20 @@ class _TipPageState extends State<TipPage> {
                           );
                         }
 
-                        // ✅ Nutze gefilterte oder alle Matches
                         final displayedMatches = _filteredMatches.isEmpty
                             ? matches
                             : _filteredMatches;
 
-                        // ✅ Lade initiale Statistiken (einmalig)
                         if (!_initialStatsLoaded &&
                             displayedMatches.isNotEmpty) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             _loadMissingStatistics(
-                                displayedMatches, userId, context);
+                              displayedMatches,
+                              userId,
+                              context,
+                            );
                           });
+
                           _initialStatsLoaded = true;
                         }
 
@@ -247,20 +248,18 @@ class _TipPageState extends State<TipPage> {
                           );
                         }
 
-                        // ✅ Bestimme initialen Scroll-Index
                         final int targetIndex;
                         if (widget.initialScrollIndex != null) {
-                          // Von Detail-Page zurück
                           targetIndex = widget.initialScrollIndex!;
                         } else {
-                          // Normaler Aufruf: Springe zum aktuellen/nächsten Spiel
                           targetIndex =
                               _findCurrentOrNextMatchIndex(displayedMatches);
                         }
 
-                        // ✅ Clamp den Index auf gültigen Bereich
-                        final safeIndex =
-                            targetIndex.clamp(0, displayedMatches.length - 1);
+                        final safeIndex = targetIndex.clamp(
+                          0,
+                          displayedMatches.length - 1,
+                        );
 
                         return Stack(
                           children: [
@@ -269,26 +268,39 @@ class _TipPageState extends State<TipPage> {
                                 const SizedBox(height: 16),
                                 Padding(
                                   padding: EdgeInsets.symmetric(
-                                      horizontal: horizontalMargin),
-                                  child: MatchSearchField(
-                                    matches: matches,
-                                    teams: teams,
-                                    hintText:
-                                        "Nach Teams, Spielphase oder Matchtag suchen...",
-                                    initialFilter: _currentFilter,
-                                    onFilterChanged: (filter) {
-                                      _currentFilter =
-                                          filter?.isNotEmpty == true
-                                              ? filter
-                                              : null;
-                                    },
-                                    onFilteredMatchesChanged: (filtered) {
-                                      setState(() {
-                                        _filteredMatches = filtered;
-                                      });
-                                      _loadMissingStatistics(
-                                          filtered, userId, context);
-                                    },
+                                    horizontal: horizontalMargin,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const _TipCardLegendButton(),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: MatchSearchField(
+                                          matches: matches,
+                                          teams: teams,
+                                          hintText:
+                                              'Nach Teams, Spielphase oder Matchtag suchen...',
+                                          initialFilter: _currentFilter,
+                                          onFilterChanged: (filter) {
+                                            _currentFilter =
+                                                filter?.isNotEmpty == true
+                                                    ? filter
+                                                    : null;
+                                          },
+                                          onFilteredMatchesChanged: (filtered) {
+                                            setState(() {
+                                              _filteredMatches = filtered;
+                                            });
+
+                                            _loadMissingStatistics(
+                                              filtered,
+                                              userId,
+                                              context,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -305,17 +317,19 @@ class _TipPageState extends State<TipPage> {
                                             _itemPositionsListener,
                                         padding: const EdgeInsets.only(
                                           top: 16.0,
-                                          bottom: 100.0, // Extra space for FAB
+                                          bottom: 100.0,
                                         ),
                                         itemCount: displayedMatches.length,
                                         separatorBuilder: (_, __) =>
                                             const SizedBox(height: 24),
                                         itemBuilder: (context, index) {
                                           final match = displayedMatches[index];
+
                                           final homeTeam = teams.firstWhere(
                                             (t) => t.id == match.homeTeamId,
                                             orElse: () => Team.empty(),
                                           );
+
                                           final guestTeam = teams.firstWhere(
                                             (t) => t.id == match.guestTeamId,
                                             orElse: () => Team.empty(),
@@ -337,11 +351,13 @@ class _TipPageState extends State<TipPage> {
                                             onTap: () {
                                               final tipId = tip.id.isNotEmpty
                                                   ? tip.id
-                                                  : "${userId}_${match.id}";
+                                                  : '${userId}_${match.id}';
+
                                               final filterParam = _currentFilter !=
                                                       null
                                                   ? '&filter=${Uri.encodeComponent(_currentFilter!)}'
                                                   : '';
+
                                               Routemaster.of(context).push(
                                                 '/tips-detail/$tipId?returnIndex=$index$filterParam',
                                               );
@@ -388,6 +404,119 @@ class _TipPageState extends State<TipPage> {
   }
 }
 
+class _TipCardLegendButton extends StatelessWidget {
+  const _TipCardLegendButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return IconButton(
+      tooltip: 'Hinweis',
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(
+        minWidth: 40,
+        minHeight: 40,
+      ),
+      icon: Icon(
+        Icons.help_outline,
+        size: 24,
+        color: theme.colorScheme.onSurface.withOpacity(0.85),
+      ),
+      onPressed: () {
+        showDialog<void>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              content: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _TipCardLegendRow(
+                    icon: Icons.delete_outline,
+                    iconColor: Colors.white,
+                    title: 'Tipp löschen',
+                    description:
+                        'Mit dem Papierkorb auf der Tipp-Karte kannst du deinen gespeicherten Tipp löschen.',
+                  ),
+                  SizedBox(height: 12),
+                  _TipCardLegendRow(
+                    icon: Icons.star,
+                    iconColor: Colors.amber,
+                    title: 'Joker',
+                    description:
+                        'Der Joker markiert einen Tipp, der doppelt gewertet wird.',
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Verstanden',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _TipCardLegendRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String description;
+
+  const _TipCardLegendRow({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: iconColor,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _TipCardInitializer extends StatefulWidget {
   final String matchId;
   final String userId;
@@ -417,28 +546,22 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   @override
   void didUpdateWidget(covariant _TipCardInitializer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // ✅ FIX: Reset initialization wenn matchId wechselt (Widget-Recycling)
+
     if (oldWidget.matchId != widget.matchId) {
       _initialized = false;
       _initializedForMatchId = null;
     }
   }
 
-  /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
-  /// Gibt nur true zurück wenn:
-  /// - Es ein NEUER Tipp ist (noch nicht getippt)
-  /// - Die Phase ein Tipp-Limit hat
-  /// - Das Limit erreicht oder überschritten ist
   bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
-    // Wenn bereits getippt, kann immer bearbeitet werden
     if (tip.tipHome != null || tip.tipGuest != null) return false;
 
     final phase = MatchPhase.fromMatchDay(widget.matchDay);
     if (!phase.hasTipLimit) return false;
 
-    // Für Gruppenphase: Statistik enthält bereits die aggregierte Anzahl
     if (phase == MatchPhase.groupStage) {
       final stats = tipState.matchDayStatistics[widget.matchDay];
+
       if (stats != null) {
         return stats.tippedGames >= phase.maxTips!;
       }
@@ -450,7 +573,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // ✅ FIX: Auch matchId prüfen für Widget-Recycling
+
     if (!_initialized || _initializedForMatchId != widget.matchId) {
       _initialized = true;
       _initializedForMatchId = widget.matchId;
@@ -459,7 +582,6 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
       final controllerBloc = context.read<TipControllerBloc>();
       final tipState = controllerBloc.state;
 
-      // Initialisiere TipFormBloc nur wenn noch nicht für dieses Match
       if (formBloc.state.matchId != widget.matchId) {
         formBloc.add(
           TipFormInitializedEvent(
@@ -470,10 +592,10 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
         );
       }
 
-      // Stats nur laden wenn nicht bereits vorhanden
       if (tipState is TipControllerLoaded) {
         final hasStats =
             tipState.matchDayStatistics.containsKey(widget.matchDay);
+
         if (!hasStats) {
           controllerBloc.add(
             TipUpdateStatisticsEvent(
@@ -483,23 +605,24 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
           );
         }
 
-        // Tip-Daten aus TipControllerBloc an TipFormBloc übergeben
         final userTips = tipState.tips[widget.userId] ?? [];
+
         final tip = userTips.firstWhere(
           (t) => t.matchId == widget.matchId,
           orElse: () => Tip.empty(widget.userId),
         );
 
-        formBloc.add(TipFormExternalUpdateEvent(
-          matchId: widget.matchId,
-          matchDay: widget.matchDay,
-          tipHome: tip.tipHome,
-          tipGuest: tip.tipGuest,
-          joker: tip.joker,
-          isTipLimitReached: _isTipLimitReached(tipState, tip),
-        ));
+        formBloc.add(
+          TipFormExternalUpdateEvent(
+            matchId: widget.matchId,
+            matchDay: widget.matchDay,
+            tipHome: tip.tipHome,
+            tipGuest: tip.tipGuest,
+            joker: tip.joker,
+            isTipLimitReached: _isTipLimitReached(tipState, tip),
+          ),
+        );
       } else {
-        // Falls noch nicht geladen, Stats anfordern
         controllerBloc.add(
           TipUpdateStatisticsEvent(
             userId: widget.userId,
@@ -507,16 +630,16 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
           ),
         );
 
-        // ✅ FIX: Auch hier ExternalUpdate senden um isLoading auf false zu setzen
-        // Der BlocListener wird später die echten Daten liefern
-        formBloc.add(TipFormExternalUpdateEvent(
-          matchId: widget.matchId,
-          matchDay: widget.matchDay,
-          tipHome: null,
-          tipGuest: null,
-          joker: false,
-          isTipLimitReached: false,
-        ));
+        formBloc.add(
+          TipFormExternalUpdateEvent(
+            matchId: widget.matchId,
+            matchDay: widget.matchDay,
+            tipHome: null,
+            tipGuest: null,
+            joker: false,
+            isTipLimitReached: false,
+          ),
+        );
       }
     }
   }
@@ -525,53 +648,58 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   Widget build(BuildContext context) {
     return BlocListener<TipControllerBloc, TipControllerState>(
       listenWhen: (previous, current) {
-        // Reagieren wenn sich Tips oder Statistiken ändern
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
           return previous.tips != current.tips ||
               previous.matchDayStatistics != current.matchDayStatistics;
         }
+
         return current is TipControllerLoaded;
       },
       listener: (context, tipState) {
         if (tipState is TipControllerLoaded) {
           final formBloc = context.read<TipFormBloc>();
           final userTips = tipState.tips[widget.userId] ?? [];
+
           final tip = userTips.firstWhere(
             (t) => t.matchId == widget.matchId,
             orElse: () => Tip.empty(widget.userId),
           );
 
-          formBloc.add(TipFormExternalUpdateEvent(
-            matchId: widget.matchId,
-            matchDay: widget.matchDay,
-            tipHome: tip.tipHome,
-            tipGuest: tip.tipGuest,
-            joker: tip.joker,
-            isTipLimitReached: _isTipLimitReached(tipState, tip),
-          ));
+          formBloc.add(
+            TipFormExternalUpdateEvent(
+              matchId: widget.matchId,
+              matchDay: widget.matchDay,
+              tipHome: tip.tipHome,
+              tipGuest: tip.tipGuest,
+              joker: tip.joker,
+              isTipLimitReached: _isTipLimitReached(tipState, tip),
+            ),
+          );
         }
       },
       child: BlocBuilder<MatchesControllerBloc, MatchesControllerState>(
         buildWhen: (previous, current) {
-          // Rebuild wenn sich das Match-Ergebnis ändert
           if (previous is MatchesControllerLoaded &&
               current is MatchesControllerLoaded) {
             final prevMatch = previous.matches.firstWhere(
               (m) => m.id == widget.matchId,
               orElse: () => widget.match,
             );
+
             final currMatch = current.matches.firstWhere(
               (m) => m.id == widget.matchId,
               orElse: () => widget.match,
             );
+
             return prevMatch.homeScore != currMatch.homeScore ||
                 prevMatch.guestScore != currMatch.guestScore;
           }
+
           return previous.runtimeType != current.runtimeType;
         },
         builder: (context, matchState) {
-          // Hole das aktuelle Match mit Ergebnis aus dem Bloc
           CustomMatch currentMatch = widget.match;
+
           if (matchState is MatchesControllerLoaded) {
             currentMatch = matchState.matches.firstWhere(
               (m) => m.id == widget.matchId,
@@ -581,7 +709,6 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
 
           return BlocBuilder<TipControllerBloc, TipControllerState>(
             buildWhen: (previous, current) {
-              // Rebuild wenn sich der Tip für dieses Match ändert (inkl. Punkte)
               if (previous is TipControllerLoaded &&
                   current is TipControllerLoaded) {
                 final prevUserTips = previous.tips[widget.userId] ?? [];
@@ -591,33 +718,36 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
                   (t) => t.matchId == widget.matchId,
                   orElse: () => Tip.empty(widget.userId),
                 );
+
                 final currTip = currUserTips.firstWhere(
                   (t) => t.matchId == widget.matchId,
                   orElse: () => Tip.empty(widget.userId),
                 );
 
-                // Rebuild wenn sich Punkte oder andere Tip-Daten ändern
                 return prevTip.points != currTip.points ||
                     prevTip.tipHome != currTip.tipHome ||
                     prevTip.tipGuest != currTip.tipGuest ||
                     prevTip.joker != currTip.joker;
               }
+
               return previous.runtimeType != current.runtimeType;
             },
             builder: (context, tipState) {
               Tip currentTip = Tip.empty(widget.userId);
+
               if (tipState is TipControllerLoaded) {
                 final userTips = tipState.tips[widget.userId] ?? [];
+
                 currentTip = userTips.firstWhere(
                   (t) => t.matchId == widget.matchId,
                   orElse: () => Tip.empty(widget.userId),
                 );
               }
 
-              // Key mit Ergebnis für Force-Rebuild bei Ergebnis-Änderung
               return TipCard(
                 key: ValueKey(
-                    '${widget.matchId}_${currentTip.points}_${currentMatch.homeScore}_${currentMatch.guestScore}'),
+                  '${widget.matchId}_${currentTip.points}_${currentMatch.homeScore}_${currentMatch.guestScore}',
+                ),
                 userId: widget.userId,
                 match: currentMatch,
                 homeTeam: widget.homeTeam,

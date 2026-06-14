@@ -29,7 +29,7 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
 
   @override
   void dispose() {
-    for (var bloc in _tipFormBlocs.values) {
+    for (final bloc in _tipFormBlocs.values) {
       bloc.close();
     }
     super.dispose();
@@ -39,6 +39,7 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
     if (!_tipFormBlocs.containsKey(matchId)) {
       _tipFormBlocs[matchId] = sl<TipFormBloc>();
     }
+
     return _tipFormBlocs[matchId]!;
   }
 
@@ -54,15 +55,14 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
         return BlocBuilder<TeamsControllerBloc, TeamsControllerState>(
           builder: (context, teamState) {
             return BlocBuilder<TipControllerBloc, TipControllerState>(
-              // Nur rebuilden wenn sich Tips ändern oder State-Typ wechselt
               buildWhen: (previous, current) {
-                // Bei State-Typ-Wechsel immer rebuilden
                 if (previous.runtimeType != current.runtimeType) return true;
-                // Bei Loaded-States nur rebuilden wenn sich Tips ändern (nicht Stats)
+
                 if (previous is TipControllerLoaded &&
                     current is TipControllerLoaded) {
                   return previous.tips != current.tips;
                 }
+
                 return true;
               },
               builder: (context, tipState) {
@@ -95,13 +95,17 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
 
                 final now = DateTime.now();
                 final upcomingMatches = matches.where((match) {
-                  final matchEndTime = match.matchDate
-                      .add(const Duration(minutes: matchDuration));
+                  final matchEndTime = match.matchDate.add(
+                    const Duration(minutes: matchDuration),
+                  );
+
                   return matchEndTime.isAfter(now);
                 }).toList();
 
-                upcomingMatches
-                    .sort((a, b) => a.matchDate.compareTo(b.matchDate));
+                upcomingMatches.sort(
+                  (a, b) => a.matchDate.compareTo(b.matchDate),
+                );
+
                 final closestMatches = upcomingMatches.take(3).toList();
 
                 if (closestMatches.isEmpty) {
@@ -109,6 +113,8 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                 }
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+
                   for (final match in closestMatches) {
                     if (!_statsLoadedForMatchDays.contains(match.matchDay)) {
                       context.read<TipControllerBloc>().add(
@@ -117,6 +123,7 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                               matchDay: match.matchDay,
                             ),
                           );
+
                       _statsLoadedForMatchDays.add(match.matchDay);
                     }
                   }
@@ -125,33 +132,11 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Aktuelle Spiele",
-                          style: isMobile
-                              ? themeData.textTheme.headlineSmall!
-                                  .copyWith(fontSize: 14)
-                              : themeData.textTheme.headlineSmall!,
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Routemaster.of(context).push('/tips');
-                          },
-                          child: Text(
-                            'Alle Tipps anzeigen',
-                            style: TextStyle(
-                              color: themeData.colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+                    _UpcomingTipsHeader(
+                      isMobile: isMobile,
+                      themeData: themeData,
                     ),
                     const SizedBox(height: 16),
-
-                    // ✅ Spiele-Cards mit Navigation
                     ...closestMatches.asMap().entries.map((entry) {
                       final index = entry.key;
                       final match = entry.value;
@@ -160,28 +145,28 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                         (team) => team.id == match.homeTeamId,
                         orElse: () => Team.empty(),
                       );
+
                       final guestTeam = teams.firstWhere(
                         (team) => team.id == match.guestTeamId,
                         orElse: () => Team.empty(),
                       );
 
                       final userTips = tips[widget.userId] ?? [];
+
                       final tip = userTips.firstWhere(
                         (t) => t.matchId == match.id,
                         orElse: () => Tip.empty(widget.userId),
                       );
 
-                      // ✅ Erstelle tipId wie in tip_page.dart
                       final tipId = tip.id.isNotEmpty
                           ? tip.id
-                          : "${widget.userId}_${match.id}";
+                          : '${widget.userId}_${match.id}';
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
                           onTap: () {
-                            // Navigation zur Detail-Ansicht
                             Routemaster.of(context).push(
                               '/tips-detail/$tipId?from=home&returnIndex=$index',
                             );
@@ -194,7 +179,8 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
                               matchDay: match.matchDay,
                               child: TipCard(
                                 key: ValueKey(
-                                    '${match.id}_${match.homeScore}_${match.guestScore}'),
+                                  '${match.id}_${match.homeScore}_${match.guestScore}',
+                                ),
                                 userId: widget.userId,
                                 tip: tip,
                                 homeTeam: homeTeam,
@@ -220,9 +206,9 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Aktuelle Spiele",
-          style: themeData.textTheme.headlineSmall,
+        _UpcomingTipsHeader(
+          isMobile: MediaQuery.of(context).size.width < 800,
+          themeData: themeData,
         ),
         const SizedBox(height: 24),
         const Center(
@@ -236,9 +222,9 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Aktuelle Spiele",
-          style: themeData.textTheme.headlineSmall,
+        _UpcomingTipsHeader(
+          isMobile: MediaQuery.of(context).size.width < 800,
+          themeData: themeData,
         ),
         const SizedBox(height: 24),
         Container(
@@ -261,9 +247,9 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Aktuelle Spiele",
-          style: themeData.textTheme.headlineSmall,
+        _UpcomingTipsHeader(
+          isMobile: MediaQuery.of(context).size.width < 800,
+          themeData: themeData,
         ),
         const SizedBox(height: 24),
         Container(
@@ -278,6 +264,161 @@ class _UpcomingTipSectionState extends State<UpcomingTipSection> {
           child: Text(
             'Keine kommenden Spiele',
             style: themeData.textTheme.bodyLarge,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UpcomingTipsHeader extends StatelessWidget {
+  final bool isMobile;
+  final ThemeData themeData;
+
+  const _UpcomingTipsHeader({
+    required this.isMobile,
+    required this.themeData,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final titleStyle = isMobile
+        ? themeData.textTheme.headlineSmall?.copyWith(fontSize: 14)
+        : themeData.textTheme.headlineSmall;
+
+    return Row(
+      children: [
+        Text(
+          'Aktuelle Spiele',
+          style: titleStyle,
+        ),
+        const SizedBox(width: 4),
+        const _UpcomingTipsLegendButton(),
+        const Spacer(),
+        TextButton(
+          onPressed: () {
+            Routemaster.of(context).push('/tips');
+          },
+          child: Text(
+            'Alle Tipps anzeigen',
+            style: TextStyle(
+              color: themeData.colorScheme.primary,
+              fontWeight: FontWeight.w600,
+              fontSize: isMobile ? 12 : null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UpcomingTipsLegendButton extends StatelessWidget {
+  const _UpcomingTipsLegendButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return IconButton(
+      tooltip: 'Hinweis',
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(
+        minWidth: 32,
+        minHeight: 32,
+      ),
+      icon: Icon(
+        Icons.help_outline,
+        size: 20,
+        color: theme.colorScheme.onSurface.withOpacity(0.85),
+      ),
+      onPressed: () {
+        showDialog<void>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              content: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _UpcomingTipsLegendRow(
+                    icon: Icons.delete_outline,
+                    iconColor: Colors.white,
+                    title: 'Tipp löschen',
+                    description:
+                        'Mit dem Papierkorb auf der Tipp-Karte kannst du deinen gespeicherten Tipp löschen.',
+                  ),
+                  SizedBox(height: 12),
+                  _UpcomingTipsLegendRow(
+                    icon: Icons.star,
+                    iconColor: Colors.amber,
+                    title: 'Joker',
+                    description:
+                        'Der Joker markiert einen Tipp, der doppelt gewertet wird..',
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Verstanden',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _UpcomingTipsLegendRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String description;
+
+  const _UpcomingTipsLegendRow({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: iconColor,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -306,7 +447,6 @@ class _TipCardInitializer extends StatefulWidget {
 class _TipCardInitializerState extends State<_TipCardInitializer> {
   bool _initialized = false;
 
-  /// Prüft ob das Tipp-Limit für die Gruppenphase erreicht ist
   bool _isTipLimitReached(TipControllerLoaded tipState, Tip tip) {
     if (tip.tipHome != null || tip.tipGuest != null) return false;
 
@@ -315,6 +455,7 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
 
     if (phase == MatchPhase.groupStage) {
       final stats = tipState.matchDayStatistics[widget.matchDay];
+
       if (stats != null) {
         return stats.tippedGames >= phase.maxTips!;
       }
@@ -326,36 +467,40 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     if (!_initialized) {
-      _initialized =
-          true; // Vor dem Dispatch setzen um Mehrfachausführung zu verhindern
+      _initialized = true;
 
       final bloc = context.read<TipFormBloc>();
       final controllerBloc = context.read<TipControllerBloc>();
       final tipState = controllerBloc.state;
 
-      bloc.add(TipFormInitializedEvent(
-        matchId: widget.matchId,
-        userId: widget.userId,
-        matchDay: widget.matchDay,
-      ));
+      bloc.add(
+        TipFormInitializedEvent(
+          matchId: widget.matchId,
+          userId: widget.userId,
+          matchDay: widget.matchDay,
+        ),
+      );
 
-      // Tip-Daten aus TipControllerBloc an TipFormBloc übergeben
       if (tipState is TipControllerLoaded) {
         final userTips = tipState.tips[widget.userId] ?? [];
+
         final tip = userTips.firstWhere(
           (t) => t.matchId == widget.matchId,
           orElse: () => Tip.empty(widget.userId),
         );
 
-        bloc.add(TipFormExternalUpdateEvent(
-          matchId: widget.matchId,
-          matchDay: widget.matchDay,
-          tipHome: tip.tipHome,
-          tipGuest: tip.tipGuest,
-          joker: tip.joker,
-          isTipLimitReached: _isTipLimitReached(tipState, tip),
-        ));
+        bloc.add(
+          TipFormExternalUpdateEvent(
+            matchId: widget.matchId,
+            matchDay: widget.matchDay,
+            tipHome: tip.tipHome,
+            tipGuest: tip.tipGuest,
+            joker: tip.joker,
+            isTipLimitReached: _isTipLimitReached(tipState, tip),
+          ),
+        );
       }
     }
   }
@@ -364,30 +509,33 @@ class _TipCardInitializerState extends State<_TipCardInitializer> {
   Widget build(BuildContext context) {
     return BlocListener<TipControllerBloc, TipControllerState>(
       listenWhen: (previous, current) {
-        // Reagieren wenn sich Tips oder Statistiken ändern
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
           return previous.tips != current.tips ||
               previous.matchDayStatistics != current.matchDayStatistics;
         }
+
         return current is TipControllerLoaded;
       },
       listener: (context, tipState) {
         if (tipState is TipControllerLoaded) {
           final formBloc = context.read<TipFormBloc>();
           final userTips = tipState.tips[widget.userId] ?? [];
+
           final tip = userTips.firstWhere(
             (t) => t.matchId == widget.matchId,
             orElse: () => Tip.empty(widget.userId),
           );
 
-          formBloc.add(TipFormExternalUpdateEvent(
-            matchId: widget.matchId,
-            matchDay: widget.matchDay,
-            tipHome: tip.tipHome,
-            tipGuest: tip.tipGuest,
-            joker: tip.joker,
-            isTipLimitReached: _isTipLimitReached(tipState, tip),
-          ));
+          formBloc.add(
+            TipFormExternalUpdateEvent(
+              matchId: widget.matchId,
+              matchDay: widget.matchDay,
+              tipHome: tip.tipHome,
+              tipGuest: tip.tipGuest,
+              joker: tip.joker,
+              isTipLimitReached: _isTipLimitReached(tipState, tip),
+            ),
+          );
         }
       },
       child: widget.child,

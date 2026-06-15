@@ -21,19 +21,19 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   final ValidateJokerUsageUpdateStatUseCase validateJokerUseCase;
 
   StreamSubscription<Either<TipFailure, dynamic>>? _tipStreamSub;
-  
+
   // Tracking welche MatchDays gerade geladen werden (verhindert parallele Requests)
   final Set<int> _loadingMatchDays = {};
-  
+
   // ✅ Event Counter für Debugging
   int _eventCount = 0;
-  
+
   // ✅ FIX: Flag verhindert mehrfache Stream-Starts
   bool _isStreamActive = false;
-  
+
   // ✅ NEU: Cache für Matches (verhindert redundante DB-Calls)
   List<CustomMatch>? _cachedMatches;
-  
+
   // ✅ FIX: Track current user to reset stats on user change
   String? _currentUserId;
 
@@ -53,9 +53,11 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   @override
   void onEvent(TipControllerEvent event) {
     _eventCount++;
-    debugPrint('📨 [TipControllerBloc] EVENT #$_eventCount: ${event.runtimeType}');
+    debugPrint(
+        '📨 [TipControllerBloc] EVENT #$_eventCount: ${event.runtimeType}');
     if (event is TipUpdateStatisticsEvent) {
-      debugPrint('   └─ matchDay: ${event.matchDay}, userId: ${event.userId}, forceRefresh: ${event.forceRefresh}');
+      debugPrint(
+          '   └─ matchDay: ${event.matchDay}, userId: ${event.userId}, forceRefresh: ${event.forceRefresh}');
     } else if (event is TipLoadForUserEvent) {
       debugPrint('   └─ userId: ${event.userId}');
     }
@@ -63,7 +65,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   }
 
   @override
-  void onTransition(Transition<TipControllerEvent, TipControllerState> transition) {
+  void onTransition(
+      Transition<TipControllerEvent, TipControllerState> transition) {
     debugPrint('🔄 [TipControllerBloc] TRANSITION:');
     debugPrint('   Event: ${transition.event.runtimeType}');
     debugPrint('   From: ${transition.currentState.runtimeType}');
@@ -76,37 +79,59 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     Emitter<TipControllerState> emit,
   ) async {
     debugPrint('👤 [TipControllerBloc] _onLoadForUser: ${event.userId}');
-    
-    // ✅ FIX: Reset stats cache und stream flag wenn User wechselt
+    debugPrint(
+        '🌍 [TipControllerBloc] Loading ALL tips for ranking/community visibility');
+
     if (_currentUserId != event.userId) {
-      debugPrint('🔄 [TipControllerBloc] User changed: $_currentUserId → ${event.userId}, resetting stats');
+      debugPrint(
+        '🔄 [TipControllerBloc] User changed: $_currentUserId → ${event.userId}, resetting stats',
+      );
       _loadingMatchDays.clear();
       _isStreamActive = false;
     }
+
     _currentUserId = event.userId;
-    
+
+    if (_isStreamActive && state is TipControllerLoaded) {
+      debugPrint(
+        '⏭️ [TipControllerBloc] _onLoadForUser SKIPPED: all-tips stream already active',
+      );
+      return;
+    }
+
+    _isStreamActive = true;
+
     emit(TipControllerLoading());
     await _tipStreamSub?.cancel();
 
-    _tipStreamSub = tipRepository
-        .watchUserTips(event.userId)
-        .listen(
-          (tipResult) {
-            debugPrint('📥 [TipControllerBloc] Stream event received for user: ${event.userId}');
-            add(TipUpdatedEvent(
-              failureOrTip: tipResult,
-              userId: event.userId,
-            ));
-          },
-          onError: (_) {
-            debugPrint('❌ [TipControllerBloc] Stream error for user: ${event.userId}');
-            add(TipUpdatedEvent(
-              failureOrTip: left(UnexpectedFailure()),
-              userId: event.userId,
-            ));
-          },
+    _tipStreamSub = tipRepository.watchAll().listen(
+      (tipResult) {
+        debugPrint(
+          '📥 [TipControllerBloc] All tips stream event received for current user: ${event.userId}',
         );
+
+        add(
+          TipUpdatedEvent(
+            failureOrTip: tipResult,
+            userId: event.userId,
+          ),
+        );
+      },
+      onError: (_) {
+        debugPrint(
+          '❌ [TipControllerBloc] All tips stream error for current user: ${event.userId}',
+        );
+
+        add(
+          TipUpdatedEvent(
+            failureOrTip: left(UnexpectedFailure()),
+            userId: event.userId,
+          ),
+        );
+      },
+    );
   }
+
   void _onTipUpdatedEvent(
     TipUpdatedEvent event,
     Emitter<TipControllerState> emit,
@@ -118,11 +143,12 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         Map<int, MatchDayStatistics> currentStats = {};
 
         // ✅ FIX: Nur Stats beibehalten wenn gleicher User
-        if (currentState is TipControllerLoaded && 
+        if (currentState is TipControllerLoaded &&
             event.userId == _currentUserId) {
           currentStats = Map.from(currentState.matchDayStatistics);
         } else {
-          debugPrint('🧹 [TipControllerBloc] Clearing stats for new user: ${event.userId}');
+          debugPrint(
+              '🧹 [TipControllerBloc] Clearing stats for new user: ${event.userId}');
         }
 
         late Map<String, List<Tip>> tipMap;
@@ -148,19 +174,22 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     // ✅ FIX: Bei User-Wechsel (Admin wechselt) Stats zurücksetzen
     // Admin-Mode: _currentUserId auf null setzen bedeutet "alle User"
     if (_currentUserId != null) {
-      debugPrint('🔄 [TipControllerBloc] Switching to admin mode, resetting stats');
+      debugPrint(
+          '🔄 [TipControllerBloc] Switching to admin mode, resetting stats');
       _loadingMatchDays.clear();
       _isStreamActive = false;
     }
     _currentUserId = null;
-    
+
     // ✅ FIX: Verhindere Stream-Neustart wenn bereits aktiv
     if (_isStreamActive && state is TipControllerLoaded) {
-      debugPrint('⏭️  [TipControllerBloc] _onTipAllEvent SKIPPED: Stream already active');
+      debugPrint(
+          '⏭️  [TipControllerBloc] _onTipAllEvent SKIPPED: Stream already active');
       return;
     }
-    
-    debugPrint('🎯 [TipControllerBloc] _onTipAllEvent: Starting watchAll stream');
+
+    debugPrint(
+        '🎯 [TipControllerBloc] _onTipAllEvent: Starting watchAll stream');
     _isStreamActive = true;
     emit(TipControllerLoading());
     await _tipStreamSub?.cancel();
@@ -202,41 +231,44 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     Emitter<TipControllerState> emit,
   ) async {
     debugPrint('🎯 [TipControllerBloc] _onLoadForMatch: ${event.matchId}');
-    
+
     final result = await tipRepository.getTipsForMatch(event.matchId);
-    
+
     result.fold(
       (failure) {
-        debugPrint('❌ [TipControllerBloc] Failed to load tips for match: ${event.matchId}');
+        debugPrint(
+            '❌ [TipControllerBloc] Failed to load tips for match: ${event.matchId}');
       },
       (tips) {
-        debugPrint('✅ [TipControllerBloc] Loaded ${tips.length} tips for match: ${event.matchId}');
-        
+        debugPrint(
+            '✅ [TipControllerBloc] Loaded ${tips.length} tips for match: ${event.matchId}');
+
         final currentState = state;
         Map<String, List<Tip>> currentTips = {};
         Map<int, MatchDayStatistics> currentStats = {};
-        
+
         if (currentState is TipControllerLoaded) {
           currentTips = Map.from(currentState.tips);
           currentStats = Map.from(currentState.matchDayStatistics);
         }
-        
+
         // Merge neue Tips in die bestehende Map
         for (final tip in tips) {
           final userId = tip.id.split('_').first;
           if (!currentTips.containsKey(userId)) {
             currentTips[userId] = [];
           }
-          
+
           // Prüfe ob der Tip bereits existiert
-          final existingIndex = currentTips[userId]!.indexWhere((t) => t.id == tip.id);
+          final existingIndex =
+              currentTips[userId]!.indexWhere((t) => t.id == tip.id);
           if (existingIndex >= 0) {
             currentTips[userId]![existingIndex] = tip;
           } else {
             currentTips[userId]!.add(tip);
           }
         }
-        
+
         emit(TipControllerLoaded(
           tips: currentTips,
           matchDayStatistics: currentStats,
@@ -261,7 +293,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     if (!event.forceRefresh && currentState is TipControllerLoaded) {
       final currentStats = currentState.matchDayStatistics;
       if (currentStats.containsKey(event.matchDay)) {
-        debugPrint('   ⏭️  SKIPPED: Stats already loaded for matchDay ${event.matchDay}');
+        debugPrint(
+            '   ⏭️  SKIPPED: Stats already loaded for matchDay ${event.matchDay}');
         return;
       }
     }
@@ -270,7 +303,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       debugPrint('   ⏭️  SKIPPED: Already loading matchDay ${event.matchDay}');
       return;
     }
-    
+
     _loadingMatchDays.add(event.matchDay);
     debugPrint('   ✅ Loading stats for matchDay ${event.matchDay}');
 
@@ -280,16 +313,21 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       List<CustomMatch>? preloadedMatches;
       if (event.matchDay >= 4) {
         preloadedMatches = await _getOrLoadMatches();
-        debugPrint('   📦 Preloaded ${preloadedMatches.length} matches for KO stats');
+        debugPrint(
+            '   📦 Preloaded ${preloadedMatches.length} matches for KO stats');
       }
 
       // ✅ NEU: Vorrunde (matchDay 1-3) teilen sich das 20-Tipp-Limit
       // Alle drei Tage bekommen die gleichen aggregierten Statistiken
       if (event.matchDay >= 1 && event.matchDay <= 3) {
-        final stats1Future = validateJokerUseCase(userId: event.userId, matchDay: 1);
-        final stats2Future = validateJokerUseCase(userId: event.userId, matchDay: 2);
-        final stats3Future = validateJokerUseCase(userId: event.userId, matchDay: 3);
-        final results = await Future.wait([stats1Future, stats2Future, stats3Future]);
+        final stats1Future =
+            validateJokerUseCase(userId: event.userId, matchDay: 1);
+        final stats2Future =
+            validateJokerUseCase(userId: event.userId, matchDay: 2);
+        final stats3Future =
+            validateJokerUseCase(userId: event.userId, matchDay: 3);
+        final results =
+            await Future.wait([stats1Future, stats2Future, stats3Future]);
         _loadingMatchDays.remove(1);
         _loadingMatchDays.remove(2);
         _loadingMatchDays.remove(3);
@@ -301,8 +339,12 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         if (stats1 == null && stats2 == null && stats3 == null) return;
 
         final latestState = state;
-        final Map<String, List<Tip>> currentTips = latestState is TipControllerLoaded ? latestState.tips : {};
-        final Map<int, MatchDayStatistics> previousStats = latestState is TipControllerLoaded ? latestState.matchDayStatistics : {};
+        final Map<String, List<Tip>> currentTips =
+            latestState is TipControllerLoaded ? latestState.tips : {};
+        final Map<int, MatchDayStatistics> previousStats =
+            latestState is TipControllerLoaded
+                ? latestState.matchDayStatistics
+                : {};
         final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
         if (stats1 != null) updatedStats[1] = stats1;
         if (stats2 != null) updatedStats[2] = stats2;
@@ -317,10 +359,20 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       // ✅ NEU: KO-Vorrunde (16tel, Achtel, Viertelfinale) parallel laden
       // MatchDays 4, 5, 6 werden zusammen geladen für schnellere Performance
       if (event.matchDay >= 4 && event.matchDay <= 6) {
-        final stats4Future = validateJokerUseCase(userId: event.userId, matchDay: 4, preloadedMatches: preloadedMatches);
-        final stats5Future = validateJokerUseCase(userId: event.userId, matchDay: 5, preloadedMatches: preloadedMatches);
-        final stats6Future = validateJokerUseCase(userId: event.userId, matchDay: 6, preloadedMatches: preloadedMatches);
-        final results = await Future.wait([stats4Future, stats5Future, stats6Future]);
+        final stats4Future = validateJokerUseCase(
+            userId: event.userId,
+            matchDay: 4,
+            preloadedMatches: preloadedMatches);
+        final stats5Future = validateJokerUseCase(
+            userId: event.userId,
+            matchDay: 5,
+            preloadedMatches: preloadedMatches);
+        final stats6Future = validateJokerUseCase(
+            userId: event.userId,
+            matchDay: 6,
+            preloadedMatches: preloadedMatches);
+        final results =
+            await Future.wait([stats4Future, stats5Future, stats6Future]);
         _loadingMatchDays.remove(4);
         _loadingMatchDays.remove(5);
         _loadingMatchDays.remove(6);
@@ -332,8 +384,12 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         if (stats4 == null && stats5 == null && stats6 == null) return;
 
         final latestState = state;
-        final Map<String, List<Tip>> currentTips = latestState is TipControllerLoaded ? latestState.tips : {};
-        final Map<int, MatchDayStatistics> previousStats = latestState is TipControllerLoaded ? latestState.matchDayStatistics : {};
+        final Map<String, List<Tip>> currentTips =
+            latestState is TipControllerLoaded ? latestState.tips : {};
+        final Map<int, MatchDayStatistics> previousStats =
+            latestState is TipControllerLoaded
+                ? latestState.matchDayStatistics
+                : {};
         final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
         if (stats4 != null) updatedStats[4] = stats4;
         if (stats5 != null) updatedStats[5] = stats5;
@@ -347,8 +403,14 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
 
       // Wenn Halbfinale oder Finale: beide Statistiken parallel laden und setzen
       if (event.matchDay == 7 || event.matchDay == 8) {
-        final stats7Future = validateJokerUseCase(userId: event.userId, matchDay: 7, preloadedMatches: preloadedMatches);
-        final stats8Future = validateJokerUseCase(userId: event.userId, matchDay: 8, preloadedMatches: preloadedMatches);
+        final stats7Future = validateJokerUseCase(
+            userId: event.userId,
+            matchDay: 7,
+            preloadedMatches: preloadedMatches);
+        final stats8Future = validateJokerUseCase(
+            userId: event.userId,
+            matchDay: 8,
+            preloadedMatches: preloadedMatches);
         final results = await Future.wait([stats7Future, stats8Future]);
         _loadingMatchDays.remove(7);
         _loadingMatchDays.remove(8);
@@ -359,8 +421,12 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         if (stats7 == null && stats8 == null) return;
 
         final latestState = state;
-        final Map<String, List<Tip>> currentTips = latestState is TipControllerLoaded ? latestState.tips : {};
-        final Map<int, MatchDayStatistics> previousStats = latestState is TipControllerLoaded ? latestState.matchDayStatistics : {};
+        final Map<String, List<Tip>> currentTips =
+            latestState is TipControllerLoaded ? latestState.tips : {};
+        final Map<int, MatchDayStatistics> previousStats =
+            latestState is TipControllerLoaded
+                ? latestState.matchDayStatistics
+                : {};
         final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
         if (stats7 != null) updatedStats[7] = stats7;
         if (stats8 != null) updatedStats[8] = stats8;
@@ -378,11 +444,16 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
         preloadedMatches: preloadedMatches,
       );
       _loadingMatchDays.remove(event.matchDay);
-      final MatchDayStatistics? stats = statsResult.fold((failure) => null, (s) => s);
+      final MatchDayStatistics? stats =
+          statsResult.fold((failure) => null, (s) => s);
       if (stats == null) return;
       final latestState = state;
-      final Map<String, List<Tip>> currentTips = latestState is TipControllerLoaded ? latestState.tips : {};
-      final Map<int, MatchDayStatistics> previousStats = latestState is TipControllerLoaded ? latestState.matchDayStatistics : {};
+      final Map<String, List<Tip>> currentTips =
+          latestState is TipControllerLoaded ? latestState.tips : {};
+      final Map<int, MatchDayStatistics> previousStats =
+          latestState is TipControllerLoaded
+              ? latestState.matchDayStatistics
+              : {};
       final updatedStats = Map<int, MatchDayStatistics>.from(previousStats);
       updatedStats[event.matchDay] = stats;
       emit(TipControllerLoaded(
@@ -400,7 +471,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     if (_cachedMatches != null && _cachedMatches!.isNotEmpty) {
       return _cachedMatches!;
     }
-    
+
     final result = await matchRepository.getAllMatches();
     _cachedMatches = result.fold(
       (_) => <CustomMatch>[],

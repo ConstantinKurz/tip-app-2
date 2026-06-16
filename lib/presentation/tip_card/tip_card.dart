@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/tips/controller/tipscontroller_bloc.dart';
@@ -36,26 +38,39 @@ class TipCard extends StatefulWidget {
 class _TipCardState extends State<TipCard> {
   late final TextEditingController _homeController;
   late final TextEditingController _guestController;
+  Timer? _deadlineTimer;
 
   @override
   void initState() {
     super.initState();
+
     _homeController =
         TextEditingController(text: widget.tip.tipHome?.toString() ?? '');
     _guestController =
         TextEditingController(text: widget.tip.tipGuest?.toString() ?? '');
+
+    // Wichtig:
+    // DateTime.now() triggert keinen automatischen Rebuild.
+    // Deshalb prüfen wir regelmäßig neu, ob die Deadline erreicht ist.
+    _deadlineTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) {
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
+    _deadlineTimer?.cancel();
     _homeController.dispose();
     _guestController.dispose();
     super.dispose();
   }
 
-  // ✅ NEU: Update Controller wenn sich Tips ändern
   void _updateControllersFromState(TipFormState state) {
-    // Nur updaten wenn die Werte sich wirklich geändert haben
     final newHomeValue = state.tipHome?.toString() ?? '';
     final newGuestValue = state.tipGuest?.toString() ?? '';
 
@@ -66,6 +81,35 @@ class _TipCardState extends State<TipCard> {
     if (_guestController.text != newGuestValue) {
       _guestController.text = newGuestValue;
     }
+  }
+
+  bool _isTipDeadlineReached() {
+    if (widget.isAdmin) {
+      return false;
+    }
+
+    final now = DateTime.now();
+    final tipDeadline =
+        widget.match.matchDate.subtract(const Duration(minutes: 1));
+
+    // true ab exakt 1 Minute vor Spielbeginn
+    return !now.isBefore(tipDeadline);
+  }
+
+  bool _canDeleteTip(TipFormState formState) {
+    if (formState.tipHome == null || formState.tipGuest == null) {
+      return false;
+    }
+
+    if (widget.isAdmin) {
+      return true;
+    }
+
+    final now = DateTime.now();
+    final tipDeadline =
+        widget.match.matchDate.subtract(const Duration(minutes: 1));
+
+    return now.isBefore(tipDeadline);
   }
 
   @override
@@ -81,7 +125,6 @@ class _TipCardState extends State<TipCard> {
           previous.tipHome != current.tipHome ||
           previous.tipGuest != current.tipGuest,
       listener: (context, state) {
-        // ✅ Update Controller wenn Tips vom Stream kommen
         if (state.matchId == widget.match.id && !state.isLoading) {
           _updateControllersFromState(state);
         }
@@ -102,8 +145,7 @@ class _TipCardState extends State<TipCard> {
                     TipUpdateStatisticsEvent(
                       userId: widget.userId,
                       matchDay: widget.match.matchDay,
-                      forceRefresh:
-                          true, // Stats neu laden nach erfolgreichem Tipp
+                      forceRefresh: true,
                     ),
                   );
             },
@@ -111,7 +153,6 @@ class _TipCardState extends State<TipCard> {
         );
       },
       buildWhen: (previous, current) {
-        // ✅ FIX: Auch rebuilden wenn sich tipHome/tipGuest ändern (für Punkte-Anzeige)
         return previous.joker != current.joker ||
             previous.isLoading != current.isLoading ||
             previous.isSubmitting != current.isSubmitting ||
@@ -120,6 +161,9 @@ class _TipCardState extends State<TipCard> {
             previous.tipGuest != current.tipGuest;
       },
       builder: (context, formState) {
+        final isTipDeadlineReached = _isTipDeadlineReached();
+        final canDeleteTip = _canDeleteTip(formState);
+
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -137,15 +181,10 @@ class _TipCardState extends State<TipCard> {
               TipCardHeader(
                 match: widget.match,
                 tip: widget.tip,
-                // Delete-Button nur anzeigen wenn Tipp existiert UND (Spiel noch nicht 3 Min vor Start ODER Admin ist)
-                onDelete: (formState.tipHome != null &&
-                        formState.tipGuest != null &&
-                        (widget.isAdmin ||
-                            widget.match.matchDate
-                                .subtract(const Duration(minutes: 3))
-                                .isAfter(DateTime.now())))
+                onDelete: canDeleteTip
                     ? () {
                         final tipId = '${widget.userId}_${widget.match.id}';
+
                         context.read<TipFormBloc>().add(
                               TipFormDeleteEvent(
                                 tipId: tipId,
@@ -165,17 +204,16 @@ class _TipCardState extends State<TipCard> {
               ),
               const SizedBox(height: 16),
               TipCardTippingInput(
-                  homeController: _homeController,
-                  guestController: _guestController,
-                  state: formState,
-                  userId: widget.userId,
-                  matchId: widget.match.id,
-                  tip: widget.tip,
-                  // Sperre 3 Minuten vor Spielbeginn
-                  readOnly: !widget.isAdmin &&
-                      widget.match.matchDate
-                          .subtract(const Duration(minutes: 3))
-                          .isBefore(DateTime.now())),
+                homeController: _homeController,
+                guestController: _guestController,
+                state: formState,
+                userId: widget.userId,
+                matchId: widget.match.id,
+                tip: widget.tip,
+                // Normale User: ab 1 Minute vor Spielbeginn read-only.
+                // Admins: weiterhin editierbar.
+                readOnly: isTipDeadlineReached,
+              ),
               if (widget.footer != null) ...[
                 const SizedBox(height: 16),
                 widget.footer!,

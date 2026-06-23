@@ -6,6 +6,8 @@ import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/presentation/home_page/widget/ranking_legend_button.dart';
 import 'package:flutter_web/presentation/home_page/widget/ranking_user_list.dart';
 
+/// Zeigt die Rangliste auf der Homepage an.
+/// Debouncing erfolgt zentral im AuthControllerBloc.
 class RankingSection extends StatelessWidget {
   final String userId;
   final List<AppUser> users;
@@ -15,6 +17,46 @@ class RankingSection extends StatelessWidget {
     required this.userId,
     required this.users,
   }) : super(key: key);
+
+  List<AppUser> _getSortedUsers() {
+    final sortedUsers = List<AppUser>.from(users)
+      ..sort((a, b) {
+        final scoreComparison = b.score.compareTo(a.score);
+        if (scoreComparison != 0) return scoreComparison;
+
+        final jokerComparison = b.jokerSum.compareTo(a.jokerSum);
+        if (jokerComparison != 0) return jokerComparison;
+
+        final sixersComparison = b.sixer.compareTo(a.sixer);
+        if (sixersComparison != 0) return sixersComparison;
+
+        return a.name.compareTo(b.name);
+      });
+
+    return sortedUsers;
+  }
+
+  List<int> _getGlobalRanks(List<AppUser> sortedUsers) {
+    final globalRanks = <int>[];
+    for (var i = 0; i < sortedUsers.length; i++) {
+      if (i == 0) {
+        globalRanks.add(1);
+        continue;
+      }
+      final prev = sortedUsers[i - 1];
+      final curr = sortedUsers[i];
+      final isTie = curr.score == prev.score &&
+          curr.jokerSum == prev.jokerSum &&
+          curr.sixer == prev.sixer;
+      if (isTie) {
+        globalRanks.add(globalRanks[i - 1]);
+      } else {
+        globalRanks.add(i + 1);
+      }
+    }
+
+    return globalRanks;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,41 +68,9 @@ class RankingSection extends StatelessWidget {
           final screenWidth = MediaQuery.of(context).size.width;
           final isMobile = screenWidth < 800;
 
-          // Sortiere nach Score (absteigend), bei Gleichstand nach Joker (absteigend), dann 6er (absteigend), dann Name
-          final sortedUsers = List<AppUser>.from(users)
-            ..sort((a, b) {
-              final scoreComparison = b.score.compareTo(a.score);
-              if (scoreComparison != 0) return scoreComparison;
-
-              final jokerComparison = b.jokerSum.compareTo(a.jokerSum);
-              if (jokerComparison != 0) return jokerComparison;
-
-              final sixersComparison = b.sixer.compareTo(a.sixer);
-              if (sixersComparison != 0) return sixersComparison;
-
-              return a.name.compareTo(b.name);
-            });
-
-          // Berechne globale Ränge (olympisches Ranking): gleiche Score/Joker/Sixer erhalten gleichen Rang, nächster Rang = Position+1
-          final List<int> globalRanks = [];
-          for (var i = 0; i < sortedUsers.length; i++) {
-            if (i == 0) {
-              globalRanks.add(1);
-              continue;
-            }
-            final prev = sortedUsers[i - 1];
-            final curr = sortedUsers[i];
-            final isTie = curr.score == prev.score &&
-                curr.jokerSum == prev.jokerSum &&
-                curr.sixer == prev.sixer;
-            if (isTie) {
-              // gleiche Position wie Vorgänger
-              globalRanks.add(globalRanks[i - 1]);
-            } else {
-              // nächster Rang: Listenposition + 1 (Ränge werden übersprungen)
-              globalRanks.add(i + 1);
-            }
-          }
+          // Direkt Ranking anzeigen - Debouncing erfolgt im BLoC
+          final sortedUsers = _getSortedUsers();
+          final globalRanks = _getGlobalRanks(sortedUsers);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

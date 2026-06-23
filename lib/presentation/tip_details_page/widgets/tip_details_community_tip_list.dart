@@ -41,6 +41,9 @@ class _CommunityTipListState extends State<CommunityTipList> {
   static const double _estimatedMobileItemHeight = 70.0;
   static const double _estimatedDesktopItemHeight = 72.0;
 
+  /// Verhindert erneutes Auto-Scroll bei Datenänderungen
+  bool _hasScrolledForCurrentMatch = false;
+
   @override
   void initState() {
     super.initState();
@@ -51,19 +54,27 @@ class _CommunityTipListState extends State<CommunityTipList> {
   void didUpdateWidget(covariant CommunityTipList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.rankingMode != widget.rankingMode ||
-        oldWidget.users != widget.users ||
-        oldWidget.allTips != widget.allTips ||
-        oldWidget.match.id != widget.match.id) {
+    // Nur bei Match-Wechsel oder Moduswechsel: Reset und neu scrollen
+    final matchChanged = oldWidget.match.id != widget.match.id;
+    final modeChanged = oldWidget.rankingMode != widget.rankingMode;
+
+    if (matchChanged || modeChanged) {
+      _hasScrolledForCurrentMatch = false;
       _scheduleScrollToCurrentUser();
     }
+    // Debouncing erfolgt zentral im AuthControllerBloc
   }
 
   void _scheduleScrollToCurrentUser() {
+    if (_hasScrolledForCurrentMatch) return;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _hasScrolledForCurrentMatch) return;
+
       Future.delayed(const Duration(milliseconds: 80), () {
-        if (!mounted) return;
+        if (!mounted || _hasScrolledForCurrentMatch) return;
         _scrollToCurrentUser();
+        _hasScrolledForCurrentMatch = true;
       });
 
       Future.delayed(const Duration(milliseconds: 220), () {
@@ -251,6 +262,7 @@ class _CommunityTipListState extends State<CommunityTipList> {
     final theme = Theme.of(context);
     final isMobile = MediaQuery.of(context).size.width < 600;
 
+    // Direkt Liste anzeigen - Debouncing erfolgt im BLoC
     final sortedUsers = _sortedUsers();
     final ranks = _ranks(sortedUsers);
 

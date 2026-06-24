@@ -56,6 +56,7 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
         : widget.returnIndex;
     final returnFilter =
         routeData.queryParameters['filter'] ?? widget.returnFilter;
+    final returnFrom = routeData.queryParameters['from']; // ✅ NEU: from Parameter
 
     return Scaffold(
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
@@ -180,7 +181,12 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                                 child: IconButton(
                                                   icon: const Icon(Icons.close),
                                                   onPressed: () {
-                                                    if (returnIndex != null) {
+                                                    // ✅ Wenn von HomePage, dann zurück zur HomePage
+                                                    if (returnFrom == 'home') {
+                                                      Routemaster.of(context)
+                                                          .replace('/home');
+                                                    } else if (returnIndex != null) {
+                                                      // ✅ Sonst zur Tips-Liste mit returnIndex
                                                       final filterParam =
                                                           returnFilter != null
                                                               ? '&filter=${Uri.encodeComponent(returnFilter)}'
@@ -191,6 +197,7 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                                         '/tips?returnIndex=$returnIndex$filterParam',
                                                       );
                                                     } else {
+                                                      // ✅ Default: HomePage
                                                       Routemaster.of(context)
                                                           .replace('/home');
                                                     }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
@@ -9,10 +11,17 @@ import 'package:flutter_web/domain/entities/tip.dart';
 import 'package:flutter_web/domain/repositories/auth_repository.dart';
 import 'package:flutter_web/domain/repositories/tip_repository.dart';
 import 'package:flutter_web/infrastructure/models/tip_model.dart';
+import 'package:rxdart/rxdart.dart';
 
 class TipRepositoryImpl implements TipRepository {
   final FirebaseFirestore firebaseFirestore;
   final AuthRepository authRepository;
+
+  // ✅ BehaviorSubject - cached letzten Wert für späte Listener
+  BehaviorSubject<Either<TipFailure, Map<String, List<Tip>>>>? _tipsSubject;
+  StreamSubscription? _tipsSub;
+  int _streamEventCount = 0;
+
   TipRepositoryImpl({
     required this.firebaseFirestore,
     required this.authRepository,
@@ -42,19 +51,22 @@ class TipRepositoryImpl implements TipRepository {
 
   @override
   Stream<Either<TipFailure, List<Tip>>> watchUserTips(String userId) async* {
-    debugPrint('🎯 [TipRepository] watchUserTips STREAM STARTED for user: $userId');
+    debugPrint(
+        '🎯 [TipRepository] watchUserTips STREAM STARTED for user: $userId');
     FirestoreLogger.logRead('tips', 'watchUserTips (STREAM)', docId: userId);
-    
+
     int eventCount = 0;
-    
+
     yield* tipsCollection
         .where('userId', isEqualTo: userId)
         .snapshots()
         // .throttleTime(const Duration(milliseconds: 300), trailing: true)
         .map<Either<TipFailure, List<Tip>>>((snapshot) {
       eventCount++;
-      FirestoreLogger.logRead('tips', 'watchUserTips (EVENT #$eventCount)', docId: '$userId [${snapshot.docs.length} docs]');
-      debugPrint('📥 [TipRepository] watchUserTips EVENT #$eventCount: ${snapshot.docs.length} tips for $userId');
+      FirestoreLogger.logRead('tips', 'watchUserTips (EVENT #$eventCount)',
+          docId: '$userId [${snapshot.docs.length} docs]');
+      debugPrint(
+          '📥 [TipRepository] watchUserTips EVENT #$eventCount: ${snapshot.docs.length} tips for $userId');
       try {
         final userTips = snapshot.docs
             .map((doc) => TipModel.fromFirestore(doc).toDomain())
@@ -83,7 +95,8 @@ class TipRepositoryImpl implements TipRepository {
   }
 
   @override
-  Stream<Either<TipFailure, List<Tip>>> watchTipsForMatch(String matchId) async* {
+  Stream<Either<TipFailure, List<Tip>>> watchTipsForMatch(
+      String matchId) async* {
     yield* tipsCollection
         .where('matchId', isEqualTo: matchId)
         .snapshots()
@@ -116,48 +129,61 @@ class TipRepositoryImpl implements TipRepository {
   }
 
   @override
-  Stream<Either<TipFailure, Map<String, List<Tip>>>> watchAll() async* {
-    debugPrint('🎯 [TipRepository] watchAll STREAM STARTED');
+  Stream<Either<TipFailure, Map<String, List<Tip>>>> watchAll() {
+    // ✅ BehaviorSubject - cached letzten Wert, späte Listener bekommen sofort Daten
+    if (_tipsSubject != null) {
+      debugPrint(
+          '♻️ [TipRepository] watchAll - Returning existing BehaviorSubject stream');
+      return _tipsSubject!.stream;
+    }
+
+    debugPrint('🎯 [TipRepository] watchAll STREAM STARTED (SINGLETON)');
     FirestoreLogger.logRead('tips', 'watchAll (STREAM)');
-    
-    int eventCount = 0;
-    
-    yield* tipsCollection
-        .snapshots()
-        // .throttleTime(const Duration(milliseconds: 300), trailing: true)
-        .map<Either<TipFailure, Map<String, List<Tip>>>>((snapshot) {
-      eventCount++;
-      FirestoreLogger.logRead('tips', 'watchAll (EVENT #$eventCount)', docId: '[${snapshot.docs.length} docs]');
-      debugPrint('📥 [TipRepository] watchAll EVENT #$eventCount: ${snapshot.docs.length} tips total');
-      try {
-        final userTipsMap = <String, List<Tip>>{};
-        for (var doc in snapshot.docs) {
-          final tip = TipModel.fromFirestore(doc).toDomain();
-          final userId = tip.userId.toString();
-          userTipsMap.putIfAbsent(userId, () => []);
-          userTipsMap[userId]!.add(tip);
+
+    _tipsSubject =
+        BehaviorSubject<Either<TipFailure, Map<String, List<Tip>>>>();
+
+    _tipsSub = tipsCollection.snapshots().listen(
+      (snapshot) {
+        _streamEventCount++;
+        FirestoreLogger.logRead('tips', 'watchAll (EVENT #$_streamEventCount)',
+            docId: '[${snapshot.docs.length} docs]');
+        debugPrint(
+            '📥 [TipRepository] watchAll EVENT #$_streamEventCount: ${snapshot.docs.length} tips total');
+        try {
+          final userTipsMap = <String, List<Tip>>{};
+          for (var doc in snapshot.docs) {
+            final tip = TipModel.fromFirestore(doc).toDomain();
+            final userId = tip.userId.toString();
+            userTipsMap.putIfAbsent(userId, () => []);
+            userTipsMap[userId]!.add(tip);
+          }
+          _tipsSubject!
+              .add(right<TipFailure, Map<String, List<Tip>>>(userTipsMap));
+        } catch (e) {
+          _tipsSubject!.add(left<TipFailure, Map<String, List<Tip>>>(
+            mapFirebaseError<TipFailure>(
+              e,
+              insufficientPermissions: InsufficientPermisssons(),
+              unexpected: UnexpectedFailure(),
+              notFound: NotFoundFailure(),
+            ),
+          ));
         }
-        return right<TipFailure, Map<String, List<Tip>>>(userTipsMap);
-      } catch (e) {
-        return left<TipFailure, Map<String, List<Tip>>>(
+      },
+      onError: (e) {
+        _tipsSubject!.add(left<TipFailure, Map<String, List<Tip>>>(
           mapFirebaseError<TipFailure>(
             e,
             insufficientPermissions: InsufficientPermisssons(),
             unexpected: UnexpectedFailure(),
             notFound: NotFoundFailure(),
           ),
-        );
-      }
-    }).handleError((e) {
-      return left<TipFailure, Map<String, List<Tip>>>(
-        mapFirebaseError<TipFailure>(
-          e,
-          insufficientPermissions: InsufficientPermisssons(),
-          unexpected: UnexpectedFailure(),
-          notFound: NotFoundFailure(),
-        ),
-      );
-    });
+        ));
+      },
+    );
+
+    return _tipsSubject!.stream;
   }
 
   @override
@@ -165,9 +191,11 @@ class TipRepositoryImpl implements TipRepository {
     required String userId,
     required int matchDay,
   }) async {
-    FirestoreLogger.logRead('tips', 'getJokersUsedInMatchDay', docId: 'user=$userId, matchDay=$matchDay');
-    debugPrint('🃏 [TipRepository] getJokersUsedInMatchDay: user=$userId, matchDay=$matchDay');
-    
+    FirestoreLogger.logRead('tips', 'getJokersUsedInMatchDay',
+        docId: 'user=$userId, matchDay=$matchDay');
+    debugPrint(
+        '🃏 [TipRepository] getJokersUsedInMatchDay: user=$userId, matchDay=$matchDay');
+
     try {
       // ✅ Bestimme die Phase und alle zugehörigen matchDays
       final phase = MatchPhase.fromMatchDay(matchDay);
@@ -212,18 +240,20 @@ class TipRepositoryImpl implements TipRepository {
   }
 
   /// ✅ Hilfsmethode: Lädt matchDays für mehrere matchIds in Batches
-  Future<Map<String, int>> _loadMatchDaysForMatchIds(List<String> matchIds) async {
+  Future<Map<String, int>> _loadMatchDaysForMatchIds(
+      List<String> matchIds) async {
     final result = <String, int>{};
-    
+
     // Firestore erlaubt max 10 Elemente pro whereIn Query
     for (var i = 0; i < matchIds.length; i += 10) {
-      final batch = matchIds.sublist(i, i + 10 > matchIds.length ? matchIds.length : i + 10);
-      
+      final batch = matchIds.sublist(
+          i, i + 10 > matchIds.length ? matchIds.length : i + 10);
+
       final querySnapshot = await firebaseFirestore
           .collection('matches')
           .where(FieldPath.documentId, whereIn: batch)
           .get();
-      
+
       for (final doc in querySnapshot.docs) {
         final matchData = doc.data();
         final docMatchDay = matchData['matchDay'] as int?;
@@ -232,7 +262,7 @@ class TipRepositoryImpl implements TipRepository {
         }
       }
     }
-    
+
     return result;
   }
 
@@ -258,9 +288,8 @@ class TipRepositoryImpl implements TipRepository {
   @override
   Future<Either<TipFailure, List<Tip>>> getTipsForMatch(String matchId) async {
     try {
-      final querySnapshot = await tipsCollection
-          .where('matchId', isEqualTo: matchId)
-          .get();
+      final querySnapshot =
+          await tipsCollection.where('matchId', isEqualTo: matchId).get();
 
       final tips = querySnapshot.docs
           .map((doc) => TipModel.fromFirestore(doc).toDomain())
@@ -275,9 +304,8 @@ class TipRepositoryImpl implements TipRepository {
   @override
   Future<Either<TipFailure, List<Tip>>> getTipsByUserId(String userId) async {
     try {
-      final querySnapshot = await tipsCollection
-          .where('userId', isEqualTo: userId)
-          .get();
+      final querySnapshot =
+          await tipsCollection.where('userId', isEqualTo: userId).get();
 
       final tips = querySnapshot.docs
           .map((doc) => TipModel.fromFirestore(doc).toDomain())
@@ -307,9 +335,11 @@ class TipRepositoryImpl implements TipRepository {
     required String userId,
     required int matchDay,
   }) async {
-    FirestoreLogger.logRead('tips', 'getTippedGamesInMatchDay', docId: 'user=$userId, matchDay=$matchDay');
-    debugPrint('🎮 [TipRepository] getTippedGamesInMatchDay: user=$userId, matchDay=$matchDay');
-    
+    FirestoreLogger.logRead('tips', 'getTippedGamesInMatchDay',
+        docId: 'user=$userId, matchDay=$matchDay');
+    debugPrint(
+        '🎮 [TipRepository] getTippedGamesInMatchDay: user=$userId, matchDay=$matchDay');
+
     try {
       // First, get all tips for the user that are not null on at least one field.
       // Firestore does not allow multiple inequality filters.
@@ -339,7 +369,8 @@ class TipRepositoryImpl implements TipRepository {
       }
 
       // ✅ Lade alle Matches in Batches
-      final matchDayMap = await _loadMatchDaysForMatchIds(matchIdsWithValidTips);
+      final matchDayMap =
+          await _loadMatchDaysForMatchIds(matchIdsWithValidTips);
 
       // Zähle nur Tips für den angegebenen matchDay
       int tippedGamesCount = 0;
@@ -410,9 +441,11 @@ class TipRepositoryImpl implements TipRepository {
     required String userId,
     required List<int> matchDays,
   }) async {
-    FirestoreLogger.logRead('tips', 'getTippedGamesInMatchDays', docId: 'user=$userId, matchDays=$matchDays');
-    debugPrint('🎮 [TipRepository] getTippedGamesInMatchDays: user=$userId, matchDays=$matchDays');
-    
+    FirestoreLogger.logRead('tips', 'getTippedGamesInMatchDays',
+        docId: 'user=$userId, matchDays=$matchDays');
+    debugPrint(
+        '🎮 [TipRepository] getTippedGamesInMatchDays: user=$userId, matchDays=$matchDays');
+
     try {
       // Hole alle Tips des Users mit gültigen Werten
       final querySnapshot = await tipsCollection
@@ -424,7 +457,7 @@ class TipRepositoryImpl implements TipRepository {
       final matchIdsWithValidTips = <String>[];
       for (final doc in querySnapshot.docs) {
         final tipData = doc.data() as Map<String, dynamic>;
-        
+
         // Client-side Filter für tipGuest (Firestore erlaubt keine zwei inequality Filter)
         if (tipData['tipGuest'] == null) {
           continue;
@@ -441,7 +474,8 @@ class TipRepositoryImpl implements TipRepository {
       }
 
       // Lade alle Matches in Batches um matchDay zu ermitteln
-      final matchDayMap = await _loadMatchDaysForMatchIds(matchIdsWithValidTips);
+      final matchDayMap =
+          await _loadMatchDaysForMatchIds(matchIdsWithValidTips);
 
       // Zähle nur Tips für die angegebenen matchDays
       int tippedGamesCount = 0;

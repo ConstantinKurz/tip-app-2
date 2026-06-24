@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
@@ -9,10 +11,16 @@ import 'package:flutter_web/core/utils/firestore_logger.dart';
 import 'package:flutter_web/domain/entities/user.dart';
 import 'package:flutter_web/domain/repositories/auth_repository.dart';
 import 'package:flutter_web/infrastructure/models/user_model.dart';
+import 'package:rxdart/rxdart.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuth firebaseAuth;
   final FirebaseFirestore firebaseFirestore;
+
+  // ✅ BehaviorSubject - cached letzten Wert für späte Listener
+  BehaviorSubject<Either<AuthFailure, List<AppUser>>>? _usersSubject;
+  StreamSubscription? _usersSub;
+  int _streamEventCount = 0;
 
   AuthRepositoryImpl(
       {required this.firebaseAuth, required this.firebaseFirestore});
@@ -138,28 +146,46 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers() async* {
-    debugPrint('🎯 [AuthRepository] watchAllUsers STREAM STARTED');
+  Stream<Either<AuthFailure, List<AppUser>>> watchAllUsers() {
+    // ✅ BehaviorSubject - cached letzten Wert, späte Listener bekommen sofort Daten
+    if (_usersSubject != null) {
+      debugPrint(
+          '♻️ [AuthRepository] watchAllUsers - Returning existing BehaviorSubject stream');
+      return _usersSubject!.stream;
+    }
+
+    debugPrint('🎯 [AuthRepository] watchAllUsers STREAM STARTED (SINGLETON)');
     FirestoreLogger.logRead('users', 'watchAllUsers (STREAM)');
 
-    int eventCount = 0;
+    _usersSubject = BehaviorSubject<Either<AuthFailure, List<AppUser>>>();
 
-    yield* usersCollection
-        .orderBy('rank')
-        .snapshots()
-        .map<Either<AuthFailure, List<AppUser>>>((snapshot) {
-      eventCount++;
-      FirestoreLogger.logRead('users', 'watchAllUsers (EVENT #$eventCount)',
-          docId: '[${snapshot.docs.length} docs]');
-      debugPrint(
-          '📥 [AuthRepository] watchAllUsers EVENT #$eventCount: ${snapshot.docs.length} users');
-      try {
-        final users = snapshot.docs
-            .map((doc) => UserModel.fromFirestore(doc).toDomain())
-            .toList();
-        return right<AuthFailure, List<AppUser>>(users);
-      } catch (e) {
-        return left<AuthFailure, List<AppUser>>(
+    _usersSub = usersCollection.snapshots().listen(
+      (snapshot) {
+        _streamEventCount++;
+        FirestoreLogger.logRead(
+            'users', 'watchAllUsers (EVENT #$_streamEventCount)',
+            docId: '[${snapshot.docs.length} docs]');
+        debugPrint(
+            '📥 [AuthRepository] watchAllUsers EVENT #$_streamEventCount: ${snapshot.docs.length} users');
+        try {
+          final users = snapshot.docs
+              .map((doc) => UserModel.fromFirestore(doc).toDomain())
+              .toList();
+          _usersSubject!.add(right<AuthFailure, List<AppUser>>(users));
+        } catch (e) {
+          _usersSubject!.add(left<AuthFailure, List<AppUser>>(
+            mapFirebaseError<AuthFailure>(
+              e,
+              insufficientPermissions: InsufficientPermisssons(),
+              unexpected: UnexpectedAuthFailure(),
+              notFound: UserNotFoundFailure(
+                  message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+            ),
+          ));
+        }
+      },
+      onError: (e) {
+        _usersSubject!.add(left<AuthFailure, List<AppUser>>(
           mapFirebaseError<AuthFailure>(
             e,
             insufficientPermissions: InsufficientPermisssons(),
@@ -167,19 +193,11 @@ class AuthRepositoryImpl implements AuthRepository {
             notFound: UserNotFoundFailure(
                 message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
           ),
-        );
-      }
-    }).handleError((e) {
-      return left<AuthFailure, List<AppUser>>(
-        mapFirebaseError<AuthFailure>(
-          e,
-          insufficientPermissions: InsufficientPermisssons(),
-          unexpected: UnexpectedAuthFailure(),
-          notFound: UserNotFoundFailure(
-              message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
-        ),
-      );
-    });
+        ));
+      },
+    );
+
+    return _usersSubject!.stream;
   }
 
   @override
@@ -263,7 +281,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final snapshot = await usersCollection.get();
       FirestoreLogger.logRead('users', 'getAllUsers (RESULT)',
           docId: '[${snapshot.docs.length} docs]');
-      debugPrint('✅ [AuthRepository] getAllUsers: ${snapshot.docs.length} users');
+      debugPrint(
+          '✅ [AuthRepository] getAllUsers: ${snapshot.docs.length} users');
       final users = snapshot.docs
           .map((doc) => UserModel.fromFirestore(doc).toDomain())
           .toList();

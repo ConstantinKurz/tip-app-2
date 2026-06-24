@@ -37,6 +37,13 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   // ✅ FIX: Track current user to reset stats on user change
   String? _currentUserId;
 
+  // ✅ Debouncing für Tip-Updates (reduziert Event-Flut)
+  Timer? _debounceTimer;
+  static const _debounceDuration = Duration(milliseconds: 500);
+  Either<TipFailure, dynamic>? _pendingTipData;
+  String? _pendingUserId;
+  bool _isDebouncing = false;
+
   TipControllerBloc({
     required this.tipRepository,
     required this.matchRepository,
@@ -45,6 +52,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     on<TipLoadForUserEvent>(_onLoadForUser);
     on<TipAllEvent>(_onTipAllEvent);
     on<TipUpdatedEvent>(_onTipUpdatedEvent);
+    on<_DebouncedTipUpdateEvent>(_onDebouncedTipUpdate);
     on<TipUpdateStatisticsEvent>(_onUpdateStatistics);
     on<TipResetEvent>(_onReset);
     on<TipLoadForMatchEvent>(_onLoadForMatch);
@@ -136,6 +144,45 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     TipUpdatedEvent event,
     Emitter<TipControllerState> emit,
   ) {
+    // ✅ Debouncing: Bei laufendem Debounce nur Daten speichern
+    if (_isDebouncing) {
+      _pendingTipData = event.failureOrTip;
+      _pendingUserId = event.userId;
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(_debounceDuration, () {
+        if (_pendingTipData != null) {
+          add(_DebouncedTipUpdateEvent(
+            failureOrTip: _pendingTipData!,
+            userId: _pendingUserId,
+          ));
+        }
+      });
+      return;
+    }
+
+    // Starte Debouncing
+    _isDebouncing = true;
+    _pendingTipData = event.failureOrTip;
+    _pendingUserId = event.userId;
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_debounceDuration, () {
+      if (_pendingTipData != null) {
+        add(_DebouncedTipUpdateEvent(
+          failureOrTip: _pendingTipData!,
+          userId: _pendingUserId,
+        ));
+      }
+    });
+  }
+
+  void _onDebouncedTipUpdate(
+    _DebouncedTipUpdateEvent event,
+    Emitter<TipControllerState> emit,
+  ) {
+    _isDebouncing = false;
+    _pendingTipData = null;
+    _pendingUserId = null;
+
     event.failureOrTip.fold(
       (failure) => emit(TipControllerFailure(tipFailure: failure)),
       (tips) {
@@ -483,6 +530,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   @override
   Future<void> close() async {
     await _tipStreamSub?.cancel();
+    _debounceTimer?.cancel();
     _loadingMatchDays.clear();
     return super.close();
   }

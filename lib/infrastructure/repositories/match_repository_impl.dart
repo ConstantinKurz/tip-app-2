@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
@@ -7,50 +9,74 @@ import 'package:flutter_web/core/utils/firestore_logger.dart';
 import 'package:flutter_web/domain/entities/match.dart';
 import 'package:flutter_web/domain/repositories/match_repository.dart';
 import 'package:flutter_web/infrastructure/models/match_model.dart';
+import 'package:rxdart/rxdart.dart';
 
 class MatchRepositoryImpl implements MatchRepository {
   final FirebaseFirestore firebaseFirestore;
+
+  // ✅ BehaviorSubject - cached letzten Wert für späte Listener
+  BehaviorSubject<Either<MatchFailure, List<CustomMatch>>>? _matchesSubject;
+  StreamSubscription? _matchesSub;
+  int _streamEventCount = 0;
+
   MatchRepositoryImpl({required this.firebaseFirestore});
 
-  CollectionReference get matchesCollection => firebaseFirestore.collection('matches');
+  CollectionReference get matchesCollection =>
+      firebaseFirestore.collection('matches');
 
   @override
-  Stream<Either<MatchFailure, List<CustomMatch>>> watchAllMatches() async* {
-    debugPrint('🎯 [MatchRepository] watchAllMatches STREAM STARTED');
-    FirestoreLogger.logRead('matches', 'watchAllMatches (STREAM)');
-    
-    int eventCount = 0;
-    
-    yield* matchesCollection.orderBy('matchDate').snapshots().map<Either<MatchFailure, List<CustomMatch>>>((snapshot) {
-      eventCount++;
-      FirestoreLogger.logRead('matches', 'watchAllMatches (EVENT #$eventCount)', docId: '[${snapshot.docs.length} docs]');
-      debugPrint('📥 [MatchRepository] watchAllMatches EVENT #$eventCount: ${snapshot.docs.length} matches');
-      try {
-        final matches = snapshot.docs
-            .map((doc) => MatchModel.fromFirestore(doc).toDomain())
-            .toList();
+  Stream<Either<MatchFailure, List<CustomMatch>>> watchAllMatches() {
+    // ✅ BehaviorSubject - cached letzten Wert, späte Listener bekommen sofort Daten
+    if (_matchesSubject != null) {
+      debugPrint(
+          '♻️ [MatchRepository] watchAllMatches - Returning existing BehaviorSubject stream');
+      return _matchesSubject!.stream;
+    }
 
-        return right<MatchFailure, List<CustomMatch>>(matches);
-      } catch (e) {
-        return left<MatchFailure, List<CustomMatch>>(
+    debugPrint(
+        '🎯 [MatchRepository] watchAllMatches STREAM STARTED (SINGLETON)');
+    FirestoreLogger.logRead('matches', 'watchAllMatches (STREAM)');
+
+    _matchesSubject =
+        BehaviorSubject<Either<MatchFailure, List<CustomMatch>>>();
+
+    _matchesSub = matchesCollection.orderBy('matchDate').snapshots().listen(
+      (snapshot) {
+        _streamEventCount++;
+        FirestoreLogger.logRead(
+            'matches', 'watchAllMatches (EVENT #$_streamEventCount)',
+            docId: '[${snapshot.docs.length} docs]');
+        debugPrint(
+            '📥 [MatchRepository] watchAllMatches EVENT #$_streamEventCount: ${snapshot.docs.length} matches');
+        try {
+          final matches = snapshot.docs
+              .map((doc) => MatchModel.fromFirestore(doc).toDomain())
+              .toList();
+          _matchesSubject!.add(right<MatchFailure, List<CustomMatch>>(matches));
+        } catch (e) {
+          _matchesSubject!.add(left<MatchFailure, List<CustomMatch>>(
+            mapFirebaseError<MatchFailure>(
+              e,
+              insufficientPermissions: InsufficientPermisssons(),
+              unexpected: UnexpectedFailure(),
+              notFound: NotFoundFailure(),
+            ),
+          ));
+        }
+      },
+      onError: (e) {
+        _matchesSubject!.add(left<MatchFailure, List<CustomMatch>>(
           mapFirebaseError<MatchFailure>(
             e,
             insufficientPermissions: InsufficientPermisssons(),
             unexpected: UnexpectedFailure(),
             notFound: NotFoundFailure(),
           ),
-        );
-      }
-    }).handleError((e) {
-      return left<MatchFailure, List<CustomMatch>>(
-        mapFirebaseError<MatchFailure>(
-          e,
-          insufficientPermissions: InsufficientPermisssons(),
-          unexpected: UnexpectedFailure(),
-          notFound: NotFoundFailure(),
-        ),
-      );
-    });
+        ));
+      },
+    );
+
+    return _matchesSubject!.stream;
   }
 
   @override
@@ -90,8 +116,10 @@ class MatchRepositoryImpl implements MatchRepository {
       FirestoreLogger.logRead('matches', 'getAllMatches');
       debugPrint('📥 [MatchRepository] getAllMatches called');
       final snapshot = await matchesCollection.get();
-      FirestoreLogger.logRead('matches', 'getAllMatches (RESULT)', docId: '[${snapshot.docs.length} docs]');
-      debugPrint('✅ [MatchRepository] getAllMatches: ${snapshot.docs.length} matches');
+      FirestoreLogger.logRead('matches', 'getAllMatches (RESULT)',
+          docId: '[${snapshot.docs.length} docs]');
+      debugPrint(
+          '✅ [MatchRepository] getAllMatches: ${snapshot.docs.length} matches');
       final matches = snapshot.docs
           .map((doc) => MatchModel.fromFirestore(doc).toDomain())
           .toList();

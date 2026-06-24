@@ -15,7 +15,8 @@ class TipAllEvent extends TipControllerEvent {}
 // ✅ NEU: Reset Event für Logout
 class TipResetEvent extends TipControllerEvent {}
 
-class TipUpdatedEvent extends TipControllerEvent { // ✅ NEU
+class TipUpdatedEvent extends TipControllerEvent {
+  // ✅ NEU
   final Either<TipFailure, dynamic> failureOrTip;
   final String? userId;
 
@@ -42,4 +43,15 @@ class TipLoadForMatchEvent extends TipControllerEvent {
   final String matchId;
 
   TipLoadForMatchEvent({required this.matchId});
+}
+
+// ✅ Internes Event für Debouncing
+class _DebouncedTipUpdateEvent extends TipControllerEvent {
+  final Either<TipFailure, dynamic> failureOrTip;
+  final String? userId;
+
+  _DebouncedTipUpdateEvent({
+    required this.failureOrTip,
+    this.userId,
+  });
 }

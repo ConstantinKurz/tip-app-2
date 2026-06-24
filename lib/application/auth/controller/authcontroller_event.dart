@@ -13,9 +13,8 @@ class AuthUpdatedEvent extends AuthControllerEvent {
   });
 }
 
-/// Internes Event für debounced Updates (nach 3s Stabilität)
+/// Internes Event für debounced Updates (nach 800ms Stabilität)
 class _DebouncedUpdateEvent extends AuthControllerEvent {
   final List<AppUser> users;
-  final AppUser? signedInUser;
-  _DebouncedUpdateEvent({required this.users, this.signedInUser});
+  _DebouncedUpdateEvent({required this.users});
 }

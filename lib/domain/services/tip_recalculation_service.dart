@@ -11,11 +11,15 @@ class TipRecalculationService {
 
   // Map zum Speichern des letzten Match-Status
   final Map<String, CustomMatch> _lastMatchesById = {};
-  
+
   // ✅ Debounce Timer für Batch-Updates
   Timer? _debounceTimer;
   final List<CustomMatch> _pendingMatches = [];
   static const _debounceDuration = Duration(milliseconds: 500);
+
+  // ✅ Stream Subscription für Cancel bei Neustart
+  StreamSubscription? _matchStreamSub;
+  bool _isListening = false;
 
   TipRecalculationService({
     required this.matchRepository,
@@ -25,9 +29,18 @@ class TipRecalculationService {
   /// Startet den Listener für Match-Änderungen
   /// Horcht auf watchAllMatches() Stream und reagiert auf neue Ergebnisse
   void startListening() {
-    debugPrint('🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
+    // ✅ Verhindere mehrfaches Starten
+    if (_isListening) {
+      debugPrint('⏭️ TipRecalculationService bereits aktiv - überspringe');
+      return;
+    }
+    _isListening = true;
 
-    matchRepository.watchAllMatches().listen(
+    debugPrint(
+        '🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
+
+    _matchStreamSub?.cancel();
+    _matchStreamSub = matchRepository.watchAllMatches().listen(
       (failureOrMatches) async {
         await failureOrMatches.fold(
           (failure) async {
@@ -74,20 +87,29 @@ class TipRecalculationService {
       final matchesToProcess = List<CustomMatch>.from(_pendingMatches);
       _pendingMatches.clear();
 
-      debugPrint('🔄 ${matchesToProcess.length} Matches mit Ergebnis-Änderung werden verarbeitet...');
-      // Update Punkte für Matches
+      debugPrint(
+          '🔄 ${matchesToProcess.length} Matches mit Ergebnis-Änderung werden verarbeitet...');
+
+      // ✅ Update Punkte für alle Matches OHNE User-Score-Update (sammelt betroffene User)
       for (final match in matchesToProcess) {
         await _recalculateForMatch(match);
       }
-      // Dann rufe ranking update auf.
+
+      // ✅ EINMAL am Ende: User-Scores für alle betroffenen User aktualisieren
+      await recalculateMatchTipsUseCase.updatePendingUserScores();
+
       // ✅ Ranking nur EINMAL nach allen Updates!
       await recalculateMatchTipsUseCase.updateAllUserRankings();
     });
   }
 
-  /// Neuberechnet Punkte für ein einzelnes Match
+  /// Neuberechnet Punkte für ein einzelnes Match (ohne User-Score-Update)
   Future<void> _recalculateForMatch(CustomMatch match) async {
-    final result = await recalculateMatchTipsUseCase(match: match);
+    // ✅ skipUserScoreUpdate: true - User-Scores werden am Ende gesammelt aktualisiert
+    final result = await recalculateMatchTipsUseCase(
+      match: match,
+      skipUserScoreUpdate: true,
+    );
 
     result.fold(
       (failure) {

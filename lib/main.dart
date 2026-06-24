@@ -117,251 +117,270 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
           final isAuthenticated = authState is AuthStateAuthenticated;
-          final authControllerState = context.watch<AuthControllerBloc>().state;
-          bool isAdmin = false;
-          String? userId;
 
-          if (authControllerState is AuthControllerLoaded) {
-            isAdmin = authControllerState.signedInUser?.admin ?? false;
-            userId = authControllerState.signedInUser?.id;
-          }
-
-          // ✅ FIX: Reset flags und Bloc wenn nicht authentifiziert (Logout)
-          if (!isAuthenticated && _tipBlocInitialized) {
-            _tipBlocInitialized = false;
-            _tipBlocInitializedForUser = null;
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              debugPrint('🚪 [Main] Logout detected: Dispatching TipResetEvent');
-              context.read<TipControllerBloc>().add(TipResetEvent());
-            });
-          }
-
-          // ✅ Initialisiere TipControllerBloc basierend auf User-Rolle
-          // ✅ FIX: Dispatch bei User-Wechsel (neue userId)
-          if (isAuthenticated &&
-              userId != null &&
-              (!_tipBlocInitialized || _tipBlocInitializedForUser != userId)) {
-            _tipBlocInitialized = true;
-            _tipBlocInitializedForUser = userId;
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final tipBloc = context.read<TipControllerBloc>();
-
-              // ✅ FIX: Immer neu laden bei User-Wechsel (User-ID hat sich geändert)
-              if (isAdmin) {
-                debugPrint(
-                    '👑 [Main] Admin: Dispatching TipAllEvent for user: $userId');
-                tipBloc.add(TipAllEvent());
-              } else {
-                debugPrint(
-                    '👤 [Main] User: Dispatching TipLoadForUserEvent for user: $userId');
-                tipBloc.add(TipLoadForUserEvent(userId: userId!));
+          // ✅ Verwende BlocBuilder statt context.watch() um excessive Rebuilds zu vermeiden
+          return BlocBuilder<AuthControllerBloc, AuthControllerState>(
+            buildWhen: (previous, current) {
+              // Nur rebuilden wenn signedInUser sich ändert (admin status, userId)
+              if (previous is AuthControllerLoaded &&
+                  current is AuthControllerLoaded) {
+                return previous.signedInUser?.id != current.signedInUser?.id ||
+                    previous.signedInUser?.admin != current.signedInUser?.admin;
               }
-            });
-          }
-          return MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            title: 'Shorty Tipp',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.dark,
-            routeInformationParser: const RoutemasterParser(),
-            routerDelegate: RoutemasterDelegate(
-              routesBuilder: (_) {
-                // 1) Initialer Zustand → Splash
-                if (authState is AuthInitial) {
-                  return RouteMap(
-                    //dummy routes
-                    routes: const {},
-                    onUnknownRoute: (_) => MaterialPage(
-                      child: PageTemplate(
-                        isAuthenticated: false,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.secondary,
+              return previous.runtimeType != current.runtimeType;
+            },
+            builder: (context, authControllerState) {
+              bool isAdmin = false;
+              String? userId;
+
+              if (authControllerState is AuthControllerLoaded) {
+                isAdmin = authControllerState.signedInUser?.admin ?? false;
+                userId = authControllerState.signedInUser?.id;
+              }
+
+              // ✅ FIX: Reset flags und Bloc wenn nicht authentifiziert (Logout)
+              if (!isAuthenticated && _tipBlocInitialized) {
+                _tipBlocInitialized = false;
+                _tipBlocInitializedForUser = null;
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  debugPrint(
+                      '🚪 [Main] Logout detected: Dispatching TipResetEvent');
+                  context.read<TipControllerBloc>().add(TipResetEvent());
+                });
+              }
+
+              // ✅ Initialisiere TipControllerBloc basierend auf User-Rolle
+              // ✅ FIX: Dispatch bei User-Wechsel (neue userId)
+              if (isAuthenticated &&
+                  userId != null &&
+                  (!_tipBlocInitialized ||
+                      _tipBlocInitializedForUser != userId)) {
+                _tipBlocInitialized = true;
+                _tipBlocInitializedForUser = userId;
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  final tipBloc = context.read<TipControllerBloc>();
+
+                  // ✅ FIX: Immer neu laden bei User-Wechsel (User-ID hat sich geändert)
+                  if (isAdmin) {
+                    debugPrint(
+                        '👑 [Main] Admin: Dispatching TipAllEvent for user: $userId');
+                    tipBloc.add(TipAllEvent());
+                  } else {
+                    debugPrint(
+                        '👤 [Main] User: Dispatching TipLoadForUserEvent for user: $userId');
+                    tipBloc.add(TipLoadForUserEvent(userId: userId!));
+                  }
+                });
+              }
+              return MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                title: 'Shorty Tipp',
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: ThemeMode.dark,
+                routeInformationParser: const RoutemasterParser(),
+                routerDelegate: RoutemasterDelegate(
+                  routesBuilder: (_) {
+                    // 1) Initialer Zustand → Splash
+                    if (authState is AuthInitial) {
+                      return RouteMap(
+                        //dummy routes
+                        routes: const {},
+                        onUnknownRoute: (_) => MaterialPage(
+                          child: PageTemplate(
+                            isAuthenticated: false,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
                           ),
                         ),
+                      );
+                    }
+
+                    // 2) Eingeloggt → alle geschützten Seiten
+                    if (isAuthenticated) {
+                      return RouteMap(
+                          onUnknownRoute: (_) => const Redirect(AppRoutes.home),
+                          routes: {
+                            AppRoutes.home: (_) => const MaterialPage(
+                                child: HomePage(isAuthenticated: true)),
+                            AppRoutes.rules: (_) => const MaterialPage(
+                                child: RulesPage(isAuthenticated: true)),
+                            AppRoutes.admin: (_) => isAdmin
+                                ? const MaterialPage(
+                                    child: AdminPage(isAuthenticated: true),
+                                  )
+                                : const MaterialPage(
+                                    child: HomePage(isAuthenticated: true)),
+                            AppRoutes.adminUserTips: (info) {
+                              final userId = info.pathParameters['userId']!;
+                              return MaterialPage(
+                                child: AdminUserTipDetailsPage(
+                                  isAuthenticated: true,
+                                  selectedUserId: userId,
+                                ),
+                              );
+                            },
+                            // Admin Match Routes
+                            AppRoutes.adminMatchCreate: (_) => isAdmin
+                                ? const MaterialPage(
+                                    child: AdminMatchFormPage(
+                                        action: MatchFormAction.create))
+                                : const Redirect(AppRoutes.home),
+                            AppRoutes.adminMatchEdit: (info) {
+                              final matchId = info.pathParameters['id']!;
+                              return isAdmin
+                                  ? MaterialPage(
+                                      child: AdminMatchFormPage(
+                                        action: MatchFormAction.update,
+                                        matchId: matchId,
+                                      ),
+                                    )
+                                  : const Redirect(AppRoutes.home);
+                            },
+                            AppRoutes.adminMatchDelete: (info) {
+                              final matchId = info.pathParameters['id']!;
+                              return isAdmin
+                                  ? MaterialPage(
+                                      child: AdminMatchDeletePage(
+                                          matchId: matchId),
+                                    )
+                                  : const Redirect(AppRoutes.home);
+                            },
+                            // Admin User Routes
+                            AppRoutes.adminUserCreate: (_) => isAdmin
+                                ? const MaterialPage(
+                                    child: AdminUserFormPage(
+                                        action: UserFormAction.create))
+                                : const Redirect(AppRoutes.home),
+                            AppRoutes.adminUserEdit: (info) {
+                              final userId = info.pathParameters['id']!;
+                              return isAdmin
+                                  ? MaterialPage(
+                                      child: AdminUserFormPage(
+                                        action: UserFormAction.update,
+                                        userId: userId,
+                                      ),
+                                    )
+                                  : const Redirect(AppRoutes.home);
+                            },
+                            // Admin Team Routes
+                            AppRoutes.adminTeamCreate: (_) => isAdmin
+                                ? const MaterialPage(
+                                    child: AdminTeamFormPage(
+                                        action: TeamFormAction.create))
+                                : const Redirect(AppRoutes.home),
+                            AppRoutes.adminTeamEdit: (info) {
+                              final teamId = info.pathParameters['id']!;
+                              return isAdmin
+                                  ? MaterialPage(
+                                      child: AdminTeamFormPage(
+                                        action: TeamFormAction.update,
+                                        teamId: teamId,
+                                      ),
+                                    )
+                                  : const Redirect(AppRoutes.home);
+                            },
+                            AppRoutes.adminTeamDelete: (info) {
+                              final teamId = info.pathParameters['id']!;
+                              return isAdmin
+                                  ? MaterialPage(
+                                      child:
+                                          AdminTeamDeletePage(teamId: teamId),
+                                    )
+                                  : const Redirect(AppRoutes.home);
+                            },
+                            AppRoutes.userProfile: (_) => const MaterialPage(
+                                  child: UserProfilePage(isAuthenticated: true),
+                                ),
+                            AppRoutes.userTips: (info) {
+                              // Unterstützt beide Parameter: scrollTo (alt) und returnIndex (neu)
+                              final scrollToIndex =
+                                  info.queryParameters['scrollTo'] ??
+                                      info.queryParameters['returnIndex'];
+                              final filter = info.queryParameters['filter'];
+
+                              return MaterialPage(
+                                child: TipPage(
+                                  isAuthenticated: true,
+                                  initialScrollIndex: scrollToIndex != null
+                                      ? int.tryParse(scrollToIndex)
+                                      : null,
+                                  initialFilter: filter,
+                                ),
+                              );
+                            },
+                            AppRoutes.userTipsDetail: (info) {
+                              final tipId = info.pathParameters['id']!;
+                              final returnIndexString =
+                                  info.queryParameters['returnIndex'];
+                              final returnIndex = returnIndexString != null
+                                  ? int.tryParse(returnIndexString)
+                                  : null;
+                              final returnFilter =
+                                  info.queryParameters['filter'];
+
+                              return MaterialPage(
+                                child: TipDetailsPage(
+                                  isAuthenticated: true,
+                                  tipId: tipId,
+                                  returnIndex: returnIndex,
+                                  returnFilter: returnFilter,
+                                ),
+                              );
+                            },
+                          });
+                    }
+
+                    // 3) Nicht eingeloggt → Sign-In & Sign-Up
+                    return RouteMap(
+                      onUnknownRoute: (_) => const Redirect(AppRoutes.signin),
+                      routes: {
+                        AppRoutes.signin: (_) => const MaterialPage(
+                              child: SignInPage(isAuthenticated: false),
+                            ),
+                        AppRoutes.signup: (_) => const MaterialPage(
+                              child: SignUpPage(isAuthenticated: false),
+                            ),
+                        AppRoutes.rules: (_) => const MaterialPage(
+                              child: RulesPage(isAuthenticated: false),
+                            ),
+                      },
+                    );
+                  },
+                ),
+                builder: (context, child) {
+                  // Wenn child null ist, zeige Spinner, sonst ResponsiveWrapper
+                  if (child == null) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
+                    );
+                  }
+                  return ResponsiveWrapper.builder(
+                    child,
+                    defaultScale: true,
+                    minWidth: 400,
+                    defaultName: MOBILE,
+                    breakpoints: const [
+                      ResponsiveBreakpoint.autoScale(450, name: MOBILE),
+                      ResponsiveBreakpoint.resize(600, name: TABLET),
+                      ResponsiveBreakpoint.resize(1000, name: DESKTOP),
+                    ],
+                    background: Container(
+                      color: Theme.of(context).scaffoldBackgroundColor,
                     ),
                   );
-                }
-
-                // 2) Eingeloggt → alle geschützten Seiten
-                if (isAuthenticated) {
-                  return RouteMap(
-                      onUnknownRoute: (_) => const Redirect(AppRoutes.home),
-                      routes: {
-                        AppRoutes.home: (_) => const MaterialPage(
-                            child: HomePage(isAuthenticated: true)),
-                        AppRoutes.rules: (_) => const MaterialPage(
-                            child: RulesPage(isAuthenticated: true)),
-                        AppRoutes.admin: (_) => isAdmin
-                            ? const MaterialPage(
-                                child: AdminPage(isAuthenticated: true),
-                              )
-                            : const MaterialPage(
-                                child: HomePage(isAuthenticated: true)),
-                        AppRoutes.adminUserTips: (info) {
-                          final userId = info.pathParameters['userId']!;
-                          return MaterialPage(
-                            child: AdminUserTipDetailsPage(
-                              isAuthenticated: true,
-                              selectedUserId: userId,
-                            ),
-                          );
-                        },
-                        // Admin Match Routes
-                        AppRoutes.adminMatchCreate: (_) => isAdmin
-                            ? const MaterialPage(
-                                child: AdminMatchFormPage(
-                                    action: MatchFormAction.create))
-                            : const Redirect(AppRoutes.home),
-                        AppRoutes.adminMatchEdit: (info) {
-                          final matchId = info.pathParameters['id']!;
-                          return isAdmin
-                              ? MaterialPage(
-                                  child: AdminMatchFormPage(
-                                    action: MatchFormAction.update,
-                                    matchId: matchId,
-                                  ),
-                                )
-                              : const Redirect(AppRoutes.home);
-                        },
-                        AppRoutes.adminMatchDelete: (info) {
-                          final matchId = info.pathParameters['id']!;
-                          return isAdmin
-                              ? MaterialPage(
-                                  child: AdminMatchDeletePage(matchId: matchId),
-                                )
-                              : const Redirect(AppRoutes.home);
-                        },
-                        // Admin User Routes
-                        AppRoutes.adminUserCreate: (_) => isAdmin
-                            ? const MaterialPage(
-                                child: AdminUserFormPage(
-                                    action: UserFormAction.create))
-                            : const Redirect(AppRoutes.home),
-                        AppRoutes.adminUserEdit: (info) {
-                          final userId = info.pathParameters['id']!;
-                          return isAdmin
-                              ? MaterialPage(
-                                  child: AdminUserFormPage(
-                                    action: UserFormAction.update,
-                                    userId: userId,
-                                  ),
-                                )
-                              : const Redirect(AppRoutes.home);
-                        },
-                        // Admin Team Routes
-                        AppRoutes.adminTeamCreate: (_) => isAdmin
-                            ? const MaterialPage(
-                                child: AdminTeamFormPage(
-                                    action: TeamFormAction.create))
-                            : const Redirect(AppRoutes.home),
-                        AppRoutes.adminTeamEdit: (info) {
-                          final teamId = info.pathParameters['id']!;
-                          return isAdmin
-                              ? MaterialPage(
-                                  child: AdminTeamFormPage(
-                                    action: TeamFormAction.update,
-                                    teamId: teamId,
-                                  ),
-                                )
-                              : const Redirect(AppRoutes.home);
-                        },
-                        AppRoutes.adminTeamDelete: (info) {
-                          final teamId = info.pathParameters['id']!;
-                          return isAdmin
-                              ? MaterialPage(
-                                  child: AdminTeamDeletePage(teamId: teamId),
-                                )
-                              : const Redirect(AppRoutes.home);
-                        },
-                        AppRoutes.userProfile: (_) => const MaterialPage(
-                              child: UserProfilePage(isAuthenticated: true),
-                            ),
-                        AppRoutes.userTips: (info) {
-                          // Unterstützt beide Parameter: scrollTo (alt) und returnIndex (neu)
-                          final scrollToIndex =
-                              info.queryParameters['scrollTo'] ??
-                                  info.queryParameters['returnIndex'];
-                          final filter = info.queryParameters['filter'];
-
-                          return MaterialPage(
-                            child: TipPage(
-                              isAuthenticated: true,
-                              initialScrollIndex: scrollToIndex != null
-                                  ? int.tryParse(scrollToIndex)
-                                  : null,
-                              initialFilter: filter,
-                            ),
-                          );
-                        },
-                        AppRoutes.userTipsDetail: (info) {
-                          final tipId = info.pathParameters['id']!;
-                          final returnIndexString =
-                              info.queryParameters['returnIndex'];
-                          final returnIndex = returnIndexString != null
-                              ? int.tryParse(returnIndexString)
-                              : null;
-                          final returnFilter = info.queryParameters['filter'];
-
-                          return MaterialPage(
-                            child: TipDetailsPage(
-                              isAuthenticated: true,
-                              tipId: tipId,
-                              returnIndex: returnIndex,
-                              returnFilter: returnFilter,
-                            ),
-                          );
-                        },
-                      });
-                }
-
-                // 3) Nicht eingeloggt → Sign-In & Sign-Up
-                return RouteMap(
-                  onUnknownRoute: (_) => const Redirect(AppRoutes.signin),
-                  routes: {
-                    AppRoutes.signin: (_) => const MaterialPage(
-                          child: SignInPage(isAuthenticated: false),
-                        ),
-                    AppRoutes.signup: (_) => const MaterialPage(
-                          child: SignUpPage(isAuthenticated: false),
-                        ),
-                    AppRoutes.rules: (_) => const MaterialPage(
-                          child: RulesPage(isAuthenticated: false),
-                        ),
-                  },
-                );
-              },
-            ),
-            builder: (context, child) {
-              // Wenn child null ist, zeige Spinner, sonst ResponsiveWrapper
-              if (child == null) {
-                return Center(
-                  child: CircularProgressIndicator(
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                );
-              }
-              return ResponsiveWrapper.builder(
-                child,
-                defaultScale: true,
-                minWidth: 400,
-                defaultName: MOBILE,
-                breakpoints: const [
-                  ResponsiveBreakpoint.autoScale(450, name: MOBILE),
-                  ResponsiveBreakpoint.resize(600, name: TABLET),
-                  ResponsiveBreakpoint.resize(1000, name: DESKTOP),
-                ],
-                background: Container(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                ),
+                },
               );
-            },
-          );
-        },
+            }, // Ende BlocBuilder<AuthControllerBloc> builder
+          ); // Ende BlocBuilder<AuthControllerBloc>
+        }, // Ende BlocBuilder<AuthBloc> builder
       ),
     );
   }

@@ -19,8 +19,9 @@ class UserRepositoryImpl extends UserRepository {
     try {
       FirestoreLogger.logRead('users', 'getUserById', docId: userId);
       debugPrint('📥 [UserRepository] getUserById: $userId');
-      final doc = await firebaseFirestore.collection(_collectionPath).doc(userId).get();
-      
+      final doc =
+          await firebaseFirestore.collection(_collectionPath).doc(userId).get();
+
       if (!doc.exists) {
         return left(ServerFailure(message: 'User not found'));
       }
@@ -37,9 +38,12 @@ class UserRepositoryImpl extends UserRepository {
     try {
       FirestoreLogger.logRead('users', 'getAllUsers');
       debugPrint('📥 [UserRepository] getAllUsers called');
-      final snapshot = await firebaseFirestore.collection(_collectionPath).get();
-      FirestoreLogger.logRead('users', 'getAllUsers (RESULT)', docId: '[${snapshot.docs.length} docs]');
-      debugPrint('✅ [UserRepository] getAllUsers: ${snapshot.docs.length} users');
+      final snapshot =
+          await firebaseFirestore.collection(_collectionPath).get();
+      FirestoreLogger.logRead('users', 'getAllUsers (RESULT)',
+          docId: '[${snapshot.docs.length} docs]');
+      debugPrint(
+          '✅ [UserRepository] getAllUsers: ${snapshot.docs.length} users');
       final users = snapshot.docs
           .map((doc) => UserModel.fromJson(doc.data()).toDomain())
           .toList();
@@ -63,25 +67,68 @@ class UserRepositoryImpl extends UserRepository {
     }
   }
 
+  /// ✅ NEU: Batch-Update für mehrere User in EINEM Firestore-Write
+  /// Firestore Batches unterstützen max 500 Operationen pro Batch
+  @override
+  Future<Either<TipFailure, Unit>> batchUpdateUsers(List<AppUser> users) async {
+    if (users.isEmpty) return right(unit);
+
+    try {
+      debugPrint(
+          '📦 [UserRepository] Batch-Update für ${users.length} User gestartet');
+
+      // Firestore Batches sind auf 500 Operationen begrenzt
+      const batchSize = 500;
+
+      for (var i = 0; i < users.length; i += batchSize) {
+        final batch = firebaseFirestore.batch();
+        final end =
+            (i + batchSize < users.length) ? i + batchSize : users.length;
+
+        for (var j = i; j < end; j++) {
+          final user = users[j];
+          final userModel = UserModel.fromDomain(user);
+          final docRef =
+              firebaseFirestore.collection(_collectionPath).doc(user.id);
+          batch.update(docRef, userModel.toJson());
+        }
+
+        await batch.commit();
+        debugPrint(
+            '✅ [UserRepository] Batch ${(i ~/ batchSize) + 1} committed (${end - i} User)');
+      }
+
+      debugPrint(
+          '✅ [UserRepository] Batch-Update abgeschlossen: ${users.length} User');
+      return right(unit);
+    } catch (e) {
+      debugPrint('❌ [UserRepository] Batch-Update Fehler: $e');
+      return left(ServerFailure(message: e.toString()));
+    }
+  }
+
   @override
   Stream<Either<TipFailure, AppUser>> watchUserById(String userId) {
     debugPrint('🎯 [UserRepository] watchUserById STREAM STARTED for: $userId');
     FirestoreLogger.logRead('users', 'watchUserById (STREAM)', docId: userId);
-    
+
     int eventCount = 0;
-    
+
     return firebaseFirestore
         .collection(_collectionPath)
         .doc(userId)
         .snapshots()
         .map<Either<TipFailure, AppUser>>((snapshot) {
       eventCount++;
-      FirestoreLogger.logRead('users', 'watchUserById (EVENT #$eventCount)', docId: userId);
-      debugPrint('📥 [UserRepository] watchUserById EVENT #$eventCount: $userId');
+      FirestoreLogger.logRead('users', 'watchUserById (EVENT #$eventCount)',
+          docId: userId);
+      debugPrint(
+          '📥 [UserRepository] watchUserById EVENT #$eventCount: $userId');
       if (!snapshot.exists) {
         return left(ServerFailure(message: 'User not found'));
       }
-      final userModel = UserModel.fromJson(snapshot.data() as Map<String, dynamic>);
+      final userModel =
+          UserModel.fromJson(snapshot.data() as Map<String, dynamic>);
       return right(userModel.toDomain());
     });
   }

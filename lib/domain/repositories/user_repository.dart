@@ -12,6 +12,10 @@ abstract class UserRepository {
   /// Aktualisiert einen User
   Future<Either<TipFailure, Unit>> updateUser(AppUser user);
 
+  /// ✅ NEU: Batch-Update für mehrere User in EINEM Firestore-Write
+  /// Reduziert 300+ Events auf 1 Event
+  Future<Either<TipFailure, Unit>> batchUpdateUsers(List<AppUser> users);
+
   /// Beobachtet einen User anhand seiner ID
   Stream<Either<TipFailure, AppUser>> watchUserById(String userId);
 }

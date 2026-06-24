@@ -26,6 +26,9 @@ class RecalculateMatchTipsUseCase {
   // ✅ NEU: User-Cache für Batch-Operationen (vermeidet 1000+ getUserById Aufrufe)
   Map<String, dynamic>? _cachedUsersById;
 
+  // ✅ NEU: Sammelt betroffene User über mehrere Match-Aufrufe hinweg
+  final Set<String> _pendingAffectedUsers = {};
+
   RecalculateMatchTipsUseCase({
     required this.tipRepository,
     required this.userRepository,
@@ -35,8 +38,9 @@ class RecalculateMatchTipsUseCase {
 
   /// Lädt alle benötigten Daten einmal und cached sie
   Future<void> _loadSharedData() async {
-    if (_cachedAllMatches != null && _cachedUsersById != null)
+    if (_cachedAllMatches != null && _cachedUsersById != null) {
       return; // Bereits geladen
+    }
 
     // ✅ Lade alle User EINMAL (statt 1000+ einzelne getUserById Aufrufe)
     if (_cachedUsersById == null) {
@@ -132,12 +136,14 @@ class RecalculateMatchTipsUseCase {
     _cachedChampionId = null;
     _cachedAllMatches = null;
     _cachedUsersById = null;
+    _pendingAffectedUsers.clear();
   }
 
   /// Berechnet Punkte für alle Tips eines Matches neu
-  /// und aktualisiert User-Scores
+  /// [skipUserScoreUpdate]: Wenn true, werden User-Scores nicht aktualisiert (für Batch-Verarbeitung)
   Future<Either<TipFailure, Unit>> call({
     required CustomMatch match,
+    bool skipUserScoreUpdate = false,
   }) async {
     if (!match.hasResult) {
       return right(unit); // Nichts zu berechnen
@@ -197,8 +203,13 @@ class RecalculateMatchTipsUseCase {
         },
       );
 
-      // ✅ Aktualisiere Score für alle betroffenen User (mit gecachten Daten)
-      await _updateUserScores(affectedUsers);
+      // ✅ Sammle betroffene User für späteres Batch-Update
+      _pendingAffectedUsers.addAll(affectedUsers);
+
+      // ✅ Aktualisiere Score nur wenn nicht übersprungen (für Batch-Verarbeitung)
+      if (!skipUserScoreUpdate) {
+        await _updateUserScores(affectedUsers);
+      }
 
       return right(unit);
     } catch (e) {
@@ -206,19 +217,33 @@ class RecalculateMatchTipsUseCase {
     }
   }
 
-  /// Berechnet Statistiken für User neu - OPTIMIERT mit Cache
+  /// ✅ NEU: Aktualisiert User-Scores für alle gesammelten betroffenen User
+  /// Wird nach der Verarbeitung aller Matches aufgerufen
+  Future<void> updatePendingUserScores() async {
+    if (_pendingAffectedUsers.isEmpty) return;
+
+    debugPrint(
+        '📦 Aktualisiere Scores für ${_pendingAffectedUsers.length} betroffene User...');
+    await _updateUserScores(_pendingAffectedUsers);
+    _pendingAffectedUsers.clear();
+  }
+
+  /// Berechnet Statistiken für User neu - OPTIMIERT mit Batch-Update
   Future<void> _updateUserScores(Set<String> userIds) async {
     if (userIds.isEmpty) return;
+
+    // ✅ Sammle alle User-Updates für Batch-Operation
+    final usersToUpdate = <AppUser>[];
 
     for (final userId in userIds) {
       try {
         final userTipsResult = await tipRepository.getTipsByUserId(userId);
 
-        await userTipsResult.fold(
-          (failure) async {
+        userTipsResult.fold(
+          (failure) {
             debugPrint('❌ Fehler beim Laden der Tips für $userId: $failure');
           },
-          (tips) async {
+          (tips) {
             int totalScore = 0;
             int jokersUsed = 0;
             int perfectPredictions = 0;
@@ -247,16 +272,15 @@ class RecalculateMatchTipsUseCase {
             // ✅ OPTIMIERT: Nutze gecachten User statt getUserById
             final cachedUser = _cachedUsersById?[userId] as AppUser?;
             if (cachedUser != null && cachedUser.id.isNotEmpty) {
-              // 🏆 Champion-Bonus ist jetzt bereits in den Finale-Tip-Punkten enthalten!
-              // (Wird direkt beim Tip-Punkte-Berechnen addiert, nicht mehr hier separat)
-
               // Update User mit neuen Scores
               final updatedUser = cachedUser.copyWith(
                 score: totalScore,
                 jokerSum: jokersUsed,
                 sixer: perfectPredictions,
               );
-              await userRepository.updateUser(updatedUser);
+
+              // ✅ Zur Batch-Liste hinzufügen statt einzeln speichern
+              usersToUpdate.add(updatedUser);
 
               // ✅ Cache aktualisieren für nachfolgende Lookups
               _cachedUsersById![userId] = updatedUser;
@@ -269,58 +293,76 @@ class RecalculateMatchTipsUseCase {
         debugPrint('❌ Fehler beim Berechnen der Scores für $userId: $e');
       }
     }
+
+    // ✅ BATCH-UPDATE: Alle User in EINEM Firestore-Write
+    if (usersToUpdate.isNotEmpty) {
+      await userRepository.batchUpdateUsers(usersToUpdate);
+      debugPrint(
+          '📦 ${usersToUpdate.length} User-Scores per Batch aktualisiert');
+    }
   }
 
   /// Aktualisiert Rankings für alle User mit Tiebreaker-Logik - OPTIMIERT
   Future<void> updateAllUserRankings() async {
     try {
-      final allUsersResult = await userRepository.getAllUsers();
+      // ✅ Verwende gecachte User statt erneut zu laden
+      List<AppUser> users;
+      if (_cachedUsersById != null && _cachedUsersById!.isNotEmpty) {
+        users = _cachedUsersById!.values.cast<AppUser>().toList();
+        debugPrint('📦 [Ranking] Verwende ${users.length} gecachte User');
+      } else {
+        // Fallback: Lade User falls Cache leer
+        final allUsersResult = await userRepository.getAllUsers();
+        final result = allUsersResult.fold(
+          (failure) {
+            debugPrint(
+                '❌ Fehler beim Laden aller User für Ranking-Update: $failure');
+            return <AppUser>[];
+          },
+          (loadedUsers) => loadedUsers,
+        );
+        users = result;
+      }
 
-      await allUsersResult.fold(
-        (failure) async {
-          debugPrint(
-              '❌ Fehler beim Laden aller User für Ranking-Update: $failure');
-        },
-        (users) async {
-          // Sortiere mit komplexer Tiebreaker-Logik
-          final sortedUsers = List.from(users)
-            ..sort((a, b) {
-              // 1. Nach Punkten (höher = besser)
-              final scoreComparison = b.score.compareTo(a.score);
-              if (scoreComparison != 0) return scoreComparison;
+      if (users.isEmpty) return;
 
-              // 2. Bei gleichen Punkten: Mehr Sechser = besser
-              final sixersComparison = b.sixer.compareTo(a.sixer);
-              if (sixersComparison != 0) return sixersComparison;
+      // Sortiere mit komplexer Tiebreaker-Logik
+      final sortedUsers = List.from(users)
+        ..sort((a, b) {
+          // 1. Nach Punkten (höher = besser)
+          final scoreComparison = b.score.compareTo(a.score);
+          if (scoreComparison != 0) return scoreComparison;
 
-              // 3. Bei gleichen 6ern: Weniger Joker = besser
-              final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
-              if (jokerComparison != 0) return jokerComparison;
+          // 2. Bei gleichen Punkten: Mehr Sechser = besser
+          final sixersComparison = b.sixer.compareTo(a.sixer);
+          if (sixersComparison != 0) return sixersComparison;
 
-              // 4. Letzter Tiebreaker: Alphabetisch nach Namen
-              return a.name.compareTo(b.name);
-            });
+          // 3. Bei gleichen 6ern: Weniger Joker = besser
+          final jokerComparison = a.jokerSum.compareTo(b.jokerSum);
+          if (jokerComparison != 0) return jokerComparison;
 
-          // ✅ Sammle nur User mit geändertem Rang
-          final usersToUpdate = [];
-          for (int i = 0; i < sortedUsers.length; i++) {
-            final user = sortedUsers[i];
-            final newRank = i + 1;
+          // 4. Letzter Tiebreaker: Alphabetisch nach Namen
+          return a.name.compareTo(b.name);
+        });
 
-            if (user.rank != newRank) {
-              usersToUpdate.add(user.copyWith(rank: newRank));
-            }
-          }
+      // ✅ Sammle nur User mit geändertem Rang
+      final usersToUpdate = <AppUser>[];
+      for (int i = 0; i < sortedUsers.length; i++) {
+        final user = sortedUsers[i];
+        final newRank = i + 1;
 
-          // ✅ Update nur geänderte User
-          for (final user in usersToUpdate) {
-            await userRepository.updateUser(user);
-          }
+        if (user.rank != newRank) {
+          usersToUpdate.add(user.copyWith(rank: newRank));
+        }
+      }
 
-          debugPrint(
-              '✅ Rankings für ${usersToUpdate.length}/${sortedUsers.length} User aktualisiert');
-        },
-      );
+      // ✅ BATCH-UPDATE: Alle User in EINEM Firestore-Write (statt 43 einzelne)
+      if (usersToUpdate.isNotEmpty) {
+        await userRepository.batchUpdateUsers(usersToUpdate);
+      }
+
+      debugPrint(
+          '✅ Rankings für ${usersToUpdate.length}/${sortedUsers.length} User aktualisiert (1 Batch)');
 
       // ✅ Cache leeren nach Ranking-Update
       clearCache();
@@ -347,20 +389,21 @@ class RecalculateMatchTipsUseCase {
           return left(failure);
         },
         (allUsers) async {
-          int updatedUserCount = 0;
           int correctedTipsCount = 0;
+          // ✅ Sammle alle User-Updates für Batch-Operation
+          final usersToUpdate = <AppUser>[];
 
           for (final user in allUsers) {
             try {
               final userTipsResult =
                   await tipRepository.getTipsByUserId(user.id);
 
-              await userTipsResult.fold(
-                (failure) async {
+              userTipsResult.fold(
+                (failure) {
                   debugPrint(
                       '❌ Fehler beim Laden der Tips für ${user.name}: $failure');
                 },
-                (tips) async {
+                (tips) {
                   int totalScore = 0;
                   int jokersUsed = 0;
                   int perfectPredictions = 0;
@@ -379,8 +422,8 @@ class RecalculateMatchTipsUseCase {
                     if (!matchHasResult &&
                         tip.points != null &&
                         tip.points != 0) {
-                      await tipRepository.updatePoints(
-                          tipId: tip.id, points: 0);
+                      // Note: tipRepository.updatePoints wird separat behandelt (kein Batch für Tips)
+                      tipRepository.updatePoints(tipId: tip.id, points: 0);
                       correctedTipsCount++;
                       debugPrint(
                           '🔧 Tipp ${tip.id} korrigiert: Punkte auf 0 gesetzt (Match ohne Ergebnis)');
@@ -399,7 +442,7 @@ class RecalculateMatchTipsUseCase {
 
                       // Update Punkte wenn unterschiedlich
                       if (tip.points != newPoints) {
-                        await tipRepository.updatePoints(
+                        tipRepository.updatePoints(
                             tipId: tip.id, points: newPoints);
                         correctedTipsCount++;
                         debugPrint(
@@ -420,7 +463,7 @@ class RecalculateMatchTipsUseCase {
                     }
                   }
 
-                  // Update User, wenn Werte unterschiedlich sind
+                  // ✅ Zur Batch-Liste hinzufügen, wenn Werte unterschiedlich sind
                   if (user.score != totalScore ||
                       user.jokerSum != jokersUsed ||
                       user.sixer != perfectPredictions) {
@@ -429,8 +472,7 @@ class RecalculateMatchTipsUseCase {
                       jokerSum: jokersUsed,
                       sixer: perfectPredictions,
                     );
-                    await userRepository.updateUser(updatedUser);
-                    updatedUserCount++;
+                    usersToUpdate.add(updatedUser);
                     debugPrint(
                         '✅ ${user.name}: Score=$totalScore, Joker=$jokersUsed, Sixer=$perfectPredictions');
                   }
@@ -441,8 +483,13 @@ class RecalculateMatchTipsUseCase {
             }
           }
 
+          // ✅ BATCH-UPDATE: Alle User in EINEM Firestore-Write
+          if (usersToUpdate.isNotEmpty) {
+            await userRepository.batchUpdateUsers(usersToUpdate);
+          }
+
           debugPrint(
-              '✅ Neuberechnung abgeschlossen: $updatedUserCount User aktualisiert, $correctedTipsCount Tipps korrigiert');
+              '✅ Neuberechnung abgeschlossen: ${usersToUpdate.length} User aktualisiert (1 Batch), $correctedTipsCount Tipps korrigiert');
 
           // ✅ Cache leeren nach Neuberechnung
           clearCache();

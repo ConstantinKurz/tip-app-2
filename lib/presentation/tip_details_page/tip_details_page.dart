@@ -56,7 +56,8 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
         : widget.returnIndex;
     final returnFilter =
         routeData.queryParameters['filter'] ?? widget.returnFilter;
-    final returnFrom = routeData.queryParameters['from']; // ✅ NEU: from Parameter
+    final returnFrom =
+        routeData.queryParameters['from']; // ✅ NEU: from Parameter
 
     return Scaffold(
       body: BlocBuilder<AuthControllerBloc, AuthControllerState>(
@@ -185,7 +186,8 @@ class _TipDetailsPageState extends State<TipDetailsPage> {
                                                     if (returnFrom == 'home') {
                                                       Routemaster.of(context)
                                                           .replace('/home');
-                                                    } else if (returnIndex != null) {
+                                                    } else if (returnIndex !=
+                                                        null) {
                                                       // ✅ Sonst zur Tips-Liste mit returnIndex
                                                       final filterParam =
                                                           returnFilter != null

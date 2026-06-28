@@ -36,7 +36,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
   // Aliase für Suchbegriffe
   static const Map<String, List<String>> _searchAliases = {
     'gruppenphase': ['gruppe', 'vorrunde', 'group'],
-    'sechszehntelfinale': ['16tel', 'runde der 32', 'round of 32'],
+    'sechzehntelfinale': ['16tel', 'runde der 32', 'round of 32'],
     'achtelfinale': ['8tel', 'achtel', 'runde der 16', 'round of 16'],
     'viertelfinale': ['4tel', 'viertel', 'quarter'],
     'halbfinale': ['halb', 'semi', 'semifinale'],
@@ -425,7 +425,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
                                   'Gruppe', 'gruppenphase', themeData),
                               const SizedBox(width: 7),
                               _buildFilterChip(
-                                  '16tel', 'sechszehntelfinale', themeData),
+                                  '16tel', 'sechzehntelfinale', themeData),
                               const SizedBox(width: 7),
                               _buildFilterChip(
                                   '8tel', 'achtelfinale', themeData),
@@ -458,7 +458,7 @@ class _MatchSearchFieldState extends State<MatchSearchField> {
     switch (filter) {
       case 'gruppenphase':
         return 'Gruppe';
-      case 'sechszehntelfinale':
+      case 'sechzehntelfinale':
         return '16tel';
       case 'achtelfinale':
         return '8tel';

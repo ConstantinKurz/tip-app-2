@@ -479,8 +479,18 @@ class _CommunityMobileRow extends StatelessWidget {
               ),
               Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  color: theme.scaffoldBackgroundColor,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(6),
+                    border: tip?.joker == true
+                        ? Border.all(
+                            color: Colors.amber.withOpacity(0.8),
+                            width: 2,
+                          )
+                        : null,
+                  ),
                   child: Text(
                     tipText,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -602,34 +612,29 @@ class _CommunityDesktopRow extends StatelessWidget {
         Expanded(
           flex: 1,
           child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: tip?.joker == true
-                      ? const Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: 16,
-                        )
-                      : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: tip?.joker == true
+                    ? Border.all(
+                        color: Colors.amber.withOpacity(0.8),
+                        width: 2,
+                      )
+                    : null,
+              ),
+              child: Text(
+                tip?.tipHome != null && tip?.tipGuest != null
+                    ? '${tip?.tipHome} : ${tip?.tipGuest}'
+                    : '–',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.w600,
+                  color: tip?.tipHome != null && tip?.tipGuest != null
+                      ? theme.colorScheme.onSurface
+                      : theme.colorScheme.onSurface.withOpacity(0.4),
                 ),
-                Text(
-                  tip?.tipHome != null && tip?.tipGuest != null
-                      ? '${tip?.tipHome} : ${tip?.tipGuest}'
-                      : '–',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.w600,
-                    color: tip?.tipHome != null && tip?.tipGuest != null
-                        ? theme.colorScheme.onSurface
-                        : theme.colorScheme.onSurface.withOpacity(0.4),
-                  ),
-                ),
-                const SizedBox(width: 48),
-              ],
+              ),
             ),
           ),
         ),

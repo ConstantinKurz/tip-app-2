@@ -388,32 +388,34 @@ class _CommunityTipLegendButton extends StatelessWidget {
           context: context,
           builder: (context) {
             return AlertDialog(
-              content: const Column(
+              content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _CommunityLegendRow(
+                  const _CommunityLegendRow(
                     icon: Icons.star,
                     iconColor: Colors.amber,
                     title: 'Joker',
                     description: 'Anzahl eingesetzter Joker.',
                   ),
-                  SizedBox(height: 12),
-                  _CommunityLegendRow(
+                  const SizedBox(height: 12),
+                  _JokerBorderLegendRow(),
+                  const SizedBox(height: 12),
+                  const _CommunityLegendRow(
                     icon: Icons.adjust,
                     iconColor: Colors.white,
                     title: '6er',
                     description: 'Anzahl exakter Tipps.',
                   ),
-                  SizedBox(height: 12),
-                  _CommunityLegendRow(
+                  const SizedBox(height: 12),
+                  const _CommunityLegendRow(
                     icon: Icons.edit_note,
                     iconColor: Colors.white,
                     title: 'Tipps',
                     description:
                         'Anzahl gewerteter Tipps für abgeschlossene Spiele.',
                   ),
-                  SizedBox(height: 12),
-                  _CommunityLegendRow(
+                  const SizedBox(height: 12),
+                  const _CommunityLegendRow(
                     icon: Icons.emoji_events,
                     iconColor: Colors.white,
                     title: 'Gesamtpunkte',
@@ -477,6 +479,53 @@ class _CommunityLegendRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 description,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _JokerBorderLegendRow extends StatelessWidget {
+  const _JokerBorderLegendRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: Colors.amber.withOpacity(0.8),
+              width: 2,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Joker-Tipp',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Goldene Umrandung zeigt einen Tipp mit Joker.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
                 ),

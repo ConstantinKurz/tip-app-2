@@ -25,41 +25,48 @@ class TipCardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateString = _formatDate(match.matchDate);
-    
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     // Hole alle Matches für Kontext (Finale vs Platz 3 Unterscheidung)
     final matchesState = context.watch<MatchesControllerBloc>().state;
-    final allMatches = matchesState is MatchesControllerLoaded 
-        ? matchesState.matches 
+    final allMatches = matchesState is MatchesControllerLoaded
+        ? matchesState.matches
         : <CustomMatch>[];
-    final stageName = match.getStageNameInContext(allMatches);
+    final fullStageName = match.getStageNameInContext(allMatches);
+
+    // Auf Mobile kürzere Namen für lange Phasen
+    final stageName =
+        isMobile ? _getMobileStaeName(fullStageName) : fullStageName;
 
     // ✅ NEU: Hole Stats UND aktuelle Punkte aus TipControllerBloc
     return BlocBuilder<TipControllerBloc, TipControllerState>(
       buildWhen: (previous, current) {
         // Immer rebuild bei State-Typ-Wechsel
         if (previous.runtimeType != current.runtimeType) return true;
-        
+
         // Bei Loaded-States: Rebuild wenn Stats ODER Punkte sich ändern
         if (previous is TipControllerLoaded && current is TipControllerLoaded) {
           final prevStats = previous.matchDayStatistics[match.matchDay];
           final currStats = current.matchDayStatistics[match.matchDay];
-          
+
           // ✅ FIX: Auch prüfen ob sich die Punkte für diesen Tip geändert haben
           final prevTips = previous.tips[tip.userId] ?? [];
           final currTips = current.tips[tip.userId] ?? [];
-          final prevTip = prevTips.firstWhere((t) => t.matchId == match.id, orElse: () => tip);
-          final currTip = currTips.firstWhere((t) => t.matchId == match.id, orElse: () => tip);
-          
+          final prevTip = prevTips.firstWhere((t) => t.matchId == match.id,
+              orElse: () => tip);
+          final currTip = currTips.firstWhere((t) => t.matchId == match.id,
+              orElse: () => tip);
+
           return prevStats != currStats || prevTip.points != currTip.points;
         }
-        
+
         return true;
       },
       builder: (context, tipState) {
         final stats = (tipState is TipControllerLoaded)
             ? tipState.matchDayStatistics[match.matchDay]
             : null;
-        
+
         // ✅ FIX: Hole aktuellen Tip mit Punkten aus dem State
         Tip currentTip = tip;
         if (tipState is TipControllerLoaded) {
@@ -140,7 +147,9 @@ class TipCardHeader extends StatelessWidget {
                     TextSpan(
                       children: [
                         TextSpan(
-                          text: currentTip.points != null ? '${currentTip.points}' : '0',
+                          text: currentTip.points != null
+                              ? '${currentTip.points}'
+                              : '0',
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -186,6 +195,23 @@ class TipCardHeader extends StatelessWidget {
 
     return '$day, $date.$month. $hour:$minute';
   }
+
+  String _getMobileStaeName(String fullName) {
+    switch (fullName) {
+      case 'Sechzehntelfinale':
+        return '16. Finale';
+      case 'Achtelfinale':
+        return '8. Finale';
+      case 'Viertelfinale':
+        return '4. Finale';
+      case 'Halbfinale':
+        return 'Halbfinale';
+      case 'Spiel um Platz 3':
+        return 'Platz 3';
+      default:
+        return fullName;
+    }
+  }
 }
 
 /// Dezenter Delete-Button mit Hover-Effekt
@@ -206,12 +232,10 @@ class _DeleteTipButtonState extends State<_DeleteTipButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final Color iconColor = _isHovered 
-        ? theme.colorScheme.error 
-        : theme.colorScheme.outline;
-    final Color? backgroundColor = _isHovered
-        ? theme.colorScheme.error.withOpacity(0.1)
-        : null;
+    final Color iconColor =
+        _isHovered ? theme.colorScheme.error : theme.colorScheme.outline;
+    final Color? backgroundColor =
+        _isHovered ? theme.colorScheme.error.withOpacity(0.1) : null;
 
     return Tooltip(
       message: 'Tipp entfernen',

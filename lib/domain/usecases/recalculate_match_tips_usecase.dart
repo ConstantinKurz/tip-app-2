@@ -264,8 +264,24 @@ class RecalculateMatchTipsUseCase {
                 }
               }
 
-              if ((tip.points ?? 0) == 6 && !tip.joker) {
-                perfectPredictions++;
+              // ✅ FIX: Prüfe auf exakte Vorhersage, nicht auf Punktzahl
+              // (In K.O.-Runden sind 12/18 Punkte möglich für perfekte Tipps)
+              if (!tip.joker && tip.matchId != null) {
+                final match = _cachedAllMatches?.firstWhere(
+                  (m) => m.id == tip.matchId,
+                  orElse: () => CustomMatch.empty(),
+                );
+                if (match != null &&
+                    match.id.isNotEmpty &&
+                    match.hasResult &&
+                    TipCalculator.isPerfectPrediction(
+                      tipHome: tip.tipHome ?? 0,
+                      tipGuest: tip.tipGuest ?? 0,
+                      actualHome: match.homeScore ?? 0,
+                      actualGuest: match.guestScore ?? 0,
+                    )) {
+                  perfectPredictions++;
+                }
               }
             }
 
@@ -451,8 +467,15 @@ class RecalculateMatchTipsUseCase {
 
                       totalScore += newPoints;
 
-                      // Zähle Sechser (ohne Joker)
-                      if (newPoints == 6 && !tip.joker) {
+                      // ✅ FIX: Zähle Sechser basierend auf exakter Vorhersage, nicht Punktzahl
+                      // (In K.O.-Runden sind 12/18 Punkte möglich für perfekte Tipps)
+                      if (!tip.joker &&
+                          TipCalculator.isPerfectPrediction(
+                            tipHome: tip.tipHome ?? 0,
+                            tipGuest: tip.tipGuest ?? 0,
+                            actualHome: match.homeScore ?? 0,
+                            actualGuest: match.guestScore ?? 0,
+                          )) {
                         perfectPredictions++;
                       }
 

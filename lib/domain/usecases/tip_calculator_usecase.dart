@@ -4,15 +4,26 @@ import '../entities/match_phase.dart';
 
 /// Berechnet Punkte für Tipps nach WM 2026 Variante 3+ Regeln
 class TipCalculator {
+  /// Prüft ob ein Tipp exakt richtig ist (= "Sechser" auf Basis-Ebene)
+  /// Unabhängig von Phase-Multiplier oder Joker
+  static bool isPerfectPrediction({
+    required int tipHome,
+    required int tipGuest,
+    required int actualHome,
+    required int actualGuest,
+  }) {
+    return tipHome == actualHome && tipGuest == actualGuest;
+  }
+
   /// Berechnet die Punkte für einen Tipp
-  /// 
+  ///
   /// [tipHome] - Getippte Heimtore
   /// [tipGuest] - Getippte Auswärtstore
   /// [actualHome] - Tatsächliche Heimtore
   /// [actualGuest] - Tatsächliche Auswärtstore
   /// [phase] - Spielphase für Multiplikator
   /// [hasJoker] - Ob Joker gesetzt wurde
-  /// 
+  ///
   /// Rückgabe: Berechnete Punkte
   static int calculatePoints({
     required int tipHome,
@@ -72,7 +83,7 @@ class TipCalculator {
     }
 
     // 2. Richtige Tendenz + Tordifferenz: 5 Punkte
-    if ( tipDiff == actualDiff) {
+    if (tipDiff == actualDiff) {
       return 5;
     }
 

@@ -118,10 +118,9 @@ class _CommunityTipListState extends State<CommunityTipList> {
   }
 
   bool _isMatchTie(AppUser a, AppUser b) {
-    return _matchPointsForUser(a) == _matchPointsForUser(b) &&
-        a.score == b.score &&
-        a.sixer == b.sixer &&
-        a.jokerSum == b.jokerSum;
+    // ✅ Olympisches Ranking: Nur Match-Punkte vergleichen
+    // Tiebreaker (score, sixer, jokerSum) werden nur für Sortierung verwendet
+    return _matchPointsForUser(a) == _matchPointsForUser(b);
   }
 
   List<AppUser> _sortedUsers() {

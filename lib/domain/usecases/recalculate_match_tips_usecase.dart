@@ -266,7 +266,8 @@ class RecalculateMatchTipsUseCase {
 
               // ✅ FIX: Prüfe auf exakte Vorhersage, nicht auf Punktzahl
               // (In K.O.-Runden sind 12/18 Punkte möglich für perfekte Tipps)
-              if (!tip.joker && tip.matchId != null) {
+              // ✅ Auch Joker-Tips können 6er sein!
+              if (tip.matchId != null) {
                 final match = _cachedAllMatches?.firstWhere(
                   (m) => m.id == tip.matchId,
                   orElse: () => CustomMatch.empty(),

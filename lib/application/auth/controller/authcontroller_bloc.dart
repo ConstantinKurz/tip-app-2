@@ -33,19 +33,30 @@ class AuthControllerBloc
   /// ✅ Flag um mehrfaches Subscriben zu verhindern
   bool _isStreamActive = false;
 
+  /// ✅ Debounce Timer für Auth-Events
+  Timer? _authEventDebounceTimer;
+
   AuthControllerBloc({required this.authRepository, required this.authBloc})
       : super(AuthControllerInitial()) {
-    // Auto-Update bei Auth-Änderungen
+    // Auto-Update bei Auth-Änderungen mit Debouncing
     _authBlocSub = authBloc.stream.listen((authState) {
       if (authState is AuthStateAuthenticated) {
-        _cachedSignedInUserId = null; // Reset bei Auth-Änderung
-        add(AuthAllEvent());
+        // ✅ Debounce um Race Conditions zu vermeiden
+        _authEventDebounceTimer?.cancel();
+        _authEventDebounceTimer = Timer(const Duration(milliseconds: 100), () {
+          _cachedSignedInUserId = null; // Reset bei Auth-Änderung
+          add(AuthAllEvent());
+        });
+      } else if (authState is AuthStateUnAuthenticated) {
+        // ✅ Bei Logout: Reset aller Streams und Flags
+        _authEventDebounceTimer?.cancel();
+        add(_AuthResetEvent());
       }
     });
 
     on<AuthAllEvent>((event, emit) async {
-      // ✅ Verhindere mehrfaches Subscriben
-      if (_isStreamActive && state is AuthControllerLoaded) {
+      // ✅ Verhindere mehrfaches Subscriben - auch während Loading!
+      if (_isStreamActive) {
         debugPrint(
             '⏭️ [AuthControllerBloc] AuthAllEvent SKIPPED: Stream already active');
         return;
@@ -123,6 +134,17 @@ class AuthControllerBloc
         signedInUser: signedInUser,
       ));
     });
+
+    // ✅ Handler für Logout-Reset
+    on<_AuthResetEvent>((event, emit) async {
+      await _usersStreamSub?.cancel();
+      _isStreamActive = false;
+      _cachedSignedInUserId = null;
+      _lastTotalScoreSum = 0;
+      _pendingUsers = null;
+      _isDebouncing = false;
+      emit(AuthControllerInitial());
+    });
   }
 
   /// ✅ Holt den signed-in User mit Caching - nur einmal pro Session laden
@@ -150,6 +172,7 @@ class AuthControllerBloc
     _usersStreamSub?.cancel();
     _authBlocSub?.cancel();
     _debounceTimer?.cancel();
+    _authEventDebounceTimer?.cancel();
     return super.close();
   }
 }

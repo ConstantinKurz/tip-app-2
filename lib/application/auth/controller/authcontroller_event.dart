@@ -18,3 +18,6 @@ class _DebouncedUpdateEvent extends AuthControllerEvent {
   final List<AppUser> users;
   _DebouncedUpdateEvent({required this.users});
 }
+
+/// ✅ Reset Event für Logout
+class _AuthResetEvent extends AuthControllerEvent {}

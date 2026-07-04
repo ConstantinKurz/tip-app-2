@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
-import 'package:flutter_web/application/auth/controller/authcontroller_bloc.dart';
 import 'package:flutter_web/application/signupform/signupform_bloc.dart';
 import 'package:flutter_web/constants.dart';
 import 'package:flutter_web/core/failures/auth_failures.dart';
@@ -120,7 +119,8 @@ class _SignInFormState extends State<SignInForm> {
             },
             (_) {
               context.read<AuthBloc>().add(AuthCheckRequestedEvent());
-              context.read<AuthControllerBloc>().add(AuthAllEvent());
+              // ✅ AuthControllerBloc subscribed automatisch zu AuthBloc
+              // Kein manuelles add(AuthAllEvent()) nötig - verhindert Race Condition
             },
           ),
         );

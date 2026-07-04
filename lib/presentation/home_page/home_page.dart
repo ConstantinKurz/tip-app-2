@@ -39,6 +39,25 @@ class _HomePageState extends State<HomePage> {
       create: (_) => sl<RankingBloc>(),
       child: BlocBuilder<AuthControllerBloc, AuthControllerState>(
         builder: (context, authState) {
+          if (authState is AuthControllerFailure) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  const Text('Fehler beim Laden'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<AuthControllerBloc>().add(AuthAllEvent());
+                    },
+                    child: const Text('Erneut versuchen'),
+                  ),
+                ],
+              ),
+            );
+          }
           if (authState is! AuthControllerLoaded) {
             return const Center(child: CircularProgressIndicator());
           }

@@ -77,6 +77,58 @@ class _HomePageState extends State<HomePage> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // 🎉 Geburtstags-Header für Shorty (nur am 7. Juli)
+                        if (DateTime.now().month == 7 &&
+                            DateTime.now().day == 7)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16.0),
+                            padding: const EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.purple.withOpacity(0.3),
+                                  Colors.pink.withOpacity(0.3),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.pinkAccent.withOpacity(0.5),
+                                width: 2,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Text(
+                                  '🎉',
+                                  style: TextStyle(fontSize: 32),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Happy Birthday Shorty! ',
+                                        style: themeData.textTheme.headlineSmall
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                    ],
+                                  ),
+                                ),
+                                const Text(
+                                  '🎉',
+                                  style: TextStyle(fontSize: 32),
+                                ),
+                              ],
+                            ),
+                          ),
                         BlocProvider(
                           create: (_) => sl<RankingBloc>(),
                           child: BlocListener<RankingBloc, RankingState>(

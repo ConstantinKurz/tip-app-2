@@ -29,7 +29,8 @@ class TipRepositoryImpl implements TipRepository {
 
   @override
   void resetTipsStream() {
-    debugPrint('🧹 [TipRepository] Resetting tips stream (clearing BehaviorSubject)');
+    debugPrint(
+        '🧹 [TipRepository] Resetting tips stream (clearing BehaviorSubject)');
     _tipsSub?.cancel();
     _tipsSubject?.close();
     _tipsSubject = null;
@@ -179,7 +180,8 @@ class TipRepositoryImpl implements TipRepository {
             notFound: NotFoundFailure(),
           );
           if (error is InsufficientPermisssons) {
-            debugPrint('⏳ [TipRepository] InsufficientPermissions in snapshot - waiting for auth token...');
+            debugPrint(
+                '⏳ [TipRepository] InsufficientPermissions in snapshot - waiting for auth token...');
             return; // Nicht emittieren, einfach warten
           }
           _tipsSubject!.add(left<TipFailure, Map<String, List<Tip>>>(error));
@@ -194,7 +196,8 @@ class TipRepositoryImpl implements TipRepository {
           notFound: NotFoundFailure(),
         );
         if (error is InsufficientPermisssons) {
-          debugPrint('⏳ [TipRepository] InsufficientPermissions onError - waiting for auth token...');
+          debugPrint(
+              '⏳ [TipRepository] InsufficientPermissions onError - waiting for auth token...');
           return; // Nicht emittieren, einfach warten
         }
         _tipsSubject!.add(left<TipFailure, Map<String, List<Tip>>>(error));

@@ -197,10 +197,10 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
               '🔄 [TipControllerBloc] Retry $_retryCount/$_maxRetries nach Fehler: $failure');
           _isStreamActive = false;
           _retryTimer?.cancel();
-          
+
           // ✅ WICHTIG: BehaviorSubject resetten damit frischer Stream startet!
           tipRepository.resetTipsStream();
-          
+
           // ✅ Exponential Backoff: 3s, 6s, 9s, 12s, 15s
           _retryTimer = Timer(Duration(seconds: _retryCount * 3), () {
             add(TipAllEvent());
@@ -215,7 +215,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
       (tips) {
         // ✅ Erfolg: Retry-Counter zurücksetzen
         _retryCount = 0;
-        
+
         final currentState = state;
         Map<int, MatchDayStatistics> currentStats = {};
 

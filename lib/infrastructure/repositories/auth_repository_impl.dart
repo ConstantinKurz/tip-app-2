@@ -116,7 +116,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   void resetUsersStream() {
-    debugPrint('🧹 [AuthRepository] Resetting users stream (clearing BehaviorSubject)');
+    debugPrint(
+        '🧹 [AuthRepository] Resetting users stream (clearing BehaviorSubject)');
     _usersSub?.cancel();
     _usersSubject?.close();
     _usersSubject = null;
@@ -196,7 +197,8 @@ class AuthRepositoryImpl implements AuthRepository {
                 message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
           );
           if (error is InsufficientPermisssons) {
-            debugPrint('⏳ [AuthRepository] InsufficientPermissions in snapshot - waiting for auth token...');
+            debugPrint(
+                '⏳ [AuthRepository] InsufficientPermissions in snapshot - waiting for auth token...');
             return; // Nicht emittieren, einfach warten
           }
           _usersSubject!.add(left<AuthFailure, List<AppUser>>(error));
@@ -212,7 +214,8 @@ class AuthRepositoryImpl implements AuthRepository {
               message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
         );
         if (error is InsufficientPermisssons) {
-          debugPrint('⏳ [AuthRepository] InsufficientPermissions onError - waiting for auth token...');
+          debugPrint(
+              '⏳ [AuthRepository] InsufficientPermissions onError - waiting for auth token...');
           return; // Nicht emittieren, einfach warten
         }
         _usersSubject!.add(left<AuthFailure, List<AppUser>>(error));

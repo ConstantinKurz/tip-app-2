@@ -62,7 +62,8 @@ class MatchRepositoryImpl implements MatchRepository {
             notFound: NotFoundFailure(),
           );
           if (error is InsufficientPermisssons) {
-            debugPrint('⏳ [MatchRepository] InsufficientPermissions in snapshot - waiting for auth token...');
+            debugPrint(
+                '⏳ [MatchRepository] InsufficientPermissions in snapshot - waiting for auth token...');
             return; // Nicht emittieren, einfach warten
           }
           _matchesSubject!.add(left<MatchFailure, List<CustomMatch>>(error));
@@ -77,7 +78,8 @@ class MatchRepositoryImpl implements MatchRepository {
           notFound: NotFoundFailure(),
         );
         if (error is InsufficientPermisssons) {
-          debugPrint('⏳ [MatchRepository] InsufficientPermissions onError - waiting for auth token...');
+          debugPrint(
+              '⏳ [MatchRepository] InsufficientPermissions onError - waiting for auth token...');
           return; // Nicht emittieren, einfach warten
         }
         _matchesSubject!.add(left<MatchFailure, List<CustomMatch>>(error));

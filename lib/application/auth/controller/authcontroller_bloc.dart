@@ -92,11 +92,12 @@ class AuthControllerBloc
               '🔄 [AuthControllerBloc] Retry $_retryCount/$_maxRetries nach Fehler: $failure');
           _isStreamActive = false; // Reset für neuen Versuch
           _retryTimer?.cancel();
-          
+
           // ✅ WICHTIG: BehaviorSubject resetten damit frischer Stream startet!
-          debugPrint('🧹 [AuthControllerBloc] Calling resetUsersStream() for RETRY');
+          debugPrint(
+              '🧹 [AuthControllerBloc] Calling resetUsersStream() for RETRY');
           authRepository.resetUsersStream();
-          
+
           // ✅ Exponential Backoff: 3s, 6s, 9s, 12s, 15s - gibt Firebase Auth genug Zeit
           _retryTimer = Timer(Duration(seconds: _retryCount * 3), () {
             add(AuthAllEvent());

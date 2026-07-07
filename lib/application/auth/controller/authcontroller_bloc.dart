@@ -36,6 +36,11 @@ class AuthControllerBloc
   /// ✅ Debounce Timer für Auth-Events
   Timer? _authEventDebounceTimer;
 
+  /// ✅ Retry-Counter für automatische Wiederholung bei Fehlern
+  int _retryCount = 0;
+  static const int _maxRetries = 5;
+  Timer? _retryTimer;
+
   AuthControllerBloc({required this.authRepository, required this.authBloc})
       : super(AuthControllerInitial()) {
     // Auto-Update bei Auth-Änderungen mit Debouncing
@@ -80,9 +85,33 @@ class AuthControllerBloc
       );
 
       if (failure != null) {
+        // ✅ Automatischer Retry bei Fehlern (max 3 Versuche)
+        if (_retryCount < _maxRetries) {
+          _retryCount++;
+          debugPrint(
+              '🔄 [AuthControllerBloc] Retry $_retryCount/$_maxRetries nach Fehler: $failure');
+          _isStreamActive = false; // Reset für neuen Versuch
+          _retryTimer?.cancel();
+          
+          // ✅ WICHTIG: BehaviorSubject resetten damit frischer Stream startet!
+          debugPrint('🧹 [AuthControllerBloc] Calling resetUsersStream() for RETRY');
+          authRepository.resetUsersStream();
+          
+          // ✅ Exponential Backoff: 3s, 6s, 9s, 12s, 15s - gibt Firebase Auth genug Zeit
+          _retryTimer = Timer(Duration(seconds: _retryCount * 3), () {
+            add(AuthAllEvent());
+          });
+          return;
+        }
+        // Nach max Retries: Fehler anzeigen
+        debugPrint(
+            '❌ [AuthControllerBloc] Max Retries erreicht, zeige Fehler: $failure');
         emit(AuthControllerFailure(authFailure: failure!));
         return;
       }
+
+      // ✅ Erfolg: Retry-Counter zurücksetzen
+      _retryCount = 0;
 
       if (users == null) return;
 
@@ -143,6 +172,8 @@ class AuthControllerBloc
       _lastTotalScoreSum = 0;
       _pendingUsers = null;
       _isDebouncing = false;
+      _retryCount = 0;
+      _retryTimer?.cancel();
       emit(AuthControllerInitial());
     });
   }
@@ -173,6 +204,7 @@ class AuthControllerBloc
     _authBlocSub?.cancel();
     _debounceTimer?.cancel();
     _authEventDebounceTimer?.cancel();
+    _retryTimer?.cancel();
     return super.close();
   }
 }

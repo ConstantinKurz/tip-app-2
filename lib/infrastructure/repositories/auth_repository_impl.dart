@@ -108,7 +108,20 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> signOut() async {
+    // ✅ Clear cached users stream to prevent stale data on re-login
+    debugPrint('🚪 [AuthRepository] signOut() called - will reset stream');
+    resetUsersStream();
     await firebaseAuth.signOut();
+  }
+
+  @override
+  void resetUsersStream() {
+    debugPrint('🧹 [AuthRepository] Resetting users stream (clearing BehaviorSubject)');
+    _usersSub?.cancel();
+    _usersSubject?.close();
+    _usersSubject = null;
+    _usersSub = null;
+    _streamEventCount = 0;
   }
 
   @override
@@ -173,27 +186,36 @@ class AuthRepositoryImpl implements AuthRepository {
               .toList();
           _usersSubject!.add(right<AuthFailure, List<AppUser>>(users));
         } catch (e) {
-          _usersSubject!.add(left<AuthFailure, List<AppUser>>(
-            mapFirebaseError<AuthFailure>(
-              e,
-              insufficientPermissions: InsufficientPermisssons(),
-              unexpected: UnexpectedAuthFailure(),
-              notFound: UserNotFoundFailure(
-                  message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
-            ),
-          ));
-        }
-      },
-      onError: (e) {
-        _usersSubject!.add(left<AuthFailure, List<AppUser>>(
-          mapFirebaseError<AuthFailure>(
+          // ✅ FIX: Bei InsufficientPermissions NICHT den Fehler cachen
+          // Firestore wird automatisch erneut versuchen wenn Auth-Token propagiert
+          final error = mapFirebaseError<AuthFailure>(
             e,
             insufficientPermissions: InsufficientPermisssons(),
             unexpected: UnexpectedAuthFailure(),
             notFound: UserNotFoundFailure(
                 message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
-          ),
-        ));
+          );
+          if (error is InsufficientPermisssons) {
+            debugPrint('⏳ [AuthRepository] InsufficientPermissions in snapshot - waiting for auth token...');
+            return; // Nicht emittieren, einfach warten
+          }
+          _usersSubject!.add(left<AuthFailure, List<AppUser>>(error));
+        }
+      },
+      onError: (e) {
+        // ✅ FIX: Bei InsufficientPermissions NICHT den Fehler cachen
+        final error = mapFirebaseError<AuthFailure>(
+          e,
+          insufficientPermissions: InsufficientPermisssons(),
+          unexpected: UnexpectedAuthFailure(),
+          notFound: UserNotFoundFailure(
+              message: "Benutzer mit dieser E-Mail wurde nicht gefunden"),
+        );
+        if (error is InsufficientPermisssons) {
+          debugPrint('⏳ [AuthRepository] InsufficientPermissions onError - waiting for auth token...');
+          return; // Nicht emittieren, einfach warten
+        }
+        _usersSubject!.add(left<AuthFailure, List<AppUser>>(error));
       },
     );
 

@@ -44,6 +44,11 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   String? _pendingUserId;
   bool _isDebouncing = false;
 
+  // ✅ Retry-Mechanismus für Fehler (BehaviorSubject-Cache-Problem)
+  int _retryCount = 0;
+  static const int _maxRetries = 5;
+  Timer? _retryTimer;
+
   TipControllerBloc({
     required this.tipRepository,
     required this.matchRepository,
@@ -184,8 +189,33 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     _pendingUserId = null;
 
     event.failureOrTip.fold(
-      (failure) => emit(TipControllerFailure(tipFailure: failure)),
+      (failure) {
+        // ✅ Automatischer Retry bei Fehlern (max 5 Versuche)
+        if (_retryCount < _maxRetries) {
+          _retryCount++;
+          debugPrint(
+              '🔄 [TipControllerBloc] Retry $_retryCount/$_maxRetries nach Fehler: $failure');
+          _isStreamActive = false;
+          _retryTimer?.cancel();
+          
+          // ✅ WICHTIG: BehaviorSubject resetten damit frischer Stream startet!
+          tipRepository.resetTipsStream();
+          
+          // ✅ Exponential Backoff: 3s, 6s, 9s, 12s, 15s
+          _retryTimer = Timer(Duration(seconds: _retryCount * 3), () {
+            add(TipAllEvent());
+          });
+          return;
+        }
+        // Nach max Retries: Fehler anzeigen
+        debugPrint(
+            '❌ [TipControllerBloc] Max Retries erreicht, zeige Fehler: $failure');
+        emit(TipControllerFailure(tipFailure: failure));
+      },
       (tips) {
+        // ✅ Erfolg: Retry-Counter zurücksetzen
+        _retryCount = 0;
+        
         final currentState = state;
         Map<int, MatchDayStatistics> currentStats = {};
 
@@ -269,6 +299,8 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
     _isStreamActive = false;
     _currentUserId = null;
     _cachedMatches = null;
+    _retryCount = 0;
+    _retryTimer?.cancel();
     emit(TipControllerInitial());
   }
 
@@ -531,6 +563,7 @@ class TipControllerBloc extends Bloc<TipControllerEvent, TipControllerState> {
   Future<void> close() async {
     await _tipStreamSub?.cancel();
     _debounceTimer?.cancel();
+    _retryTimer?.cancel();
     _loadingMatchDays.clear();
     return super.close();
   }

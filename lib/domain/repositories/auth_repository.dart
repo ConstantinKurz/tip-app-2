@@ -30,6 +30,10 @@ abstract class AuthRepository {
     required String email,
   });
 
+  /// Resets the users stream (clears cached BehaviorSubject)
+  /// Call this before retry to get fresh data from Firestore
+  void resetUsersStream();
+
   /// Updates the current user's own email in Firebase Authentication
   /// Sends a verification email to the new address
   Future<Either<AuthFailure, Unit>> updateOwnEmail({

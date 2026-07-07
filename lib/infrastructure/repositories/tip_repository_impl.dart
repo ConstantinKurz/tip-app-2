@@ -27,6 +27,16 @@ class TipRepositoryImpl implements TipRepository {
     required this.authRepository,
   });
 
+  @override
+  void resetTipsStream() {
+    debugPrint('🧹 [TipRepository] Resetting tips stream (clearing BehaviorSubject)');
+    _tipsSub?.cancel();
+    _tipsSubject?.close();
+    _tipsSubject = null;
+    _tipsSub = null;
+    _streamEventCount = 0;
+  }
+
   CollectionReference get usersCollection =>
       firebaseFirestore.collection('users');
 
@@ -161,25 +171,33 @@ class TipRepositoryImpl implements TipRepository {
           _tipsSubject!
               .add(right<TipFailure, Map<String, List<Tip>>>(userTipsMap));
         } catch (e) {
-          _tipsSubject!.add(left<TipFailure, Map<String, List<Tip>>>(
-            mapFirebaseError<TipFailure>(
-              e,
-              insufficientPermissions: InsufficientPermisssons(),
-              unexpected: UnexpectedFailure(),
-              notFound: NotFoundFailure(),
-            ),
-          ));
-        }
-      },
-      onError: (e) {
-        _tipsSubject!.add(left<TipFailure, Map<String, List<Tip>>>(
-          mapFirebaseError<TipFailure>(
+          // ✅ FIX: Bei InsufficientPermissions NICHT den Fehler cachen
+          final error = mapFirebaseError<TipFailure>(
             e,
             insufficientPermissions: InsufficientPermisssons(),
             unexpected: UnexpectedFailure(),
             notFound: NotFoundFailure(),
-          ),
-        ));
+          );
+          if (error is InsufficientPermisssons) {
+            debugPrint('⏳ [TipRepository] InsufficientPermissions in snapshot - waiting for auth token...');
+            return; // Nicht emittieren, einfach warten
+          }
+          _tipsSubject!.add(left<TipFailure, Map<String, List<Tip>>>(error));
+        }
+      },
+      onError: (e) {
+        // ✅ FIX: Bei InsufficientPermissions NICHT den Fehler cachen
+        final error = mapFirebaseError<TipFailure>(
+          e,
+          insufficientPermissions: InsufficientPermisssons(),
+          unexpected: UnexpectedFailure(),
+          notFound: NotFoundFailure(),
+        );
+        if (error is InsufficientPermisssons) {
+          debugPrint('⏳ [TipRepository] InsufficientPermissions onError - waiting for auth token...');
+          return; // Nicht emittieren, einfach warten
+        }
+        _tipsSubject!.add(left<TipFailure, Map<String, List<Tip>>>(error));
       },
     );
 

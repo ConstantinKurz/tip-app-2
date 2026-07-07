@@ -57,4 +57,7 @@ abstract class TipRepository {
   
   /// Löscht einen Tipp anhand seiner ID
   Future<Either<TipFailure, Unit>> deleteTipById(String tipId);
+  
+  /// ✅ NEU: Reset des Tip-Streams (für Retry bei Fehlern)
+  void resetTipsStream();
 }

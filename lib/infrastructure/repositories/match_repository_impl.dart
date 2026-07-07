@@ -54,25 +54,33 @@ class MatchRepositoryImpl implements MatchRepository {
               .toList();
           _matchesSubject!.add(right<MatchFailure, List<CustomMatch>>(matches));
         } catch (e) {
-          _matchesSubject!.add(left<MatchFailure, List<CustomMatch>>(
-            mapFirebaseError<MatchFailure>(
-              e,
-              insufficientPermissions: InsufficientPermisssons(),
-              unexpected: UnexpectedFailure(),
-              notFound: NotFoundFailure(),
-            ),
-          ));
-        }
-      },
-      onError: (e) {
-        _matchesSubject!.add(left<MatchFailure, List<CustomMatch>>(
-          mapFirebaseError<MatchFailure>(
+          // ✅ FIX: Bei InsufficientPermissions NICHT den Fehler cachen
+          final error = mapFirebaseError<MatchFailure>(
             e,
             insufficientPermissions: InsufficientPermisssons(),
             unexpected: UnexpectedFailure(),
             notFound: NotFoundFailure(),
-          ),
-        ));
+          );
+          if (error is InsufficientPermisssons) {
+            debugPrint('⏳ [MatchRepository] InsufficientPermissions in snapshot - waiting for auth token...');
+            return; // Nicht emittieren, einfach warten
+          }
+          _matchesSubject!.add(left<MatchFailure, List<CustomMatch>>(error));
+        }
+      },
+      onError: (e) {
+        // ✅ FIX: Bei InsufficientPermissions NICHT den Fehler cachen
+        final error = mapFirebaseError<MatchFailure>(
+          e,
+          insufficientPermissions: InsufficientPermisssons(),
+          unexpected: UnexpectedFailure(),
+          notFound: NotFoundFailure(),
+        );
+        if (error is InsufficientPermisssons) {
+          debugPrint('⏳ [MatchRepository] InsufficientPermissions onError - waiting for auth token...');
+          return; // Nicht emittieren, einfach warten
+        }
+        _matchesSubject!.add(left<MatchFailure, List<CustomMatch>>(error));
       },
     );
 

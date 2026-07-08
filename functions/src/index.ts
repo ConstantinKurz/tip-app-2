@@ -117,12 +117,18 @@ export const updateUserEmail = functions.https.onCall(async (data, context) => {
 // Wird bei jedem Tip-Write ausgeführt und korrigiert überschrittene Limits
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Joker-Limits pro matchDay/Phase
+// Joker-Limits pro matchDay/Phase (MUSS mit Flutter MatchPhase übereinstimmen!)
+// matchDay 1-3: Vorrunde (groupStage)
+// matchDay 4: 16tel-Finale (roundOf16)
+// matchDay 5: 8tel-Finale (roundOf8)
+// matchDay 6: Viertelfinale (quarterFinal)
+// matchDay 7: Halbfinale (semiFinal)
+// matchDay 8: Finale (finalStage)
 const JOKER_LIMITS: Record<number, number> = {
-  1: 3, 2: 3, 3: 3,  // Vorrunde: 3 Joker insgesamt
-  4: 2,              // Achtelfinale: 2 Joker
-  5: 2,              // Viertelfinale: 2 Joker
-  6: 1,              // Spiel um Platz 3: 1 Joker
+  1: 0, 2: 0, 3: 0,  // Vorrunde: 0 Joker
+  4: 2,              // 16tel-Finale: 2 Joker
+  5: 3,              // 8tel-Finale: 3 Joker
+  6: 2,              // Viertelfinale: 2 Joker
   7: 2, 8: 2,        // Halbfinale + Finale: zusammen 2 Joker
 };
 

@@ -267,21 +267,24 @@ class _RankingDesktopRow extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               _ChampionFlag(champion: champion, size: 28),
-              const SizedBox(width: 14),
+              const SizedBox(width: 20),
               _RankingStatIcon(
                 icon: Icons.star,
                 iconColor: Colors.amber,
                 value: '${user.jokerSum}',
                 tooltip: 'Joker',
               ),
-              const SizedBox(width: 14),
-              _RankingStatIcon(
-                icon: Icons.adjust,
-                iconColor: foregroundColor,
-                value: '${user.sixer}',
-                tooltip: '6er',
+              const SizedBox(width: 20),
+              SizedBox(
+                width: 40,
+                child: _RankingStatIcon(
+                  icon: Icons.adjust,
+                  iconColor: foregroundColor,
+                  value: '${user.sixer}',
+                  tooltip: '6er',
+                ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 20),
               _RankingStatIcon(
                 icon: Icons.edit_note,
                 iconColor: foregroundColor,

@@ -111,3 +111,78 @@ export const updateUserEmail = functions.https.onCall(async (data, context) => {
 
   return { success: true, message: "E-Mail erfolgreich geändert." };
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Joker-Limit Validierung
+// Wird bei jedem Tip-Write ausgeführt und korrigiert überschrittene Limits
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Joker-Limits pro matchDay/Phase
+const JOKER_LIMITS: Record<number, number> = {
+  1: 3, 2: 3, 3: 3,  // Vorrunde: 3 Joker insgesamt
+  4: 2,              // Achtelfinale: 2 Joker
+  5: 2,              // Viertelfinale: 2 Joker
+  6: 1,              // Spiel um Platz 3: 1 Joker
+  7: 2, 8: 2,        // Halbfinale + Finale: zusammen 2 Joker
+};
+
+/**
+ * Cloud Function: Validiert Joker-Limits bei jedem Tip-Schreibvorgang
+ * Wenn ein User mehr Joker setzt als erlaubt, wird der Joker automatisch entfernt.
+ */
+export const validateJokerLimit = functions.firestore
+  .document("tips/{tipId}")
+  .onWrite(async (change, context) => {
+    // Nur bei Create/Update prüfen (nicht bei Delete)
+    if (!change.after.exists) {
+      return null;
+    }
+
+    const newData = change.after.data();
+    if (!newData) {
+      return null;
+    }
+
+    // Wenn kein Joker gesetzt → nichts zu validieren
+    if (!newData.joker) {
+      return null;
+    }
+
+    const userId = newData.userId;
+    const matchDay = newData.matchDay;
+    const tipId = context.params.tipId;
+
+    console.log(`🎯 [validateJokerLimit] Checking joker for user ${userId}, matchDay ${matchDay}, tipId ${tipId}`);
+
+    // Maximale Joker für diesen matchDay
+    const maxJokers = JOKER_LIMITS[matchDay] || 1;
+
+    // matchDay 7+8 (Halbfinale + Finale) teilen sich 2 Joker
+    const matchDaysToCheck = (matchDay === 7 || matchDay === 8) ? [7, 8] : [matchDay];
+
+    // Zähle existierende Joker für diesen User in dieser Phase
+    const snapshot = await admin.firestore()
+      .collection("tips")
+      .where("userId", "==", userId)
+      .where("matchDay", "in", matchDaysToCheck)
+      .where("joker", "==", true)
+      .get();
+
+    // Filtere das aktuelle Dokument raus (falls es ein Update ist)
+    const existingJokers = snapshot.docs.filter((doc) => doc.id !== tipId).length;
+
+    console.log(`📊 [validateJokerLimit] User ${userId} has ${existingJokers} existing jokers (max: ${maxJokers}) for matchDays ${matchDaysToCheck.join(",")}`);
+
+    if (existingJokers >= maxJokers) {
+      // ❌ Limit überschritten → Joker entfernen
+      console.warn(`🚫 [validateJokerLimit] User ${userId} exceeded joker limit (${existingJokers}/${maxJokers}) for matchDay ${matchDay}. Removing joker from tip ${tipId}.`);
+
+      await change.after.ref.update({ joker: false });
+
+      console.log(`✅ [validateJokerLimit] Joker removed from tip ${tipId}`);
+      return { corrected: true, reason: "joker_limit_exceeded" };
+    }
+
+    console.log(`✅ [validateJokerLimit] Joker valid for tip ${tipId}`);
+    return { corrected: false };
+  });

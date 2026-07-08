@@ -90,6 +90,16 @@ class MatchRepositoryImpl implements MatchRepository {
   }
 
   @override
+  void resetMatchesStream() {
+    debugPrint('🧹 [MatchRepository] Resetting matches stream (clearing BehaviorSubject)');
+    _matchesSub?.cancel();
+    _matchesSubject?.close();
+    _matchesSubject = null;
+    _matchesSub = null;
+    _streamEventCount = 0;
+  }
+
+  @override
   Future<Either<MatchFailure, Unit>> createMatch(CustomMatch match) async {
     try {
       final matchModel = MatchModel.fromDomain(match);

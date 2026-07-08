@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web/application/auth/auth/auth_bloc.dart';
@@ -37,17 +38,71 @@ import 'package:url_strategy/url_strategy.dart';
 // - RecalculationService: Debouncing und Ergebnis-Änderungs-Filter
 // - Ranking-Update: Nur geänderte User werden geschrieben
 void main() async {
+  final stopwatch = Stopwatch()..start();
+  debugPrint('🚀 [${stopwatch.elapsedMilliseconds}ms] main() START');
+
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint(
+      '🚀 [${stopwatch.elapsedMilliseconds}ms] Flutter Binding initialized');
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  debugPrint('🚀 [${stopwatch.elapsedMilliseconds}ms] Firebase initialized');
+
+  // ✅ WICHTIG: Warte auf Firebase Auth Persistence UND Token-Propagation
+  debugPrint(
+      '⏳ [${stopwatch.elapsedMilliseconds}ms] Warte auf Firebase Auth State...');
+  try {
+    // ✅ Warte auf ersten authStateChanges Event
+    debugPrint(
+        '⏳ [${stopwatch.elapsedMilliseconds}ms] authStateChanges().first waiting...');
+    User? user = await FirebaseAuth.instance
+        .authStateChanges()
+        .first
+        .timeout(const Duration(seconds: 3), onTimeout: () => null);
+    debugPrint(
+        '⏳ [${stopwatch.elapsedMilliseconds}ms] authStateChanges().first returned: ${user?.uid ?? "null"}');
+
+    // ✅ Wenn null, warte etwas länger - IndexedDB Persistence könnte noch laden
+    if (user == null) {
+      debugPrint(
+          '⏳ [${stopwatch.elapsedMilliseconds}ms] Erster Auth-State null - warte 2s auf IndexedDB Persistence...');
+      await Future.delayed(const Duration(seconds: 2));
+      user = FirebaseAuth.instance.currentUser;
+      debugPrint(
+          '⏳ [${stopwatch.elapsedMilliseconds}ms] Nach 2s delay: currentUser = ${user?.uid ?? "null"}');
+    }
+
+    if (user != null) {
+      // ✅ User ist eingeloggt - Force Token Refresh damit Firestore das Token bekommt
+      debugPrint(
+          '👤 [${stopwatch.elapsedMilliseconds}ms] User gefunden: ${user.uid}');
+      debugPrint(
+          '🔄 [${stopwatch.elapsedMilliseconds}ms] Force Token Refresh für Firestore...');
+      await user.getIdToken(true); // Force refresh des Tokens
+      debugPrint(
+          '✅ [${stopwatch.elapsedMilliseconds}ms] Token refreshed - Firestore sollte jetzt Zugriff haben');
+    } else {
+      debugPrint(
+          '👻 [${stopwatch.elapsedMilliseconds}ms] Kein User eingeloggt - überspringe Token Refresh');
+    }
+  } catch (e) {
+    debugPrint(
+        '⚠️ [${stopwatch.elapsedMilliseconds}ms] Auth State/Token Error: $e - fahre fort');
+  }
+
+  debugPrint('🚀 [main] Initializing date formatting...');
   await initializeDateFormatting('de_DE', null);
 
   setPathUrlStrategy();
+  debugPrint('🚀 [main] Starting DI init...');
   await di.init();
+  debugPrint('🚀 [main] DI init COMPLETE');
 
   // ✅ NEU: Logger initialisieren
   await FirestoreLogger.initialize();
+  debugPrint('🚀 [main] App ready to start');
   // ✅ Reset Firestore Logger beim Start
   FirestoreLogger.reset();
 
@@ -99,11 +154,13 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               di.sl<AuthBloc>()..add(AuthCheckRequestedEvent()),
         ),
+        // ✅ KEIN add(AuthAllEvent()) - Bloc hört auf AuthBloc und startet automatisch
         BlocProvider(
-          create: (context) => di.sl<AuthControllerBloc>()..add(AuthAllEvent()),
+          create: (context) => di.sl<AuthControllerBloc>(),
         ),
+        // ✅ KEIN add() - Matches brauchen auch Auth für Security Rules
         BlocProvider(
-          create: (_) => di.sl<MatchesControllerBloc>()..add(MatchesAllEvent()),
+          create: (_) => di.sl<MatchesControllerBloc>(),
         ),
         BlocProvider(
           create: (_) =>

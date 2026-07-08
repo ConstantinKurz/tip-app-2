@@ -168,7 +168,11 @@ class AuthRepositoryImpl implements AuthRepository {
       return _usersSubject!.stream;
     }
 
-    debugPrint('🎯 [AuthRepository] watchAllUsers STREAM STARTED (SINGLETON)');
+    // ✅ Debug: Check current auth state
+    final currentUser = firebaseAuth.currentUser;
+    debugPrint('🎯 [AuthRepository] watchAllUsers STREAM STARTED');
+    debugPrint(
+        '🎯 [AuthRepository] currentUser at stream start: ${currentUser?.uid ?? "NULL"}');
     FirestoreLogger.logRead('users', 'watchAllUsers (STREAM)');
 
     _usersSubject = BehaviorSubject<Either<AuthFailure, List<AppUser>>>();

@@ -83,14 +83,18 @@ Future<void> init({bool useMocks = false}) async {
 
   // Register Blocs
   sl.registerFactory(() => SignupformBloc(authRepository: sl()));
-  sl.registerFactory(() => AuthBloc(authRepository: sl()));
+  // ✅ AuthBloc als Singleton - wird von AuthControllerBloc und MatchesControllerBloc benötigt
+  sl.registerLazySingleton(() => AuthBloc(authRepository: sl()));
   sl.registerLazySingleton(
       () => AuthControllerBloc(authRepository: sl(), authBloc: sl()));
   sl.registerFactory(() => MatchesformBloc(
         matchesRepository: sl(),
         recalculateMatchTipsUseCase: sl(),
       ));
-  sl.registerLazySingleton(() => MatchesControllerBloc(matchRepository: sl()));
+  sl.registerLazySingleton(() => MatchesControllerBloc(
+        matchRepository: sl(),
+        authBloc: sl(),
+      ));
   sl.registerLazySingleton(() => TipControllerBloc(
         tipRepository: sl(),
         matchRepository: sl(),

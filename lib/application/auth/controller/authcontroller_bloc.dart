@@ -43,39 +43,35 @@ class AuthControllerBloc
 
   AuthControllerBloc({required this.authRepository, required this.authBloc})
       : super(AuthControllerInitial()) {
-    // Auto-Update bei Auth-Änderungen mit Debouncing
-    _authBlocSub = authBloc.stream.listen((authState) {
-      if (authState is AuthStateAuthenticated) {
-        // ✅ Debounce um Race Conditions zu vermeiden
-        _authEventDebounceTimer?.cancel();
-        _authEventDebounceTimer = Timer(const Duration(milliseconds: 100), () {
-          _cachedSignedInUserId = null; // Reset bei Auth-Änderung
-          add(AuthAllEvent());
-        });
-      } else if (authState is AuthStateUnAuthenticated) {
-        // ✅ Bei Logout: Reset aller Streams und Flags
-        _authEventDebounceTimer?.cancel();
-        add(_AuthResetEvent());
-      }
-    });
-
+    debugPrint(
+        '🎯 [AuthControllerBloc] CONSTRUCTOR called - listening to AuthBloc');
+    debugPrint('🎯 [AuthControllerBloc] Current AuthBloc state: ${authBloc.state.runtimeType}');
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // ✅ WICHTIG: ALLE Event-Handler ZUERST registrieren!
+    // ═══════════════════════════════════════════════════════════════════════
+    
     on<AuthAllEvent>((event, emit) async {
-      // ✅ Verhindere mehrfaches Subscriben - auch während Loading!
+      debugPrint('🎯 [AuthControllerBloc] AuthAllEvent received');
       if (_isStreamActive) {
         debugPrint(
             '⏭️ [AuthControllerBloc] AuthAllEvent SKIPPED: Stream already active');
         return;
       }
       _isStreamActive = true;
+      debugPrint(
+          '🎯 [AuthControllerBloc] Emitting AuthControllerLoading, calling watchAllUsers()...');
       emit(AuthControllerLoading());
       await _usersStreamSub?.cancel();
       _usersStreamSub = authRepository.watchAllUsers().listen((failureOrUsers) {
+        debugPrint('🎯 [AuthControllerBloc] watchAllUsers() received data');
         add(AuthUpdatedEvent(failureOrUsers: failureOrUsers));
-      }, onError: (error) {});
+      }, onError: (error) {
+        debugPrint('🎯 [AuthControllerBloc] watchAllUsers() onError: $error');
+      });
     });
 
     on<AuthUpdatedEvent>((event, emit) async {
-      // ✅ Extrahiere Daten aus fold() BEVOR async Operationen
       AuthFailure? failure;
       List<AppUser>? users;
 
@@ -85,40 +81,31 @@ class AuthControllerBloc
       );
 
       if (failure != null) {
-        // ✅ Automatischer Retry bei Fehlern (max 3 Versuche)
         if (_retryCount < _maxRetries) {
           _retryCount++;
           debugPrint(
               '🔄 [AuthControllerBloc] Retry $_retryCount/$_maxRetries nach Fehler: $failure');
-          _isStreamActive = false; // Reset für neuen Versuch
+          _isStreamActive = false;
           _retryTimer?.cancel();
-
-          // ✅ WICHTIG: BehaviorSubject resetten damit frischer Stream startet!
           debugPrint(
               '🧹 [AuthControllerBloc] Calling resetUsersStream() for RETRY');
           authRepository.resetUsersStream();
-
-          // ✅ Exponential Backoff: 3s, 6s, 9s, 12s, 15s - gibt Firebase Auth genug Zeit
           _retryTimer = Timer(Duration(seconds: _retryCount * 3), () {
             add(AuthAllEvent());
           });
           return;
         }
-        // Nach max Retries: Fehler anzeigen
         debugPrint(
             '❌ [AuthControllerBloc] Max Retries erreicht, zeige Fehler: $failure');
         emit(AuthControllerFailure(authFailure: failure!));
         return;
       }
 
-      // ✅ Erfolg: Retry-Counter zurücksetzen
       _retryCount = 0;
-
       if (users == null) return;
 
       final newScoreSum = users!.fold(0, (sum, u) => sum + u.score);
 
-      // ✅ Bei Debouncing: Nur Event triggern, nicht emittieren
       if (_isDebouncing) {
         _pendingUsers = users;
         _debounceTimer?.cancel();
@@ -130,7 +117,6 @@ class AuthControllerBloc
         return;
       }
 
-      // Prüfe ob sich Scores geändert haben → Debouncing starten
       if (_lastTotalScoreSum != 0 && newScoreSum != _lastTotalScoreSum) {
         _pendingUsers = users;
         _isDebouncing = true;
@@ -143,7 +129,6 @@ class AuthControllerBloc
         return;
       }
 
-      // Keine Score-Änderung → sofort emittieren
       _lastTotalScoreSum = newScoreSum;
       final signedInUser = await _getSignedInUser(users!);
       emit(AuthControllerLoaded(
@@ -152,7 +137,6 @@ class AuthControllerBloc
       ));
     });
 
-    // ✅ Handler für debounced Update - nur HIER wird signedInUser geladen
     on<_DebouncedUpdateEvent>((event, emit) async {
       _lastTotalScoreSum = event.users.fold(0, (sum, u) => sum + u.score);
       _pendingUsers = null;
@@ -165,7 +149,6 @@ class AuthControllerBloc
       ));
     });
 
-    // ✅ Handler für Logout-Reset
     on<_AuthResetEvent>((event, emit) async {
       await _usersStreamSub?.cancel();
       _isStreamActive = false;
@@ -177,6 +160,38 @@ class AuthControllerBloc
       _retryTimer?.cancel();
       emit(AuthControllerInitial());
     });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ✅ JETZT: Stream Listener registrieren (NACH allen Handlern!)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    _authBlocSub = authBloc.stream.listen((authState) {
+      debugPrint(
+          '🎯 [AuthControllerBloc] AuthBloc emitted: ${authState.runtimeType}');
+      if (authState is AuthStateAuthenticated) {
+        _authEventDebounceTimer?.cancel();
+        _authEventDebounceTimer = Timer(const Duration(milliseconds: 100), () {
+          debugPrint(
+              '🎯 [AuthControllerBloc] AuthStateAuthenticated -> calling AuthAllEvent()');
+          _cachedSignedInUserId = null;
+          add(AuthAllEvent());
+        });
+      } else if (authState is AuthStateUnAuthenticated) {
+        debugPrint(
+            '🎯 [AuthControllerBloc] AuthStateUnAuthenticated -> calling _AuthResetEvent()');
+        _authEventDebounceTimer?.cancel();
+        add(_AuthResetEvent());
+      }
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // ✅ ZULETZT: Check current state - if already authenticated
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    if (authBloc.state is AuthStateAuthenticated) {
+      debugPrint('🎯 [AuthControllerBloc] Auth ALREADY authenticated -> starting immediately');
+      add(AuthAllEvent());
+    }
   }
 
   /// ✅ Holt den signed-in User mit Caching - nur einmal pro Session laden

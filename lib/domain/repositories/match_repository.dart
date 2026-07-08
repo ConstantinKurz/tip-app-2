@@ -4,7 +4,7 @@ import 'package:flutter_web/domain/entities/match.dart';
 
 abstract class MatchRepository {
   Stream<Either<MatchFailure, List<CustomMatch>>> watchAllMatches();
-  
+
   /// Reset the matches stream - forces a fresh Firestore subscription
   void resetMatchesStream();
 

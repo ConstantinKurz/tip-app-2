@@ -23,8 +23,9 @@ class MatchesControllerBloc
       : super(MatchesControllerInitial()) {
     debugPrint(
         '🎮 [MatchesControllerBloc] CONSTRUCTOR - listening to AuthBloc');
-    debugPrint('🎮 [MatchesControllerBloc] Current AuthBloc state: ${authBloc.state.runtimeType}');
-    
+    debugPrint(
+        '🎮 [MatchesControllerBloc] Current AuthBloc state: ${authBloc.state.runtimeType}');
+
     // ✅ WICHTIG: Event-Handler ZUERST registrieren!
     on<MatchesAllEvent>(_onMatchesAllEvent);
     on<MatchUpdatedEvent>(_onMatchUpdatedEvent);
@@ -39,11 +40,12 @@ class MatchesControllerBloc
         add(MatchesAllEvent());
       }
     });
-    
+
     // ✅ Check current state - if already authenticated, start immediately
     // NACH der Handler-Registrierung!
     if (authBloc.state is AuthStateAuthenticated) {
-      debugPrint('🎮 [MatchesControllerBloc] Auth ALREADY authenticated -> starting immediately');
+      debugPrint(
+          '🎮 [MatchesControllerBloc] Auth ALREADY authenticated -> starting immediately');
       add(MatchesAllEvent());
     }
   }
@@ -58,11 +60,12 @@ class MatchesControllerBloc
       return;
     }
     _isStreamActive = true;
-    
+
     // ✅ Reset stream to force fresh Firestore subscription (in case old one got InsufficientPermissions)
-    debugPrint('🧹 [MatchesControllerBloc] Resetting matches stream before subscribing...');
+    debugPrint(
+        '🧹 [MatchesControllerBloc] Resetting matches stream before subscribing...');
     matchRepository.resetMatchesStream();
-    
+
     debugPrint('🎮 [MatchesControllerBloc] Starting watchAllMatches stream');
     emit(MatchesControllerLoading());
 

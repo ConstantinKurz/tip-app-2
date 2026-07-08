@@ -91,7 +91,8 @@ class MatchRepositoryImpl implements MatchRepository {
 
   @override
   void resetMatchesStream() {
-    debugPrint('🧹 [MatchRepository] Resetting matches stream (clearing BehaviorSubject)');
+    debugPrint(
+        '🧹 [MatchRepository] Resetting matches stream (clearing BehaviorSubject)');
     _matchesSub?.cancel();
     _matchesSubject?.close();
     _matchesSubject = null;

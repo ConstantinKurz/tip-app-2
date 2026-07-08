@@ -45,12 +45,13 @@ class AuthControllerBloc
       : super(AuthControllerInitial()) {
     debugPrint(
         '🎯 [AuthControllerBloc] CONSTRUCTOR called - listening to AuthBloc');
-    debugPrint('🎯 [AuthControllerBloc] Current AuthBloc state: ${authBloc.state.runtimeType}');
-    
+    debugPrint(
+        '🎯 [AuthControllerBloc] Current AuthBloc state: ${authBloc.state.runtimeType}');
+
     // ═══════════════════════════════════════════════════════════════════════
     // ✅ WICHTIG: ALLE Event-Handler ZUERST registrieren!
     // ═══════════════════════════════════════════════════════════════════════
-    
+
     on<AuthAllEvent>((event, emit) async {
       debugPrint('🎯 [AuthControllerBloc] AuthAllEvent received');
       if (_isStreamActive) {
@@ -164,7 +165,7 @@ class AuthControllerBloc
     // ═══════════════════════════════════════════════════════════════════════
     // ✅ JETZT: Stream Listener registrieren (NACH allen Handlern!)
     // ═══════════════════════════════════════════════════════════════════════
-    
+
     _authBlocSub = authBloc.stream.listen((authState) {
       debugPrint(
           '🎯 [AuthControllerBloc] AuthBloc emitted: ${authState.runtimeType}');
@@ -183,13 +184,14 @@ class AuthControllerBloc
         add(_AuthResetEvent());
       }
     });
-    
+
     // ═══════════════════════════════════════════════════════════════════════
     // ✅ ZULETZT: Check current state - if already authenticated
     // ═══════════════════════════════════════════════════════════════════════
-    
+
     if (authBloc.state is AuthStateAuthenticated) {
-      debugPrint('🎯 [AuthControllerBloc] Auth ALREADY authenticated -> starting immediately');
+      debugPrint(
+          '🎯 [AuthControllerBloc] Auth ALREADY authenticated -> starting immediately');
       add(AuthAllEvent());
     }
   }

@@ -149,8 +149,32 @@ export const validateJokerLimit = functions.firestore
     }
 
     const userId = newData.userId;
-    const matchDay = newData.matchDay;
+    const matchId = newData.matchId;
     const tipId = context.params.tipId;
+
+    if (!matchId) {
+      console.warn(`⚠️ [validateJokerLimit] No matchId in tip ${tipId}, skipping`);
+      return null;
+    }
+
+    // ✅ Match nachschlagen um matchDay zu bekommen
+    const matchDoc = await admin.firestore()
+      .collection("matches")
+      .doc(matchId)
+      .get();
+
+    if (!matchDoc.exists) {
+      console.warn(`⚠️ [validateJokerLimit] Match ${matchId} not found, skipping`);
+      return null;
+    }
+
+    const matchData = matchDoc.data();
+    const matchDay = matchData?.matchDay;
+
+    if (matchDay === undefined || matchDay === null) {
+      console.warn(`⚠️ [validateJokerLimit] Match ${matchId} has no matchDay, skipping`);
+      return null;
+    }
 
     console.log(`🎯 [validateJokerLimit] Checking joker for user ${userId}, matchDay ${matchDay}, tipId ${tipId}`);
 
@@ -160,16 +184,29 @@ export const validateJokerLimit = functions.firestore
     // matchDay 7+8 (Halbfinale + Finale) teilen sich 2 Joker
     const matchDaysToCheck = (matchDay === 7 || matchDay === 8) ? [7, 8] : [matchDay];
 
-    // Zähle existierende Joker für diesen User in dieser Phase
-    const snapshot = await admin.firestore()
+    // ✅ Alle Matches für diese matchDays holen
+    const matchesSnapshot = await admin.firestore()
+      .collection("matches")
+      .where("matchDay", "in", matchDaysToCheck)
+      .get();
+
+    const matchIdsForPhase = matchesSnapshot.docs.map((doc) => doc.id);
+
+    if (matchIdsForPhase.length === 0) {
+      console.warn(`⚠️ [validateJokerLimit] No matches found for matchDays ${matchDaysToCheck.join(",")}`);
+      return null;
+    }
+
+    // ✅ Zähle existierende Joker für diesen User in dieser Phase
+    const tipsSnapshot = await admin.firestore()
       .collection("tips")
       .where("userId", "==", userId)
-      .where("matchDay", "in", matchDaysToCheck)
+      .where("matchId", "in", matchIdsForPhase)
       .where("joker", "==", true)
       .get();
 
     // Filtere das aktuelle Dokument raus (falls es ein Update ist)
-    const existingJokers = snapshot.docs.filter((doc) => doc.id !== tipId).length;
+    const existingJokers = tipsSnapshot.docs.filter((doc) => doc.id !== tipId).length;
 
     console.log(`📊 [validateJokerLimit] User ${userId} has ${existingJokers} existing jokers (max: ${maxJokers}) for matchDays ${matchDaysToCheck.join(",")}`);
 

@@ -149,8 +149,14 @@ export const validateJokerLimit = functions.firestore
       return null;
     }
 
-    // Wenn kein Joker gesetzt → nichts zu validieren
+    // ⚡ PERFORMANCE: Wenn kein Joker gesetzt → sofort abbrechen (häufigster Fall!)
     if (!newData.joker) {
+      return null;
+    }
+
+    // ⚡ PERFORMANCE: Wenn Update und Joker sich nicht geändert hat → nichts zu tun
+    const oldData = change.before.exists ? change.before.data() : null;
+    if (oldData && oldData.joker === true && newData.joker === true) {
       return null;
     }
 

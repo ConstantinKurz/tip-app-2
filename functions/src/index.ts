@@ -118,6 +118,8 @@ export const updateUserEmail = functions.https.onCall(async (data, context) => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Joker-Limits pro matchDay/Phase (MUSS mit Flutter MatchPhase übereinstimmen!)
+// ⚠️ TEMPORÄR DEAKTIVIERT
+/*
 const JOKER_LIMITS: Record<number, number> = {
   1: 0, 2: 0, 3: 0,  // Vorrunde: 0 Joker
   4: 2,              // 16tel-Finale: 2 Joker
@@ -125,6 +127,7 @@ const JOKER_LIMITS: Record<number, number> = {
   6: 2,              // Viertelfinale: 2 Joker
   7: 2, 8: 2,        // Halbfinale + Finale: zusammen 2 Joker
 };
+*/
 
 // ⚡ Hilfsfunktion: Counter-Key für matchDay (7+8 teilen sich einen Key)
 function getJokerCounterKey(matchDay: number): string {
@@ -132,15 +135,22 @@ function getJokerCounterKey(matchDay: number): string {
 }
 
 // ⚡ Cache für Match → MatchDay Mapping (reduziert DB-Reads)
-const matchDayCache: Map<string, number> = new Map();
+// ⚠️ TEMPORÄR DEAKTIVIERT
+// const matchDayCache: Map<string, number> = new Map();
 
 /**
  * ⚡ OPTIMIERTE Cloud Function: Synchronisiert Joker-Counter im User-Dokument
  * Wird bei jedem Tip-Write ausgeführt, aber ist extrem schnell durch Counter-Nutzung
+ * 
+ * ⚠️ TEMPORÄR DEAKTIVIERT - Statistiken laden zu langsam
  */
 export const validateJokerLimit = functions.firestore
   .document("tips/{tipId}")
   .onWrite(async (change, context) => {
+    // ⚠️ DEAKTIVIERT - sofort return ohne Verarbeitung
+    return null;
+    
+    /* ORIGINAL CODE - AUSKOMMENTIERT
     const tipId = context.params.tipId;
     
     // Bei Delete: Joker-Counter dekrementieren falls nötig
@@ -215,11 +225,14 @@ export const validateJokerLimit = functions.firestore
     }
 
     return { corrected: false };
+    END OF ORIGINAL CODE */
   });
 
 /**
  * ⚡ Hilfsfunktion: Holt matchDay für ein Match (mit Caching)
+ * ⚠️ TEMPORÄR DEAKTIVIERT
  */
+/*
 async function getMatchDay(matchId: string): Promise<number | null> {
   // Check Cache
   if (matchDayCache.has(matchId)) {
@@ -236,10 +249,13 @@ async function getMatchDay(matchId: string): Promise<number | null> {
   matchDayCache.set(matchId, matchDay);
   return matchDay;
 }
+*/
 
 /**
  * ⚡ Hilfsfunktion: Aktualisiert Joker-Counter für einen User
+ * ⚠️ TEMPORÄR DEAKTIVIERT
  */
+/*
 async function updateJokerCounter(userId: string, matchId: string, delta: number): Promise<void> {
   const matchDay = await getMatchDay(matchId);
   if (matchDay === null) return;
@@ -258,6 +274,7 @@ async function updateJokerCounter(userId: string, matchId: string, delta: number
     }, { merge: true });
   });
 }
+*/
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Admin Function: Initialisiert Joker-Counter für alle User (einmalig ausführen!)

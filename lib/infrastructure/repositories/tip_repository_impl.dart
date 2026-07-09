@@ -207,18 +207,58 @@ class TipRepositoryImpl implements TipRepository {
     return _tipsSubject!.stream;
   }
 
+  /// ⚡ Hilfsfunktion: Counter-Key für matchDay (7+8 teilen sich einen Key)
+  String _getJokerCounterKey(int matchDay) {
+    return (matchDay == 7 || matchDay == 8) ? '7_8' : matchDay.toString();
+  }
+
   @override
   Future<Either<TipFailure, int>> getJokersUsedInMatchDay({
     required String userId,
     required int matchDay,
   }) async {
-    FirestoreLogger.logRead('tips', 'getJokersUsedInMatchDay',
+    FirestoreLogger.logRead('users', 'getJokersUsedInMatchDay (optimized)',
         docId: 'user=$userId, matchDay=$matchDay');
     debugPrint(
-        '🃏 [TipRepository] getJokersUsedInMatchDay: user=$userId, matchDay=$matchDay');
+        '🃏 [TipRepository] getJokersUsedInMatchDay (FAST): user=$userId, matchDay=$matchDay');
 
     try {
-      // ✅ Bestimme die Phase und alle zugehörigen matchDays
+      // ⚡ OPTIMIERT: Lese Counter direkt aus User-Dokument (1 Read statt N Queries!)
+      final userDoc = await usersCollection.doc(userId).get();
+
+      if (!userDoc.exists) {
+        debugPrint('⚠️ [TipRepository] User $userId not found, returning 0');
+        return right(0);
+      }
+
+      final userData = userDoc.data() as Map<String, dynamic>?;
+      final jokerCounters =
+          userData?['jokerCounters'] as Map<String, dynamic>? ?? {};
+
+      // Bestimme den Counter-Key (matchDay 7+8 teilen sich "7_8")
+      final counterKey = _getJokerCounterKey(matchDay);
+      final jokerCount = jokerCounters[counterKey] as int? ?? 0;
+
+      debugPrint(
+          '✅ [TipRepository] Joker count for $counterKey: $jokerCount (from user doc)');
+      return right(jokerCount);
+    } catch (e) {
+      debugPrint(
+          '⚠️ [TipRepository] Error reading joker counter, falling back to query: $e');
+      // Fallback zur alten Methode falls Counter nicht existiert
+      return _getJokersUsedInMatchDayLegacy(userId: userId, matchDay: matchDay);
+    }
+  }
+
+  /// Legacy-Methode als Fallback (alte langsame Implementierung)
+  Future<Either<TipFailure, int>> _getJokersUsedInMatchDayLegacy({
+    required String userId,
+    required int matchDay,
+  }) async {
+    debugPrint('🐌 [TipRepository] Using LEGACY joker count method (slow)');
+
+    try {
+      // Bestimme die Phase und alle zugehörigen matchDays
       final phase = MatchPhase.fromMatchDay(matchDay);
       final matchDaysInPhase = phase.getMatchDaysForPhase();
 
@@ -228,7 +268,7 @@ class TipRepositoryImpl implements TipRepository {
           .where('joker', isEqualTo: true)
           .get();
 
-      //Sammle alle matchIds und lade in einem Batch
+      // Sammle alle matchIds und lade in einem Batch
       final matchIds = <String>[];
       for (final doc in querySnapshot.docs) {
         final tipData = doc.data() as Map<String, dynamic>;
@@ -242,7 +282,7 @@ class TipRepositoryImpl implements TipRepository {
         return right(0);
       }
 
-      // ✅ Lade alle Matches in Batches (Firestore limit: 10 per whereIn)
+      // Lade alle Matches in Batches (Firestore limit: 10 per whereIn)
       final matchDayMap = await _loadMatchDaysForMatchIds(matchIds);
 
       // Zähle Joker in ALLEN matchDays dieser Phase
@@ -419,13 +459,55 @@ class TipRepositoryImpl implements TipRepository {
     required String userId,
     required List<int> matchDays,
   }) async {
+    debugPrint(
+        '🃏 [TipRepository] getJokersUsedInMatchDays (FAST): user=$userId, matchDays=$matchDays');
+
+    try {
+      // ⚡ OPTIMIERT: Lese Counter direkt aus User-Dokument
+      final userDoc = await usersCollection.doc(userId).get();
+
+      if (!userDoc.exists) {
+        return right(0);
+      }
+
+      final userData = userDoc.data() as Map<String, dynamic>?;
+      final jokerCounters =
+          userData?['jokerCounters'] as Map<String, dynamic>? ?? {};
+
+      // Summiere Counter für alle angeforderten matchDays
+      int totalJokers = 0;
+      final processedKeys = <String>{};
+
+      for (final matchDay in matchDays) {
+        final counterKey = _getJokerCounterKey(matchDay);
+        // Vermeide doppelte Zählung (z.B. bei [7, 8] -> beide nutzen "7_8")
+        if (!processedKeys.contains(counterKey)) {
+          totalJokers += jokerCounters[counterKey] as int? ?? 0;
+          processedKeys.add(counterKey);
+        }
+      }
+
+      debugPrint(
+          '✅ [TipRepository] Total jokers for matchDays $matchDays: $totalJokers');
+      return right(totalJokers);
+    } catch (e) {
+      debugPrint('⚠️ [TipRepository] Error, falling back to legacy method: $e');
+      return _getJokersUsedInMatchDaysLegacy(
+          userId: userId, matchDays: matchDays);
+    }
+  }
+
+  /// Legacy-Methode als Fallback für getJokersUsedInMatchDays
+  Future<Either<TipFailure, int>> _getJokersUsedInMatchDaysLegacy({
+    required String userId,
+    required List<int> matchDays,
+  }) async {
     try {
       final querySnapshot = await tipsCollection
           .where('userId', isEqualTo: userId)
           .where('joker', isEqualTo: true)
           .get();
 
-      // ✅ OPTIMIERT: Sammle alle matchIds
       final matchIds = <String>[];
       for (final doc in querySnapshot.docs) {
         final tipData = doc.data() as Map<String, dynamic>;
@@ -439,10 +521,8 @@ class TipRepositoryImpl implements TipRepository {
         return right(0);
       }
 
-      // ✅ Lade alle Matches in Batches
       final matchDayMap = await _loadMatchDaysForMatchIds(matchIds);
 
-      // Zähle wenn matchDay in der Liste ist
       int jokerCount = 0;
       for (final matchId in matchIds) {
         final docMatchDay = matchDayMap[matchId];

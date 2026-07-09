@@ -113,17 +113,11 @@ export const updateUserEmail = functions.https.onCall(async (data, context) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Joker-Limit Validierung
-// Wird bei jedem Tip-Write ausgeführt und korrigiert überschrittene Limits
+// Joker-Limit Validierung (OPTIMIERT für Mobile Performance)
+// Nutzt denormalisierte Counter im User-Dokument statt alle Tips zu durchsuchen
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Joker-Limits pro matchDay/Phase (MUSS mit Flutter MatchPhase übereinstimmen!)
-// matchDay 1-3: Vorrunde (groupStage)
-// matchDay 4: 16tel-Finale (roundOf16)
-// matchDay 5: 8tel-Finale (roundOf8)
-// matchDay 6: Viertelfinale (quarterFinal)
-// matchDay 7: Halbfinale (semiFinal)
-// matchDay 8: Finale (finalStage)
 const JOKER_LIMITS: Record<number, number> = {
   1: 0, 2: 0, 3: 0,  // Vorrunde: 0 Joker
   4: 2,              // 16tel-Finale: 2 Joker
@@ -132,106 +126,216 @@ const JOKER_LIMITS: Record<number, number> = {
   7: 2, 8: 2,        // Halbfinale + Finale: zusammen 2 Joker
 };
 
+// ⚡ Hilfsfunktion: Counter-Key für matchDay (7+8 teilen sich einen Key)
+function getJokerCounterKey(matchDay: number): string {
+  return (matchDay === 7 || matchDay === 8) ? "7_8" : String(matchDay);
+}
+
+// ⚡ Cache für Match → MatchDay Mapping (reduziert DB-Reads)
+const matchDayCache: Map<string, number> = new Map();
+
 /**
- * Cloud Function: Validiert Joker-Limits bei jedem Tip-Schreibvorgang
- * Wenn ein User mehr Joker setzt als erlaubt, wird der Joker automatisch entfernt.
+ * ⚡ OPTIMIERTE Cloud Function: Synchronisiert Joker-Counter im User-Dokument
+ * Wird bei jedem Tip-Write ausgeführt, aber ist extrem schnell durch Counter-Nutzung
  */
 export const validateJokerLimit = functions.firestore
   .document("tips/{tipId}")
   .onWrite(async (change, context) => {
-    // Nur bei Create/Update prüfen (nicht bei Delete)
+    const tipId = context.params.tipId;
+    
+    // Bei Delete: Joker-Counter dekrementieren falls nötig
     if (!change.after.exists) {
+      const oldData = change.before.data();
+      if (oldData?.joker && oldData?.userId && oldData?.matchId) {
+        await updateJokerCounter(oldData.userId, oldData.matchId, -1);
+      }
       return null;
     }
 
     const newData = change.after.data();
-    if (!newData) {
-      return null;
-    }
+    if (!newData) return null;
 
-    // ⚡ PERFORMANCE: Wenn kein Joker gesetzt → sofort abbrechen (häufigster Fall!)
-    if (!newData.joker) {
-      return null;
-    }
-
-    // ⚡ PERFORMANCE: Wenn Update und Joker sich nicht geändert hat → nichts zu tun
     const oldData = change.before.exists ? change.before.data() : null;
-    if (oldData && oldData.joker === true && newData.joker === true) {
+    const oldJoker = oldData?.joker === true;
+    const newJoker = newData.joker === true;
+
+    // ⚡ FAST PATH: Keine Joker-Änderung → nichts zu tun
+    if (oldJoker === newJoker) {
       return null;
     }
 
     const userId = newData.userId;
     const matchId = newData.matchId;
-    const tipId = context.params.tipId;
 
-    if (!matchId) {
-      console.warn(`⚠️ [validateJokerLimit] No matchId in tip ${tipId}, skipping`);
+    if (!userId || !matchId) {
+      console.warn(`⚠️ [validateJokerLimit] Missing userId or matchId in tip ${tipId}`);
       return null;
     }
 
-    // ✅ Match nachschlagen um matchDay zu bekommen
-    const matchDoc = await admin.firestore()
-      .collection("matches")
-      .doc(matchId)
-      .get();
+    // Joker wurde hinzugefügt
+    if (!oldJoker && newJoker) {
+      // ⚡ Hole matchDay (aus Cache oder DB)
+      const matchDay = await getMatchDay(matchId);
+      if (matchDay === null) {
+        console.warn(`⚠️ [validateJokerLimit] Could not get matchDay for ${matchId}`);
+        return null;
+      }
 
-    if (!matchDoc.exists) {
-      console.warn(`⚠️ [validateJokerLimit] Match ${matchId} not found, skipping`);
-      return null;
+      const counterKey = getJokerCounterKey(matchDay);
+      const maxJokers = JOKER_LIMITS[matchDay] || 1;
+
+      // ⚡ Lese aktuellen Counter aus User-Dokument (1 Read statt N Queries!)
+      const userRef = admin.firestore().collection("users").doc(userId);
+      const userDoc = await userRef.get();
+      const jokerCounters = userDoc.data()?.jokerCounters || {};
+      const currentCount = jokerCounters[counterKey] || 0;
+
+      console.log(`🎯 [validateJokerLimit] User ${userId}: ${currentCount}/${maxJokers} jokers for key ${counterKey}`);
+
+      if (currentCount >= maxJokers) {
+        // ❌ Limit überschritten → Joker entfernen
+        console.warn(`🚫 [validateJokerLimit] Limit exceeded! Removing joker from tip ${tipId}`);
+        await change.after.ref.update({ joker: false });
+        return { corrected: true, reason: "joker_limit_exceeded" };
+      }
+
+      // ✅ Counter inkrementieren
+      await userRef.set({
+        jokerCounters: { [counterKey]: currentCount + 1 }
+      }, { merge: true });
+
+      console.log(`✅ [validateJokerLimit] Joker added, counter updated: ${counterKey} = ${currentCount + 1}`);
+      return { corrected: false };
     }
 
-    const matchData = matchDoc.data();
-    const matchDay = matchData?.matchDay;
-
-    if (matchDay === undefined || matchDay === null) {
-      console.warn(`⚠️ [validateJokerLimit] Match ${matchId} has no matchDay, skipping`);
-      return null;
-    }
-
-    console.log(`🎯 [validateJokerLimit] Checking joker for user ${userId}, matchDay ${matchDay}, tipId ${tipId}`);
-
-    // Maximale Joker für diesen matchDay
-    const maxJokers = JOKER_LIMITS[matchDay] || 1;
-
-    // matchDay 7+8 (Halbfinale + Finale) teilen sich 2 Joker
-    const matchDaysToCheck = (matchDay === 7 || matchDay === 8) ? [7, 8] : [matchDay];
-
-    // ✅ Alle Matches für diese matchDays holen
-    const matchesSnapshot = await admin.firestore()
-      .collection("matches")
-      .where("matchDay", "in", matchDaysToCheck)
-      .get();
-
-    const matchIdsForPhase = matchesSnapshot.docs.map((doc) => doc.id);
-
-    if (matchIdsForPhase.length === 0) {
-      console.warn(`⚠️ [validateJokerLimit] No matches found for matchDays ${matchDaysToCheck.join(",")}`);
-      return null;
-    }
-
-    // ✅ Zähle existierende Joker für diesen User in dieser Phase
-    const tipsSnapshot = await admin.firestore()
-      .collection("tips")
-      .where("userId", "==", userId)
-      .where("matchId", "in", matchIdsForPhase)
-      .where("joker", "==", true)
-      .get();
-
-    // Filtere das aktuelle Dokument raus (falls es ein Update ist)
-    const existingJokers = tipsSnapshot.docs.filter((doc) => doc.id !== tipId).length;
-
-    console.log(`📊 [validateJokerLimit] User ${userId} has ${existingJokers} existing jokers (max: ${maxJokers}) for matchDays ${matchDaysToCheck.join(",")}`);
-
-    if (existingJokers >= maxJokers) {
-      // ❌ Limit überschritten → Joker entfernen
-      console.warn(`🚫 [validateJokerLimit] User ${userId} exceeded joker limit (${existingJokers}/${maxJokers}) for matchDay ${matchDay}. Removing joker from tip ${tipId}.`);
-
-      await change.after.ref.update({ joker: false });
-
+    // Joker wurde entfernt
+    if (oldJoker && !newJoker) {
+      await updateJokerCounter(userId, matchId, -1);
       console.log(`✅ [validateJokerLimit] Joker removed from tip ${tipId}`);
-      return { corrected: true, reason: "joker_limit_exceeded" };
     }
 
-    console.log(`✅ [validateJokerLimit] Joker valid for tip ${tipId}`);
     return { corrected: false };
   });
+
+/**
+ * ⚡ Hilfsfunktion: Holt matchDay für ein Match (mit Caching)
+ */
+async function getMatchDay(matchId: string): Promise<number | null> {
+  // Check Cache
+  if (matchDayCache.has(matchId)) {
+    return matchDayCache.get(matchId)!;
+  }
+
+  const matchDoc = await admin.firestore().collection("matches").doc(matchId).get();
+  if (!matchDoc.exists) return null;
+
+  const matchDay = matchDoc.data()?.matchDay;
+  if (matchDay === undefined || matchDay === null) return null;
+
+  // Cache für 5 Minuten (Cloud Function Instance Lifetime)
+  matchDayCache.set(matchId, matchDay);
+  return matchDay;
+}
+
+/**
+ * ⚡ Hilfsfunktion: Aktualisiert Joker-Counter für einen User
+ */
+async function updateJokerCounter(userId: string, matchId: string, delta: number): Promise<void> {
+  const matchDay = await getMatchDay(matchId);
+  if (matchDay === null) return;
+
+  const counterKey = getJokerCounterKey(matchDay);
+  const userRef = admin.firestore().collection("users").doc(userId);
+
+  await admin.firestore().runTransaction(async (transaction) => {
+    const userDoc = await transaction.get(userRef);
+    const jokerCounters = userDoc.data()?.jokerCounters || {};
+    const currentCount = jokerCounters[counterKey] || 0;
+    const newCount = Math.max(0, currentCount + delta);
+
+    transaction.set(userRef, {
+      jokerCounters: { [counterKey]: newCount }
+    }, { merge: true });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Admin Function: Initialisiert Joker-Counter für alle User (einmalig ausführen!)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Admin-Only: Berechnet und setzt alle Joker-Counter neu
+ * Aufruf: firebase functions:call rebuildJokerCounters
+ */
+export const rebuildJokerCounters = functions.https.onCall(async (data, context) => {
+  // Admin-Check
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Authentifizierung erforderlich");
+  }
+
+  const callerDoc = await admin.firestore().collection("users").doc(context.auth.uid).get();
+  if (!callerDoc.data()?.admin) {
+    throw new functions.https.HttpsError("permission-denied", "Nur Admins können dies ausführen");
+  }
+
+  console.log("🔧 [rebuildJokerCounters] Starting rebuild...");
+
+  // 1. Alle Matches laden für matchDay-Mapping
+  const matchesSnapshot = await admin.firestore().collection("matches").get();
+  const matchDayMap: Record<string, number> = {};
+  matchesSnapshot.docs.forEach((doc) => {
+    matchDayMap[doc.id] = doc.data().matchDay;
+  });
+
+  console.log(`📦 [rebuildJokerCounters] Loaded ${Object.keys(matchDayMap).length} matches`);
+
+  // 2. Alle Tips mit Joker laden
+  const tipsSnapshot = await admin.firestore()
+    .collection("tips")
+    .where("joker", "==", true)
+    .get();
+
+  console.log(`🃏 [rebuildJokerCounters] Found ${tipsSnapshot.docs.length} joker tips`);
+
+  // 3. Counter pro User berechnen
+  const userCounters: Record<string, Record<string, number>> = {};
+
+  for (const tipDoc of tipsSnapshot.docs) {
+    const tip = tipDoc.data();
+    const userId = tip.userId;
+    const matchId = tip.matchId;
+    const matchDay = matchDayMap[matchId];
+
+    if (!userId || matchDay === undefined) continue;
+
+    const counterKey = getJokerCounterKey(matchDay);
+
+    if (!userCounters[userId]) {
+      userCounters[userId] = {};
+    }
+    userCounters[userId][counterKey] = (userCounters[userId][counterKey] || 0) + 1;
+  }
+
+  console.log(`👥 [rebuildJokerCounters] Calculated counters for ${Object.keys(userCounters).length} users`);
+
+  // 4. Counter in Firestore schreiben (Batch)
+  const batch = admin.firestore().batch();
+  let updateCount = 0;
+
+  for (const [userId, counters] of Object.entries(userCounters)) {
+    const userRef = admin.firestore().collection("users").doc(userId);
+    batch.set(userRef, { jokerCounters: counters }, { merge: true });
+    updateCount++;
+  }
+
+  await batch.commit();
+
+  console.log(`✅ [rebuildJokerCounters] Updated ${updateCount} users`);
+
+  return {
+    success: true,
+    usersUpdated: updateCount,
+    jokerTipsProcessed: tipsSnapshot.docs.length,
+    message: `Joker-Counter für ${updateCount} User aktualisiert`,
+  };
+});

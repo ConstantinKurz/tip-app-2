@@ -36,6 +36,11 @@ class TipRecalculationService {
     }
     _isListening = true;
 
+    _subscribeToStream();
+  }
+
+  /// Interner Helper: Subscribed auf den Match-Stream
+  void _subscribeToStream() {
     debugPrint(
         '🎯 TipRecalculationService gestartet - Höre auf Match-Änderungen...');
 
@@ -50,17 +55,37 @@ class TipRecalculationService {
             final matchesWithResults =
                 matches.where((m) => m.hasResult).toList();
 
+            debugPrint(
+                '🔎 [TipRecalculationService] Stream-Event: ${matches.length} Matches, ${matchesWithResults.length} mit Ergebnis');
+
             // Filter: Nur Matches mit Ergebnis-Änderung
             final changedMatches = <CustomMatch>[];
             for (final match in matchesWithResults) {
               final lastMatch = _lastMatchesById[match.id];
-              if (lastMatch == null ||
-                  lastMatch.homeScore != match.homeScore ||
-                  lastMatch.guestScore != match.guestScore) {
+              final isNew = lastMatch == null;
+              final scoreChanged = lastMatch != null &&
+                  (lastMatch.homeScore != match.homeScore ||
+                      lastMatch.guestScore != match.guestScore);
+
+              if (isNew || scoreChanged) {
                 changedMatches.add(match);
+                if (scoreChanged) {
+                  debugPrint(
+                      '   ✏️ Ergebnis-ÄNDERUNG erkannt: ${match.id} (${match.homeTeamId} vs ${match.guestTeamId})');
+                  debugPrint(
+                      '      ALT: ${lastMatch.homeScore}:${lastMatch.guestScore} → NEU: ${match.homeScore}:${match.guestScore}');
+                } else if (isNew) {
+                  debugPrint(
+                      '   🆕 Neues Ergebnis: ${match.id} (${match.homeTeamId} ${match.homeScore}:${match.guestScore} ${match.guestTeamId})');
+                }
               }
               // Update Map mit aktuellem Match
               _lastMatchesById[match.id] = match;
+            }
+
+            if (changedMatches.isEmpty) {
+              debugPrint(
+                  '   ⏭️ Keine Ergebnis-Änderungen erkannt (${_lastMatchesById.length} Matches gecached)');
             }
 
             if (changedMatches.isNotEmpty) {
@@ -73,6 +98,18 @@ class TipRecalculationService {
       },
       onError: (e) {
         debugPrint('❌ Stream-Fehler in TipRecalculationService: $e');
+      },
+      onDone: () {
+        // ✅ Stream wurde geschlossen (z.B. durch resetMatchesStream)
+        // → Nach kurzer Verzögerung neu subscriben
+        debugPrint(
+            '⚠️ [TipRecalculationService] Stream wurde geschlossen - subscribing again in 500ms...');
+        _matchStreamSub = null;
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (_isListening) {
+            _subscribeToStream();
+          }
+        });
       },
     );
   }

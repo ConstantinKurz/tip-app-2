@@ -129,6 +129,69 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                           ),
+                        // 💎 Joker-Info Banner
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16.0),
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.amber.withOpacity(0.2),
+                                Colors.orange.withOpacity(0.2),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.amber.withOpacity(0.5),
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: Colors.amber.shade300,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Joker-Info: 2 Joker für 4 Spiele',
+                                      style: themeData.textTheme.titleMedium
+                                          ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      ' Du hast ingesamt 2 Joker für folgende Spiele:',
+                                      style: themeData.textTheme.bodySmall
+                                          ?.copyWith(
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '• Halbfinale\n• Spiel um Platz 3\n• Finale',
+                                      style: themeData.textTheme.bodySmall
+                                          ?.copyWith(
+                                        color: Colors.white70,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         BlocProvider(
                           create: (_) => sl<RankingBloc>(),
                           child: BlocListener<RankingBloc, RankingState>(

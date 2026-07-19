@@ -93,13 +93,18 @@ class TeamsformBloc extends Bloc<TeamsformEvent, TeamsformState> {
         debugPrint('❌ Fehler beim Laden der Matches: $failure');
       },
       (allMatches) async {
+        // WICHTIG: Erst ALLE matchDay-8-Spiele sortieren, DANN prüfen ob Finale Result hat
+        // Sonst würde Spiel um Platz 3 als Finale behandelt wenn es früher Result bekommt
         final matchDay8Matches = allMatches
-            .where((m) => m.matchDay == 8 && m.hasResult)
+            .where((m) => m.matchDay == 8)
             .toList()
           ..sort((a, b) => b.matchDate.compareTo(a.matchDate));
 
-        if (matchDay8Matches.isNotEmpty) {
-          final finalMatch = matchDay8Matches.first;
+        // Das zeitlich letzte Spiel ist das echte Finale
+        final trueFinale = matchDay8Matches.isNotEmpty ? matchDay8Matches.first : null;
+        
+        if (trueFinale != null && trueFinale.hasResult) {
+          final finalMatch = trueFinale;
           debugPrint('🏆 Berechne Finale neu: ${finalMatch.id}');
           
           await recalculateMatchTipsUseCase(match: finalMatch);

@@ -70,13 +70,18 @@ class RecalculateMatchTipsUseCase {
 
         // Finde das Finale-Match: das ZEITLICH LETZTE Spiel mit matchDay 8
         // (nicht das Spiel um Platz 3, das früher stattfindet)
+        // WICHTIG: Erst ALLE matchDay-8-Spiele sortieren, DANN prüfen ob Finale Result hat
+        // Sonst würde Spiel um Platz 3 als Finale behandelt wenn es früher Result bekommt
         final matchDay8Matches = allMatches
-            .where((m) => m.matchDay == 8 && m.hasResult)
+            .where((m) => m.matchDay == 8)
             .toList()
           ..sort((a, b) => b.matchDate.compareTo(a.matchDate));
 
-        _cachedFinalMatch =
-            matchDay8Matches.isNotEmpty ? matchDay8Matches.first : null;
+        // Das zeitlich letzte Spiel ist das echte Finale
+        final trueFinale = matchDay8Matches.isNotEmpty ? matchDay8Matches.first : null;
+        
+        // Champion-Punkte nur vergeben wenn das ECHTE Finale ein Result hat
+        _cachedFinalMatch = (trueFinale != null && trueFinale.hasResult) ? trueFinale : null;
 
         if (_cachedFinalMatch != null) {
           final homeScore = _cachedFinalMatch!.homeScore ?? 0;
